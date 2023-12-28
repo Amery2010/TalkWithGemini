@@ -29,6 +29,9 @@ dependencies:
   siriwave:
     specifier: ^2.4.0
     version: 2.4.0
+  zustand:
+    specifier: ^4.4.7
+    version: 4.4.7(@types/react@18.2.38)(immer@10.0.3)(react@18.2.0)
 
 devDependencies:
   '@types/lodash':

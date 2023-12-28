@@ -16,7 +16,8 @@
     "next": "^14.0.3",
     "react": "^18",
     "react-dom": "^18",
-    "siriwave": "^2.4.0"
+    "siriwave": "^2.4.0",
+    "zustand": "^4.4.7"
   },
   "devDependencies": {
     "@types/lodash": "^4.14.202",
