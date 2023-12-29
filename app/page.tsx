@@ -2,13 +2,15 @@
 import { useRef, useState } from 'react'
 import { EdgeSpeechTTS } from '@lobehub/tts'
 import { useSpeechRecognition } from '@lobehub/tts/react'
+import { useAutoAnimate } from '@formkit/auto-animate/react'
 import { create } from 'zustand'
 import { Textarea } from '@/components/ui/textarea'
 import { Button } from '@/components/ui/button'
-import MessageItem from '@/components/MessageItem'
+import MessageItem, { filterMarkdown } from '@/components/MessageItem'
+import ErrorMessageItem from '@/components/ErrorMessageItem'
 import AudioStream from '@/utils/AudioStream'
 import PromiseQueue from '@/utils/PromiseQueue'
-import type { Message } from 'ai'
+import { FetchEventResult } from 'next/dist/server/web/types'
 
 type MessageStore = {
   messages: Message[]
@@ -25,7 +27,7 @@ const useMessageStore = create<MessageStore>((set) => ({
     },
     {
       id: '2',
-      role: 'assistant',
+      role: 'model',
       content:
         '嗨，很高兴认识你！能成为你身边无所不知的朋友，我感到非常荣幸。我会用口语的方式与你沟通，并在适当的位置加上换行符。',
     },
@@ -50,7 +52,11 @@ const useMessageStore = create<MessageStore>((set) => ({
  * @param readable 可读流
  * @param onMessage 消息回调函数
  */
-export async function textStream(readable: ReadableStream, onMessage: (text: string) => void) {
+export async function textStream(
+  readable: ReadableStream,
+  onMessage: (text: string) => void,
+  onStatement: (statement: string) => void,
+) {
   const reader = readable.getReader()
 
   const decoder = new TextDecoder('utf-8')
@@ -60,16 +66,17 @@ export async function textStream(readable: ReadableStream, onMessage: (text: str
   while (true) {
     let { value, done } = await reader.read()
     if (done) {
-      buffer && onMessage(buffer)
+      buffer && onStatement(filterMarkdown(buffer))
       break
     }
     // stream: true is important here, fix the bug of incomplete line
     const chunk = decoder.decode(value, { stream: true })
+    onMessage(chunk)
     const lines = (buffer + chunk).split(reg)
     buffer = lines.pop() || ''
 
     for (const line of lines) {
-      onMessage(line + '\n\n')
+      onStatement(filterMarkdown(line))
     }
   }
 }
@@ -80,6 +87,7 @@ export default function Home() {
   const speechQueue = useRef<PromiseQueue>()
   const { messages, addMessage, updateMessage } = useMessageStore()
   const { text, start, stop, isLoading, formattedTime } = useSpeechRecognition('zh-CN')
+  const [parent] = useAutoAnimate()
   const [init, setInit] = useState<boolean>(false)
   const [content, setContent] = useState<string>('')
 
@@ -112,16 +120,28 @@ export default function Home() {
         messages: [...messages, newMessage],
       }),
     })
-    if (response.body) {
-      const newMessage: Message = { id: Date.now().toString(), role: 'assistant', content: '' }
+    if (response.status < 400 && response.body) {
+      const newMessage: Message = { id: Date.now().toString(), role: 'model', content: '' }
       addMessage(newMessage)
       speechQueue.current = new PromiseQueue()
-      textStream(response.body, (content) => {
-        if (content) {
+      await textStream(
+        response.body,
+        (content) => {
           updateMessage(content)
-          speech(content)
-        }
-      })
+        },
+        (statement) => {
+          speech(statement)
+        },
+      )
+    } else {
+      const errorMessage = await response.text()
+      const newMessage: Message = {
+        id: Date.now().toString(),
+        role: 'model',
+        content: `${response.status}: ${errorMessage}`,
+        error: true,
+      }
+      addMessage(newMessage)
     }
   }
 
@@ -137,11 +157,17 @@ export default function Home() {
 
   return (
     <main className="mx-auto flex min-h-screen max-w-screen-md flex-col pb-6 pt-10">
-      {messages.map((m) => (
-        <div className="flex gap-3 p-4 transition-colors hover:bg-[#94a3b812]" key={m.id}>
-          <MessageItem role={m.role} content={m.content} />
-        </div>
-      ))}
+      <div ref={parent}>
+        {messages.map((msg) => (
+          <div className="flex gap-3 p-4 transition-colors hover:bg-[#94a3b812]" key={msg.id}>
+            {!msg.error ? (
+              <MessageItem role={msg.role} content={msg.content} />
+            ) : (
+              <ErrorMessageItem role={msg.role} content={msg.content} />
+            )}
+          </div>
+        ))}
+      </div>
       <div className="flex gap-2 p-4">
         <Textarea
           className="min-h-10"
