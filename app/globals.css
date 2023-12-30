@@ -79,6 +79,7 @@
   position: relative;
   width: 100%;
   margin: 0.5em 0;
+  font-size: 0.8em;
   overflow-x: auto;
   overflow-y: hidden;
   border-radius: 4px;

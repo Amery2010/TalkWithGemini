@@ -21,12 +21,16 @@ class PromiseQueue {
     })
   }
 
+  public empty() {
+    this.executing = false
+    this.queue = []
+  }
+
   private async executeNext(): Promise<void> {
     if (this.queue.length === 0) {
       this.executing = false
       return
     }
-
     const task = this.queue.shift()
     if (task) {
       this.executing = true

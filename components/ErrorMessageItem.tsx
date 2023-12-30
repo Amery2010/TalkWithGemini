@@ -1,6 +1,8 @@
+'use client'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
+import { memo } from 'react'
 
-export default function ErrorMessageItem({ role, content }: Message) {
+function ErrorMessageItem({ role, content }: Message) {
   return (
     <>
       <Avatar className="h-8 w-8">
@@ -12,3 +14,5 @@ export default function ErrorMessageItem({ role, content }: Message) {
     </>
   )
 }
+
+export default memo(ErrorMessageItem)

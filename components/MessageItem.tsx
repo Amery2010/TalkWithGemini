@@ -1,21 +1,11 @@
-import { useEffect, useState } from 'react'
+'use client'
+import { memo, useEffect, useState } from 'react'
 import MarkdownIt from 'markdown-it'
 import markdownHighlight from 'markdown-it-highlightjs'
 import markdownKatex from '@traptitech/markdown-it-katex'
 import Clipboard from 'clipboard'
+import { User, Bot } from 'lucide-react'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
-
-export function filterMarkdown(text: string): string {
-  const md = new MarkdownIt()
-  // 使用 markdown-it 将 Markdown 转换为 HTML
-  const html = md.render(text)
-  // 使用 DOMParser 将 HTML 转换为 DOM 对象
-  const parser = new DOMParser()
-  const doc = parser.parseFromString(html, 'text/html')
-  // 获取过滤后的文本内容
-  const filteredText = doc.body.textContent || ''
-  return filteredText
-}
 
 const registerCopy = (className: string) => {
   const clipboard = new Clipboard(className, {
@@ -33,7 +23,7 @@ const registerCopy = (className: string) => {
   return clipboard
 }
 
-export default function MessageItem({ role, content }: Message) {
+function MessageItem({ role, content }: Message) {
   const [html, setHtml] = useState<string>('')
 
   const render = (content: string) => {
@@ -96,7 +86,15 @@ export default function MessageItem({ role, content }: Message) {
   return (
     <>
       <Avatar className="h-8 w-8">
-        <AvatarFallback>{role === 'user' ? 'User' : 'AI'}</AvatarFallback>
+        {role === 'user' ? (
+          <AvatarFallback className="bg-green-300 text-white">
+            <User />
+          </AvatarFallback>
+        ) : (
+          <AvatarFallback className="bg-red-300 text-white">
+            <Bot />
+          </AvatarFallback>
+        )}
       </Avatar>
       <div
         className="prose overflow-hidden break-words text-base leading-8"
@@ -105,3 +103,5 @@ export default function MessageItem({ role, content }: Message) {
     </>
   )
 }
+
+export default memo(MessageItem)
