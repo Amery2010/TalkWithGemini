@@ -1,5 +1,5 @@
 'use client'
-import { useRef, useState, useMemo } from 'react'
+import { useRef, useState, useMemo, useLayoutEffect } from 'react'
 import { EdgeSpeechTTS } from '@lobehub/tts'
 import { useSpeechRecognition } from '@lobehub/tts/react'
 import { useAutoAnimate } from '@formkit/auto-animate/react'
@@ -8,6 +8,7 @@ import { MessageCircleHeart, AudioLines, SendHorizontal, Mic, MessageSquareText,
 import ThemeToggle from '@/components/ThemeToggle'
 import { Textarea } from '@/components/ui/textarea'
 import { Button } from '@/components/ui/button'
+import { Separator } from '@/components/ui/separator'
 import MessageItem from '@/components/MessageItem'
 import ErrorMessageItem from '@/components/ErrorMessageItem'
 import { useMessageStore } from '@/store/chat'
@@ -22,7 +23,15 @@ export default function Home() {
   const edgeSpeechRef = useRef<EdgeSpeechTTS>()
   const speechQueue = useRef<PromiseQueue>()
   const subtitleList = useRef<string[]>([])
-  const { messages, addMessage, updateMessage } = useMessageStore()
+  const {
+    messages,
+    add: addMessage,
+    update: updateMessage,
+    save: saveMessages,
+    init: initMessages,
+    reset: resetMessages,
+    revoke: revokeMessage,
+  } = useMessageStore()
   const speechRecognition = useSpeechRecognition('zh-CN')
   const [messageAutoAnimate] = useAutoAnimate()
   const [talkMode, setTalkMode] = useState<'chat' | 'voice'>('chat')
@@ -56,8 +65,9 @@ export default function Home() {
           if (voice) {
             const audio = await voice.arrayBuffer()
             setStatus('talking')
-            siriWave?.setSpeed(0.05)
-            siriWave?.setAmplitude(2)
+            const isSafari = /Safari/.test(navigator.userAgent) && !/Chrome/.test(navigator.userAgent)
+            siriWave?.setSpeed(isSafari ? 0.2 : 0.05)
+            siriWave?.setAmplitude(isSafari ? 3 : 2)
             audioStreamRef.current?.play({
               audioData: audio,
               onStart: () => {
@@ -67,6 +77,7 @@ export default function Home() {
               onFinished: () => {
                 setStatus('silence')
                 setSubtitle('')
+                saveMessages()
                 siriWave?.setSpeed(0.04)
                 siriWave?.setAmplitude(0.1)
               },
@@ -79,18 +90,19 @@ export default function Home() {
 
   const handleSubmit = async (text: string) => {
     initVoice()
-    const newMessage: Message = { id: Date.now().toString(), role: 'user', content: text }
-    addMessage(newMessage)
+    setContent('')
+    const newUserMessage: Message = { id: Date.now().toString(), role: 'user', content: text }
+    addMessage(newUserMessage)
     setStatus('thinkng')
     const response = await fetch('/api/chat', {
       method: 'POST',
       body: JSON.stringify({
-        messages: [...messages, newMessage],
+        messages: [...messages, newUserMessage],
       }),
     })
     if (response.status < 400 && response.body) {
-      const newMessage: Message = { id: Date.now().toString(), role: 'model', content: '' }
-      addMessage(newMessage)
+      const newModelMessage: Message = { id: Date.now().toString(), role: 'model', content: '' }
+      addMessage(newModelMessage)
       speechQueue.current = new PromiseQueue()
       subtitleList.current = []
       setSpeechSilence(false)
@@ -100,23 +112,38 @@ export default function Home() {
           updateMessage(content)
         },
         (statement) => {
-          const text = filterMarkdown(statement)
-          subtitleList.current.push(text)
-          speech(text)
+          if (talkMode === 'voice') {
+            const text = filterMarkdown(statement)
+            subtitleList.current.push(text)
+            speech(text)
+          }
         },
       )
-    } else {
       setStatus('silence')
+      saveMessages()
+    } else {
       const errorMessage = await response.text()
-      const newMessage: Message = {
+      const newModelMessage: Message = {
         id: Date.now().toString(),
         role: 'model',
         content: `${response.status}: ${errorMessage}`,
         error: true,
       }
-      addMessage(newMessage)
+      setStatus('silence')
+      addMessage(newModelMessage)
       setSubtitle(errorMessage)
     }
+  }
+
+  const handleResubmit = async () => {
+    const lastQuestion = messages[messages.length - 2].content
+    revokeMessage()
+    await handleSubmit(lastQuestion)
+  }
+
+  const handleCleanMessage = () => {
+    resetMessages()
+    saveMessages()
   }
 
   const updateTalkMode = (type: 'chat' | 'voice') => {
@@ -129,8 +156,6 @@ export default function Home() {
           style: 'ios9',
           speed: 0.04,
           amplitude: 0.1,
-          pixelDepth: 0.02,
-          lerpSpeed: 0.01,
           width: window.innerWidth,
           height: window.innerHeight / 5,
         }),
@@ -165,9 +190,13 @@ export default function Home() {
     }
   }
 
+  useLayoutEffect(() => {
+    initMessages()
+  }, [initMessages])
+
   return (
-    <main className="mx-auto flex min-h-screen max-w-screen-md flex-col justify-between pb-6 pt-10">
-      <div className="my-6 flex justify-between p-4">
+    <main className="mx-auto flex min-h-screen max-w-screen-md flex-col justify-between pt-6 max-sm:pt-0">
+      <div className="mb-2 mt-6 flex justify-between p-4 max-sm:mt-2">
         <div className="flex flex-row text-xl leading-8">
           <MessageCircleHeart className="h-10 w-10 text-red-400" />
           <div className="ml-3 bg-gradient-to-r from-red-300 via-green-300 to-green-400 bg-clip-text font-bold leading-10 text-transparent">
@@ -179,18 +208,31 @@ export default function Home() {
       <div ref={messageAutoAnimate} className="flex h-full flex-1 flex-col justify-start">
         {messages.slice(2).map((msg) => (
           <div
-            className="flex gap-3 p-4 text-slate-500 transition-colors last:text-slate-800 hover:bg-[rgba(148,163,184,0.07)] hover:text-slate-800 dark:last:text-slate-400 dark:hover:text-slate-400"
+            className="group text-slate-500 transition-colors last:text-slate-800 hover:text-slate-800 max-sm:hover:bg-transparent dark:last:text-slate-400 dark:hover:text-slate-400"
             key={msg.id}
           >
-            {!msg.error ? (
-              <MessageItem role={msg.role} content={msg.content} />
-            ) : (
-              <ErrorMessageItem role={msg.role} content={msg.content} />
-            )}
+            <div className="flex gap-3 p-4 hover:bg-[rgba(148,163,184,0.07)]">
+              {!msg.error ? (
+                <MessageItem role={msg.role} content={msg.content} />
+              ) : (
+                <ErrorMessageItem role={msg.role} content={msg.content} />
+              )}
+            </div>
+            {msg.role === 'model' ? (
+              <div className="my-2 flex h-4 justify-center text-xs text-slate-400 opacity-0 transition-opacity duration-300 group-hover:opacity-100 dark:text-slate-600">
+                <span className="mx-2 cursor-pointer hover:text-slate-500" onClick={() => handleResubmit()}>
+                  重新生成答案
+                </span>
+                <Separator orientation="vertical" />
+                <span className="mx-2 cursor-pointer hover:text-slate-500" onClick={() => handleCleanMessage()}>
+                  清空聊天内容
+                </span>
+              </div>
+            ) : null}
           </div>
         ))}
       </div>
-      <div className="mb-4 flex gap-2 p-4">
+      <div className="fixed bottom-0 flex w-full max-w-screen-md gap-2 bg-[hsl(var(--background))] p-4 pb-8 max-sm:pb-4">
         <Button title="语音对话模式" variant="secondary" size="icon" onClick={() => updateTalkMode('voice')}>
           <AudioLines />
         </Button>
