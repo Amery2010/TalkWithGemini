@@ -1,11 +1,10 @@
 'use client'
-import { useRef, useState, useMemo, useLayoutEffect, KeyboardEvent } from 'react'
+import { useRef, useState, useMemo, useLayoutEffect, KeyboardEvent, useEffect } from 'react'
 import { EdgeSpeechTTS } from '@lobehub/tts'
 import { useSpeechRecognition } from '@lobehub/tts/react'
 import { useAutoAnimate } from '@formkit/auto-animate/react'
 import SiriWave from 'siriwave'
 import { MessageCircleHeart, AudioLines, Mic, MessageSquareText, Settings, Pause } from 'lucide-react'
-import LanguageDetector from 'i18next-browser-languagedetector'
 import ThemeToggle from '@/components/ThemeToggle'
 import { Textarea } from '@/components/ui/textarea'
 import { Button } from '@/components/ui/button'
@@ -22,9 +21,6 @@ import filterMarkdown from '@/utils/filterMarkdown'
 import textStream from '@/utils/textStream'
 import { generateSignature, generateUTCTimestamp } from '@/utils/signature'
 
-const languageDetector = new LanguageDetector()
-languageDetector.init()
-
 export default function Home() {
   const siriWaveRef = useRef<HTMLDivElement>(null)
   const audioStreamRef = useRef<AudioStream>()
@@ -40,8 +36,8 @@ export default function Home() {
     reset: resetMessages,
     revoke: revokeMessage,
   } = useMessageStore()
-  const { password, apiKey, apiProxy, lang, setLang, init: initSetting } = useSettingStore()
-  const speechRecognition = useSpeechRecognition(lang)
+  const { password, apiKey, apiProxy, sttLang, ttsLang, ttsVoice, init: initSetting } = useSettingStore()
+  const speechRecognition = useSpeechRecognition(sttLang)
   const [messageAutoAnimate] = useAutoAnimate()
   const [talkMode, setTalkMode] = useState<'chat' | 'voice'>('chat')
   const [siriWave, setSiriWave] = useState<SiriWave>()
@@ -69,7 +65,7 @@ export default function Home() {
           if (speechSilence) reject(false)
           const voice = await edgeSpeechRef.current?.create({
             input: content,
-            options: { voice: 'zh-CN-XiaoxiaoNeural' },
+            options: { voice: ttsVoice },
           })
           if (voice) {
             const audio = await voice.arrayBuffer()
@@ -98,6 +94,12 @@ export default function Home() {
   }
 
   const handleSubmit = async (text: string) => {
+    if (talkMode === 'voice') {
+      if (!audioStreamRef.current) {
+        audioStreamRef.current = new AudioStream()
+      }
+      edgeSpeechRef.current = new EdgeSpeechTTS({ locale: ttsLang })
+    }
     setContent('')
     const newUserMessage: Message = { id: Date.now().toString(), role: 'user', content: text }
     addMessage(newUserMessage)
@@ -115,24 +117,28 @@ export default function Home() {
         speechQueue.current = new PromiseQueue()
         subtitleList.current = []
         setSpeechSilence(false)
+        const onStatement = (line: string) => {
+          if (talkMode === 'voice') {
+            const text = filterMarkdown(line)
+            subtitleList.current.push(text)
+            speech(text)
+          }
+        }
 
         const reg = /(?:\n\n|\r\r|\r\n\r\n)/
         let buffer = ''
         for await (const chunk of response) {
           const chunkText = chunk.text()
-          text += chunkText
-
           updateMessage(chunkText)
-          const lines = (buffer + chunk).split(reg)
+          const lines = (buffer + chunkText).split(reg)
           buffer = lines.pop() || ''
 
           for (const line of lines) {
-            if (talkMode === 'voice') {
-              const text = filterMarkdown(line)
-              subtitleList.current.push(text)
-              speech(text)
-            }
+            onStatement(line)
           }
+        }
+        if (buffer.length > 0) {
+          onStatement(buffer)
         }
         setStatus('silence')
         saveMessages()
@@ -207,7 +213,6 @@ export default function Home() {
   const updateTalkMode = (type: 'chat' | 'voice') => {
     setTalkMode(type)
     if (type === 'voice') {
-      initVoice()
       setSiriWave(
         new SiriWave({
           container: siriWaveRef.current!,
@@ -239,13 +244,6 @@ export default function Home() {
     audioStreamRef.current?.stop()
   }
 
-  const initVoice = () => {
-    const audioStream = new AudioStream()
-    audioStreamRef.current = audioStream
-    const edgeSpeech = new EdgeSpeechTTS({ locale: lang })
-    edgeSpeechRef.current = edgeSpeech
-  }
-
   const handleKeyDown = (ev: KeyboardEvent<HTMLTextAreaElement>) => {
     if (ev.key === 'Enter' && !ev.shiftKey) {
       if (!checkAccessStatus()) return false
@@ -266,13 +264,8 @@ export default function Home() {
 
   useLayoutEffect(() => {
     initMessages()
-    const setting = initSetting()
-    if (setting.lang === '') {
-      const detectedLang = languageDetector.detect()
-      const lang = Array.isArray(detectedLang) ? detectedLang[0] : detectedLang
-      setLang(lang || 'en-US')
-    }
-  }, [initMessages, initSetting, setLang])
+    initSetting()
+  }, [initMessages, initSetting])
 
   return (
     <main className="mx-auto flex min-h-screen max-w-screen-md flex-col justify-between pt-6 max-sm:pt-0">

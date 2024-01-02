@@ -1,4 +1,5 @@
-import { memo, useEffect, useState } from 'react'
+import { memo, useEffect, useMemo, useState } from 'react'
+import { EdgeSpeechTTS } from '@lobehub/tts'
 import { useSettingStore } from '@/store/setting'
 import {
   Dialog,
@@ -12,6 +13,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Button } from '@/components/ui/button'
+import locales from '@/constant/locales'
+import { toPairs, values } from 'lodash-es'
 
 type SettingProps = {
   open: boolean
@@ -23,21 +26,41 @@ function Setting({ open, onClose }: SettingProps) {
   const [password, setPassword] = useState<string>('')
   const [apiKey, setApiKey] = useState<string>('')
   const [apiProxy, setApiProxy] = useState<string>('')
+  const [sttLang, setSttLang] = useState<string>('')
+  const [ttsLang, setTtsLang] = useState<string>('')
+  const [ttsVoice, setTtsVoice] = useState<string>('')
+  const voiceOptions = useMemo(() => {
+    return new EdgeSpeechTTS({ locale: ttsLang }).voiceOptions || []
+  }, [ttsLang])
 
   const handleSubmit = () => {
-    if (password) settingStore.setPassword(password)
-    if (apiKey) settingStore.setApiKey(apiKey)
-    if (apiProxy) settingStore.setApiProxy(apiProxy)
+    if (password !== settingStore.password) settingStore.setPassword(password)
+    if (apiKey !== settingStore.apiKey) settingStore.setApiKey(apiKey)
+    if (apiProxy !== settingStore.apiProxy) settingStore.setApiProxy(apiProxy)
+    if (sttLang !== settingStore.sttLang) settingStore.setSTTLang(sttLang)
+    if (ttsLang !== settingStore.ttsLang) settingStore.setTTSLang(ttsLang)
+    if (ttsVoice !== settingStore.ttsVoice) settingStore.setTTSVoice(ttsVoice)
     onClose()
   }
   const handleClose = (open: boolean) => {
     if (!open) onClose()
   }
 
+  const handleTTSChange = (value: string) => {
+    setTtsLang(value)
+    const options = new EdgeSpeechTTS({ locale: value }).voiceOptions
+    if (options) {
+      setTtsVoice(options[0].value as string)
+    }
+  }
+
   useEffect(() => {
     setPassword(settingStore.password)
     setApiKey(settingStore.apiKey)
     setApiProxy(settingStore.apiProxy)
+    setSttLang(settingStore.sttLang)
+    setTtsLang(settingStore.ttsLang)
+    setTtsVoice(settingStore.ttsVoice)
   }, [settingStore])
 
   return (
@@ -98,13 +121,18 @@ function Setting({ open, onClose }: SettingProps) {
             <Label htmlFor="stt" className="text-right">
               语音识别
             </Label>
-            <Select defaultValue="zh-CN">
+            <Select value={sttLang} onValueChange={setSttLang}>
               <SelectTrigger id="stt" className="col-span-3">
                 <SelectValue placeholder="跟随系统" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="zh-CN">简体中文</SelectItem>
-                <SelectItem value="en-US">English</SelectItem>
+                {toPairs(locales).map((kv) => {
+                  return (
+                    <SelectItem key={kv[0]} value={kv[0]}>
+                      {kv[1]}
+                    </SelectItem>
+                  )
+                })}
               </SelectContent>
             </Select>
           </div>
@@ -112,13 +140,18 @@ function Setting({ open, onClose }: SettingProps) {
             <Label htmlFor="tts" className="text-right">
               语音合成
             </Label>
-            <Select defaultValue="zh-CN">
+            <Select value={ttsLang} onValueChange={handleTTSChange}>
               <SelectTrigger id="tts" className="col-span-3">
                 <SelectValue placeholder="跟随系统" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="zh-CN">简体中文</SelectItem>
-                <SelectItem value="en-US">English</SelectItem>
+                {toPairs(locales).map((kv) => {
+                  return (
+                    <SelectItem key={kv[0]} value={kv[0]}>
+                      {kv[1]}
+                    </SelectItem>
+                  )
+                })}
               </SelectContent>
             </Select>
           </div>
@@ -126,13 +159,18 @@ function Setting({ open, onClose }: SettingProps) {
             <Label htmlFor="tts" className="text-right">
               合成声源
             </Label>
-            <Select defaultValue="zh-CN-XiaoxiaoNeural">
+            <Select value={ttsVoice} onValueChange={setTtsVoice}>
               <SelectTrigger id="tts" className="col-span-3">
                 <SelectValue placeholder="跟随系统" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="zh-CN-XiaoxiaoNeural">晓晓</SelectItem>
-                <SelectItem value="zh-CN-YunxiNeural">云希</SelectItem>
+                {values(voiceOptions).map((option) => {
+                  return (
+                    <SelectItem key={option.value} value={option.value as string}>
+                      {option.label}
+                    </SelectItem>
+                  )
+                })}
               </SelectContent>
             </Select>
           </div>
