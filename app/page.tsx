@@ -1,21 +1,29 @@
 'use client'
-import { useRef, useState, useMemo, useLayoutEffect } from 'react'
+import { useRef, useState, useMemo, useLayoutEffect, KeyboardEvent } from 'react'
 import { EdgeSpeechTTS } from '@lobehub/tts'
 import { useSpeechRecognition } from '@lobehub/tts/react'
 import { useAutoAnimate } from '@formkit/auto-animate/react'
 import SiriWave from 'siriwave'
-import { MessageCircleHeart, AudioLines, SendHorizontal, Mic, MessageSquareText, Settings2, Pause } from 'lucide-react'
+import { MessageCircleHeart, AudioLines, Mic, MessageSquareText, Settings, Pause } from 'lucide-react'
+import LanguageDetector from 'i18next-browser-languagedetector'
 import ThemeToggle from '@/components/ThemeToggle'
 import { Textarea } from '@/components/ui/textarea'
 import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
 import MessageItem from '@/components/MessageItem'
 import ErrorMessageItem from '@/components/ErrorMessageItem'
+import Setting from '@/components/Setting'
 import { useMessageStore } from '@/store/chat'
+import { useSettingStore } from '@/store/setting'
+import * as request from '@/utils/request'
 import AudioStream from '@/utils/AudioStream'
 import PromiseQueue from '@/utils/PromiseQueue'
-import textStream from '@/utils/textStream'
 import filterMarkdown from '@/utils/filterMarkdown'
+import textStream from '@/utils/textStream'
+import { generateSignature, generateUTCTimestamp } from '@/utils/signature'
+
+const languageDetector = new LanguageDetector()
+languageDetector.init()
 
 export default function Home() {
   const siriWaveRef = useRef<HTMLDivElement>(null)
@@ -32,13 +40,14 @@ export default function Home() {
     reset: resetMessages,
     revoke: revokeMessage,
   } = useMessageStore()
-  const speechRecognition = useSpeechRecognition('zh-CN')
+  const { password, apiKey, apiProxy, lang, setLang, init: initSetting } = useSettingStore()
+  const speechRecognition = useSpeechRecognition(lang)
   const [messageAutoAnimate] = useAutoAnimate()
   const [talkMode, setTalkMode] = useState<'chat' | 'voice'>('chat')
   const [siriWave, setSiriWave] = useState<SiriWave>()
-  const [init, setInit] = useState<boolean>(false)
   const [content, setContent] = useState<string>('')
   const [subtitle, setSubtitle] = useState<string>('')
+  const [settingOpen, setSetingOpen] = useState<boolean>(false)
   const [speechSilence, setSpeechSilence] = useState<boolean>(false)
   const [status, setStatus] = useState<'thinkng' | 'silence' | 'talking'>('silence')
   const statusText = useMemo(() => {
@@ -89,49 +98,98 @@ export default function Home() {
   }
 
   const handleSubmit = async (text: string) => {
-    initVoice()
     setContent('')
     const newUserMessage: Message = { id: Date.now().toString(), role: 'user', content: text }
     addMessage(newUserMessage)
     setStatus('thinkng')
-    const response = await fetch('/api/chat', {
-      method: 'POST',
-      body: JSON.stringify({
+    if (apiKey !== '') {
+      const config: request.RequestProps = {
         messages: [...messages, newUserMessage],
-      }),
-    })
-    if (response.status < 400 && response.body) {
-      const newModelMessage: Message = { id: Date.now().toString(), role: 'model', content: '' }
-      addMessage(newModelMessage)
-      speechQueue.current = new PromiseQueue()
-      subtitleList.current = []
-      setSpeechSilence(false)
-      await textStream(
-        response.body,
-        (content) => {
-          updateMessage(content)
-        },
-        (statement) => {
-          if (talkMode === 'voice') {
-            const text = filterMarkdown(statement)
-            subtitleList.current.push(text)
-            speech(text)
-          }
-        },
-      )
-      setStatus('silence')
-      saveMessages()
-    } else {
-      const errorMessage = await response.text()
-      const newModelMessage: Message = {
-        id: Date.now().toString(),
-        role: 'model',
-        content: `${response.status}: ${errorMessage}`,
-        error: true,
+        key: apiKey,
       }
-      setStatus('silence')
-      addMessage(newModelMessage)
-      setSubtitle(errorMessage)
+      if (apiProxy) config.baseUrl = apiProxy
+      const response = await request.chat(config)
+      if (typeof response !== 'string') {
+        const newModelMessage: Message = { id: Date.now().toString(), role: 'model', content: '' }
+        addMessage(newModelMessage)
+        speechQueue.current = new PromiseQueue()
+        subtitleList.current = []
+        setSpeechSilence(false)
+
+        const reg = /(?:\n\n|\r\r|\r\n\r\n)/
+        let buffer = ''
+        for await (const chunk of response) {
+          const chunkText = chunk.text()
+          text += chunkText
+
+          updateMessage(chunkText)
+          const lines = (buffer + chunk).split(reg)
+          buffer = lines.pop() || ''
+
+          for (const line of lines) {
+            if (talkMode === 'voice') {
+              const text = filterMarkdown(line)
+              subtitleList.current.push(text)
+              speech(text)
+            }
+          }
+        }
+        setStatus('silence')
+        saveMessages()
+      } else {
+        const newModelMessage: Message = {
+          id: Date.now().toString(),
+          role: 'model',
+          content: response,
+          error: true,
+        }
+        setStatus('silence')
+        addMessage(newModelMessage)
+        setSubtitle(response)
+      }
+    } else {
+      const utcTimestamp = generateUTCTimestamp()
+      const response = await fetch('/api/chat', {
+        method: 'POST',
+        body: JSON.stringify({
+          messages: [...messages, newUserMessage],
+          t: utcTimestamp,
+          sign: generateSignature(password, utcTimestamp),
+        }),
+      })
+      if (response.status < 400 && response.body) {
+        const newModelMessage: Message = { id: Date.now().toString(), role: 'model', content: '' }
+        addMessage(newModelMessage)
+        speechQueue.current = new PromiseQueue()
+        subtitleList.current = []
+        setSpeechSilence(false)
+        await textStream(
+          response.body,
+          (content) => {
+            updateMessage(content)
+          },
+          (statement) => {
+            if (talkMode === 'voice') {
+              const text = filterMarkdown(statement)
+              subtitleList.current.push(text)
+              speech(text)
+            }
+          },
+        )
+        setStatus('silence')
+        saveMessages()
+      } else {
+        const errorMessage = await response.text()
+        const newModelMessage: Message = {
+          id: Date.now().toString(),
+          role: 'model',
+          content: `${response.status}: ${errorMessage}`,
+          error: true,
+        }
+        setStatus('silence')
+        addMessage(newModelMessage)
+        setSubtitle(errorMessage)
+      }
     }
   }
 
@@ -166,6 +224,7 @@ export default function Home() {
   }
 
   const handleRecorder = () => {
+    if (!checkAccessStatus()) return false
     if (speechRecognition.isRecording) {
       speechRecognition.stop()
       if (speechRecognition.text) handleSubmit(speechRecognition.text)
@@ -181,18 +240,39 @@ export default function Home() {
   }
 
   const initVoice = () => {
-    if (!init) {
-      const audioStream = new AudioStream()
-      audioStreamRef.current = audioStream
-      const edgeSpeech = new EdgeSpeechTTS()
-      edgeSpeechRef.current = edgeSpeech
-      setInit(true)
+    const audioStream = new AudioStream()
+    audioStreamRef.current = audioStream
+    const edgeSpeech = new EdgeSpeechTTS({ locale: lang })
+    edgeSpeechRef.current = edgeSpeech
+  }
+
+  const handleKeyDown = (ev: KeyboardEvent<HTMLTextAreaElement>) => {
+    if (ev.key === 'Enter' && !ev.shiftKey) {
+      if (!checkAccessStatus()) return false
+      // 阻止默认的回车换行行为
+      ev.preventDefault()
+      handleSubmit(content)
+    }
+  }
+
+  const checkAccessStatus = () => {
+    if (password !== '' || apiKey !== '') {
+      return true
+    } else {
+      setSetingOpen(true)
+      return false
     }
   }
 
   useLayoutEffect(() => {
     initMessages()
-  }, [initMessages])
+    const setting = initSetting()
+    if (setting.lang === '') {
+      const detectedLang = languageDetector.detect()
+      const lang = Array.isArray(detectedLang) ? detectedLang[0] : detectedLang
+      setLang(lang || 'en-US')
+    }
+  }, [initMessages, initSetting, setLang])
 
   return (
     <main className="mx-auto flex min-h-screen max-w-screen-md flex-col justify-between pt-6 max-sm:pt-0">
@@ -206,7 +286,7 @@ export default function Home() {
         <ThemeToggle />
       </div>
       <div ref={messageAutoAnimate} className="flex h-full flex-1 flex-col justify-start">
-        {messages.slice(2).map((msg) => (
+        {messages.slice(2).map((msg, idx) => (
           <div
             className="group text-slate-500 transition-colors last:text-slate-800 hover:text-slate-800 max-sm:hover:bg-transparent dark:last:text-slate-400 dark:hover:text-slate-400"
             key={msg.id}
@@ -218,7 +298,7 @@ export default function Home() {
                 <ErrorMessageItem role={msg.role} content={msg.content} />
               )}
             </div>
-            {msg.role === 'model' ? (
+            {msg.role === 'model' && idx === messages.length - 3 ? (
               <div className="my-2 flex h-4 justify-center text-xs text-slate-400 opacity-0 transition-opacity duration-300 group-hover:opacity-100 dark:text-slate-600">
                 <span className="mx-2 cursor-pointer hover:text-slate-500" onClick={() => handleResubmit()}>
                   重新生成答案
@@ -232,7 +312,7 @@ export default function Home() {
           </div>
         ))}
       </div>
-      <div className="fixed bottom-0 flex w-full max-w-screen-md gap-2 bg-[hsl(var(--background))] p-4 pb-8 max-sm:pb-4">
+      <div className="flex w-full max-w-screen-md gap-2 bg-[hsl(var(--background))] p-4 pb-8 max-sm:pb-4">
         <Button title="语音对话模式" variant="secondary" size="icon" onClick={() => updateTalkMode('voice')}>
           <AudioLines />
         </Button>
@@ -242,9 +322,10 @@ export default function Home() {
           value={content}
           placeholder="请输入问题..."
           onChange={(ev) => setContent(ev.target.value)}
+          onKeyDown={handleKeyDown}
         />
-        <Button title="发送" variant="secondary" size="icon" onClick={() => handleSubmit(content)}>
-          <SendHorizontal />
+        <Button title="设置" variant="secondary" size="icon" onClick={() => setSetingOpen(true)}>
+          <Settings />
         </Button>
       </div>
       <div style={{ display: talkMode === 'voice' ? 'block' : 'none' }}>
@@ -292,16 +373,18 @@ export default function Home() {
               )}
               <Button
                 className="h-10 w-10 rounded-full text-slate-700"
-                title="聊天模式"
+                title="设置"
                 variant="secondary"
                 size="icon"
+                onClick={() => setSetingOpen(true)}
               >
-                <Settings2 />
+                <Settings />
               </Button>
             </div>
           </div>
         </div>
       </div>
+      <Setting open={settingOpen} onClose={() => setSetingOpen(false)} />
     </main>
   )
 }

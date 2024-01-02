@@ -4,3 +4,10 @@ declare interface Message {
   content: string
   error?: boolean
 }
+
+declare interface Setting {
+  password: string
+  apiKey: string
+  apiProxy: string
+  lang: string
+}

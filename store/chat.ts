@@ -3,7 +3,7 @@ import Storage from '@/utils/Storage'
 
 type MessageStore = {
   messages: Message[]
-  init: () => void
+  init: () => Message[]
   add: (message: Message) => void
   update: (content: string) => void
   reset: () => void
@@ -28,7 +28,11 @@ const storage = new Storage()
 
 export const useMessageStore = create<MessageStore>((set, get) => ({
   messages: [],
-  init: () => set({ messages: storage.get<Message[]>('messages') || DEFAULT_MESSAGE }),
+  init: () => {
+    const messages: Message[] = storage.get<Message[]>('messages') || DEFAULT_MESSAGE
+    set(() => ({ messages }))
+    return messages
+  },
   add: (message) => {
     set((state) => ({
       messages: [...state.messages, message],
@@ -49,6 +53,6 @@ export const useMessageStore = create<MessageStore>((set, get) => ({
     storage.set<Message[]>('messages', get().messages)
   },
   revoke: () => {
-    set((state) => ({ messages: state.messages.slice(-2) }))
+    set((state) => ({ messages: state.messages.slice(0, state.messages.length - 2) }))
   },
 }))
