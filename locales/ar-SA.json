@@ -1,0 +1,27 @@
+{
+  "title": "التحدث مع Gemini Pro",
+  "status": {
+    "thinking": "التفكير"
+  },
+  "regenerateAnswer": "إعادة توليد الإجابة",
+  "clearChatContent": "مسح محتوى المحادثة",
+  "chatMode": "وضع الدردشة",
+  "voiceMode": "وضع الصوت",
+  "askAQuestion": "يرجى إدخال سؤال...",
+  "stopTalking": "توقف عن الحديث",
+  "startRecording": "بدء التسجيل",
+  "setting": "الإعدادات",
+  "settingDescription": "يرجى إدخال كلمة المرور الخاصة بالوصول أو استخدام مفتاح Gemini الخاص بك. يرسل المفتاح الطلب من خلال المتصفح ولن يتم إعادة توجيهه إلى خادم الخلفية.",
+  "accessPassword": "كلمة المرور للوصول",
+  "accessPasswordPlaceholder": "يرجى إدخال كلمة مرور الوصول",
+  "geminiKey": "مفتاح Gemini",
+  "geminiKeyPlaceholder": "يرجى إدخال مفتاح Gemini الخاص بك",
+  "apiProxyUrl": "عنوان URL للوكيل البرمجي للواجهة البرمجية للتطبيقات",
+  "apiProxyUrlPlaceholder": "يرجى إدخال عنوان URL للوكيل البرمجي للواجهة البرمجية (اختياري)",
+  "followTheSystem": "اتبع النظام",
+  "speechRecognition": "التعرف على الكلام",
+  "speechSynthesis": "توليف الكلام",
+  "soundSource": "مصدر الصوت",
+  "language": "اللغة",
+  "save": "حفظ"
+}

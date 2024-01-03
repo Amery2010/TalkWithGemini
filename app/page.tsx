@@ -1,10 +1,11 @@
 'use client'
-import { useRef, useState, useMemo, useLayoutEffect, KeyboardEvent, useEffect } from 'react'
+import { useRef, useState, useMemo, KeyboardEvent } from 'react'
 import { EdgeSpeechTTS } from '@lobehub/tts'
 import { useSpeechRecognition } from '@lobehub/tts/react'
 import { useAutoAnimate } from '@formkit/auto-animate/react'
 import SiriWave from 'siriwave'
 import { MessageCircleHeart, AudioLines, Mic, MessageSquareText, Settings, Pause } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import ThemeToggle from '@/components/ThemeToggle'
 import { Textarea } from '@/components/ui/textarea'
 import { Button } from '@/components/ui/button'
@@ -22,6 +23,7 @@ import textStream from '@/utils/textStream'
 import { generateSignature, generateUTCTimestamp } from '@/utils/signature'
 
 export default function Home() {
+  const { t } = useTranslation()
   const siriWaveRef = useRef<HTMLDivElement>(null)
   const audioStreamRef = useRef<AudioStream>()
   const edgeSpeechRef = useRef<EdgeSpeechTTS>()
@@ -53,9 +55,9 @@ export default function Home() {
         return ''
       case 'thinkng':
       default:
-        return '正在思考'
+        return t('status.thinking')
     }
-  }, [status])
+  }, [status, t])
 
   const speech = (content: string) => {
     if (content.length === 0) return
@@ -262,18 +264,13 @@ export default function Home() {
     }
   }
 
-  useLayoutEffect(() => {
-    initMessages()
-    initSetting()
-  }, [initMessages, initSetting])
-
   return (
     <main className="mx-auto flex min-h-screen max-w-screen-md flex-col justify-between pt-6 max-sm:pt-0">
       <div className="mb-2 mt-6 flex justify-between p-4 max-sm:mt-2">
         <div className="flex flex-row text-xl leading-8">
           <MessageCircleHeart className="h-10 w-10 text-red-400" />
           <div className="ml-3 bg-gradient-to-r from-red-300 via-green-300 to-green-400 bg-clip-text font-bold leading-10 text-transparent">
-            Talk With Gemini Pro
+            {t('title')}
           </div>
         </div>
         <ThemeToggle />
@@ -294,11 +291,11 @@ export default function Home() {
             {msg.role === 'model' && idx === messages.length - 3 ? (
               <div className="my-2 flex h-4 justify-center text-xs text-slate-400 opacity-0 transition-opacity duration-300 group-hover:opacity-100 dark:text-slate-600">
                 <span className="mx-2 cursor-pointer hover:text-slate-500" onClick={() => handleResubmit()}>
-                  重新生成答案
+                  {t('regenerateAnswer')}
                 </span>
                 <Separator orientation="vertical" />
                 <span className="mx-2 cursor-pointer hover:text-slate-500" onClick={() => handleCleanMessage()}>
-                  清空聊天内容
+                  {t('clearChatContent')}
                 </span>
               </div>
             ) : null}
@@ -306,18 +303,18 @@ export default function Home() {
         ))}
       </div>
       <div className="flex w-full max-w-screen-md gap-2 bg-[hsl(var(--background))] p-4 pb-8 max-sm:pb-4">
-        <Button title="语音对话模式" variant="secondary" size="icon" onClick={() => updateTalkMode('voice')}>
+        <Button title={t('voiceMode')} variant="secondary" size="icon" onClick={() => updateTalkMode('voice')}>
           <AudioLines />
         </Button>
         <Textarea
           className="min-h-10"
           rows={1}
           value={content}
-          placeholder="请输入问题..."
+          placeholder={t('askAQuestion')}
           onChange={(ev) => setContent(ev.target.value)}
           onKeyDown={handleKeyDown}
         />
-        <Button title="设置" variant="secondary" size="icon" onClick={() => setSetingOpen(true)}>
+        <Button title={t('setting')} variant="secondary" size="icon" onClick={() => setSetingOpen(true)}>
           <Settings />
         </Button>
       </div>
@@ -336,7 +333,7 @@ export default function Home() {
             <div className="flex items-center justify-center pt-2">
               <Button
                 className="h-10 w-10 rounded-full text-slate-700"
-                title="聊天模式"
+                title={t('chatMode')}
                 variant="secondary"
                 size="icon"
                 onClick={() => updateTalkMode('chat')}
@@ -346,7 +343,7 @@ export default function Home() {
               {status === 'talking' ? (
                 <Button
                   className="mx-6 h-14 w-14 rounded-full"
-                  title="停止说话"
+                  title={t('stopTalking')}
                   variant="destructive"
                   size="icon"
                   onClick={() => handleStopTalking()}
@@ -356,7 +353,7 @@ export default function Home() {
               ) : (
                 <Button
                   className="mx-6 h-14 w-14 rounded-full font-mono"
-                  title="开始录音"
+                  title={t('startRecording')}
                   variant="destructive"
                   size="icon"
                   onClick={() => handleRecorder()}
@@ -366,7 +363,7 @@ export default function Home() {
               )}
               <Button
                 className="h-10 w-10 rounded-full text-slate-700"
-                title="设置"
+                title={t('setting')}
                 variant="secondary"
                 size="icon"
                 onClick={() => setSetingOpen(true)}

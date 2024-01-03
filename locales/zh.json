@@ -1,0 +1,27 @@
+{
+  "title": "与 Gemini Pro 交谈",
+  "status": {
+    "thinking": "正在思考"
+  },
+  "regenerateAnswer": "重新生成答案",
+  "clearChatContent": "清空聊天内容",
+  "chatMode": "聊天模式",
+  "voiceMode": "语音对话模式",
+  "askAQuestion": "请输入问题...",
+  "stopTalking": "停止说话",
+  "startRecording": "开始录音",
+  "setting": "设置",
+  "settingDescription": "请输入访问密码或者使用自己的 Gemini 密钥，密钥通过浏览器发送请求，不会转发到后端服务器。",
+  "accessPassword": "访问密码",
+  "accessPasswordPlaceholder": "请输入访问密码",
+  "geminiKey": "Gemini 密钥",
+  "geminiKeyPlaceholder": "请输入 Gemini 密钥",
+  "apiProxyUrl": "API 代理地址",
+  "apiProxyUrlPlaceholder": "请输入 API 代理地址（可选）",
+  "followTheSystem": "跟随系统",
+  "speechRecognition": "语音识别",
+  "speechSynthesis": "语音合成",
+  "soundSource": "合成声源",
+  "language": "系统语言",
+  "save": "保存"
+}

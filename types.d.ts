@@ -9,6 +9,7 @@ declare interface Setting {
   password: string
   apiKey: string
   apiProxy: string
+  lang: string
   sttLang: string
   ttsLang: string
   ttsVoice: string

@@ -1,0 +1,27 @@
+{
+  "title": "Sprechen Sie mit Gemini Pro",
+  "status": {
+    "thinking": "Denken"
+  },
+  "regenerateAnswer": "Antwort neu generieren",
+  "clearChatContent": "Chat-Inhalt löschen",
+  "chatMode": "Chat-Modus",
+  "voiceMode": "Sprachmodus",
+  "askAQuestion": "Bitte geben Sie eine Frage ein...",
+  "stopTalking": "Aufhören zu sprechen",
+  "startRecording": "Aufnahme starten",
+  "setting": "Einstellung",
+  "settingDescription": "Bitte geben Sie das Zugangspasswort ein oder verwenden Sie Ihren eigenen Gemini-Schlüssel. Der Schlüssel sendet die Anfrage durch den Browser und wird nicht an den Backend-Server weitergeleitet.",
+  "accessPassword": "Zugangspasswort",
+  "accessPasswordPlaceholder": "Bitte Zugangspasswort eingeben",
+  "geminiKey": "Gemini-Schlüssel",
+  "geminiKeyPlaceholder": "Bitte geben Sie Ihren Gemini-Schlüssel ein",
+  "apiProxyUrl": "API-Proxy-URL",
+  "apiProxyUrlPlaceholder": "Bitte API-Proxy-URL eingeben (optional)",
+  "followTheSystem": "Dem System folgen",
+  "speechRecognition": "Spracherkennung",
+  "speechSynthesis": "Sprachsynthese",
+  "soundSource": "Tonquelle",
+  "language": "Sprache",
+  "save": "Speichern"
+}

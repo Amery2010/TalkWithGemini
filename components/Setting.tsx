@@ -1,6 +1,6 @@
 import { memo, useEffect, useMemo, useState } from 'react'
 import { EdgeSpeechTTS } from '@lobehub/tts'
-import { useSettingStore } from '@/store/setting'
+import { useTranslation } from 'react-i18next'
 import {
   Dialog,
   DialogContent,
@@ -13,7 +13,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Button } from '@/components/ui/button'
+import i18n from '@/plugins/i18n'
 import locales from '@/constant/locales'
+import { useSettingStore } from '@/store/setting'
 import { toPairs, values } from 'lodash-es'
 
 type SettingProps = {
@@ -22,10 +24,12 @@ type SettingProps = {
 }
 
 function Setting({ open, onClose }: SettingProps) {
+  const { t } = useTranslation()
   const settingStore = useSettingStore()
   const [password, setPassword] = useState<string>('')
   const [apiKey, setApiKey] = useState<string>('')
   const [apiProxy, setApiProxy] = useState<string>('')
+  const [lang, setLang] = useState<string>('')
   const [sttLang, setSttLang] = useState<string>('')
   const [ttsLang, setTtsLang] = useState<string>('')
   const [ttsVoice, setTtsVoice] = useState<string>('')
@@ -37,6 +41,7 @@ function Setting({ open, onClose }: SettingProps) {
     if (password !== settingStore.password) settingStore.setPassword(password)
     if (apiKey !== settingStore.apiKey) settingStore.setApiKey(apiKey)
     if (apiProxy !== settingStore.apiProxy) settingStore.setApiProxy(apiProxy)
+    if (lang !== settingStore.lang) settingStore.setLang(lang)
     if (sttLang !== settingStore.sttLang) settingStore.setSTTLang(sttLang)
     if (ttsLang !== settingStore.ttsLang) settingStore.setTTSLang(ttsLang)
     if (ttsVoice !== settingStore.ttsVoice) settingStore.setTTSVoice(ttsVoice)
@@ -54,10 +59,29 @@ function Setting({ open, onClose }: SettingProps) {
     }
   }
 
+  const handleLangChange = (value: string) => {
+    i18n.changeLanguage(value)
+    setLang(value)
+    setSttLang(value)
+    setTtsLang(value)
+    handleTTSChange(value)
+  }
+
+  const LangOptions = () => {
+    return toPairs(locales).map((kv) => {
+      return (
+        <SelectItem key={kv[0]} value={kv[0]}>
+          {kv[1]}
+        </SelectItem>
+      )
+    })
+  }
+
   useEffect(() => {
     setPassword(settingStore.password)
     setApiKey(settingStore.apiKey)
     setApiProxy(settingStore.apiProxy)
+    setLang(settingStore.lang)
     setSttLang(settingStore.sttLang)
     setTtsLang(settingStore.ttsLang)
     setTtsVoice(settingStore.ttsVoice)
@@ -67,24 +91,19 @@ function Setting({ open, onClose }: SettingProps) {
     <Dialog open={open} onOpenChange={handleClose}>
       <DialogContent className="max-sm:h-full">
         <DialogHeader>
-          <DialogTitle>设置</DialogTitle>
-          <DialogDescription>
-            请输入访问密码或者使用自己的{' '}
-            <a className="underline underline-offset-4" href="https://ai.google.dev/" target="_blank">
-              Gemini 密钥
-            </a>
-            ，密钥通过浏览器发送请求，不会转发到后端服务器。
-          </DialogDescription>
+          <DialogTitle>{t('setting')}</DialogTitle>
+          <DialogDescription>{t('settingDescription')}</DialogDescription>
         </DialogHeader>
         <div className="grid gap-4 py-4">
           <div className="grid grid-cols-4 items-center gap-4">
             <Label htmlFor="password" className="text-right">
-              <span className="leading-12 mr-1 text-red-500">*</span>访问密码
+              <span className="leading-12 mr-1 text-red-500">*</span>
+              {t('accessPassword')}
             </Label>
             <Input
               id="password"
               type="password"
-              placeholder="请输入访问密码"
+              placeholder={t('accessPasswordPlaceholder')}
               className="col-span-3"
               defaultValue={password}
               onChange={(ev) => setPassword(ev.target.value)}
@@ -93,12 +112,13 @@ function Setting({ open, onClose }: SettingProps) {
           <hr />
           <div className="grid grid-cols-4 items-center gap-4">
             <Label htmlFor="key" className="text-right">
-              <span className="leading-12 mr-1 text-red-500">*</span>密钥
+              <span className="leading-12 mr-1 text-red-500">*</span>
+              {t('geminiKey')}
             </Label>
             <Input
               id="key"
               type="password"
-              placeholder="请输入 Gemini 密钥"
+              placeholder={t('geminiKeyPlaceholder')}
               className="col-span-3"
               defaultValue={apiKey}
               onChange={(ev) => setApiKey(ev.target.value)}
@@ -106,11 +126,11 @@ function Setting({ open, onClose }: SettingProps) {
           </div>
           <div className="grid grid-cols-4 items-center gap-4">
             <Label htmlFor="proxy" className="text-right">
-              接口地址
+              {t('apiProxyUrl')}
             </Label>
             <Input
               id="proxy"
-              placeholder="请输入接口代理地址（可选）"
+              placeholder={t('apiProxyUrlPlaceholder')}
               className="col-span-3"
               defaultValue={apiProxy}
               onChange={(ev) => setApiProxy(ev.target.value)}
@@ -119,49 +139,37 @@ function Setting({ open, onClose }: SettingProps) {
           <hr />
           <div className="grid grid-cols-4 items-center gap-4">
             <Label htmlFor="stt" className="text-right">
-              语音识别
+              {t('speechRecognition')}
             </Label>
             <Select value={sttLang} onValueChange={setSttLang}>
               <SelectTrigger id="stt" className="col-span-3">
-                <SelectValue placeholder="跟随系统" />
+                <SelectValue placeholder={t('followTheSystem')} />
               </SelectTrigger>
               <SelectContent>
-                {toPairs(locales).map((kv) => {
-                  return (
-                    <SelectItem key={kv[0]} value={kv[0]}>
-                      {kv[1]}
-                    </SelectItem>
-                  )
-                })}
+                <LangOptions />
               </SelectContent>
             </Select>
           </div>
           <div className="grid grid-cols-4 items-center gap-4">
             <Label htmlFor="tts" className="text-right">
-              语音合成
+              {t('speechSynthesis')}
             </Label>
             <Select value={ttsLang} onValueChange={handleTTSChange}>
               <SelectTrigger id="tts" className="col-span-3">
-                <SelectValue placeholder="跟随系统" />
+                <SelectValue placeholder={t('followTheSystem')} />
               </SelectTrigger>
               <SelectContent>
-                {toPairs(locales).map((kv) => {
-                  return (
-                    <SelectItem key={kv[0]} value={kv[0]}>
-                      {kv[1]}
-                    </SelectItem>
-                  )
-                })}
+                <LangOptions />
               </SelectContent>
             </Select>
           </div>
           <div className="grid grid-cols-4 items-center gap-4">
             <Label htmlFor="tts" className="text-right">
-              合成声源
+              {t('soundSource')}
             </Label>
             <Select value={ttsVoice} onValueChange={setTtsVoice}>
               <SelectTrigger id="tts" className="col-span-3">
-                <SelectValue placeholder="跟随系统" />
+                <SelectValue placeholder={t('followTheSystem')} />
               </SelectTrigger>
               <SelectContent>
                 {values(voiceOptions).map((option) => {
@@ -174,10 +182,24 @@ function Setting({ open, onClose }: SettingProps) {
               </SelectContent>
             </Select>
           </div>
+          <hr />
+          <div className="grid grid-cols-4 items-center gap-4">
+            <Label htmlFor="stt" className="text-right">
+              {t('language')}
+            </Label>
+            <Select value={lang} onValueChange={handleLangChange}>
+              <SelectTrigger id="stt" className="col-span-3">
+                <SelectValue placeholder={t('followTheSystem')} />
+              </SelectTrigger>
+              <SelectContent>
+                <LangOptions />
+              </SelectContent>
+            </Select>
+          </div>
         </div>
         <DialogFooter>
           <Button type="submit" onClick={handleSubmit}>
-            保存
+            {t('save')}
           </Button>
         </DialogFooter>
       </DialogContent>

@@ -36,4 +36,6 @@ class Storage<State extends any> {
   }
 }
 
-export default Storage
+const storage = new Storage('TWG')
+
+export default storage

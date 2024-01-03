@@ -1,0 +1,27 @@
+{
+  "title": "젬니 프로와 대화하기",
+  "status": {
+    "thinking": "생각 중"
+  },
+  "regenerateAnswer": "답변 재생성",
+  "clearChatContent": "채팅 내용 지우기",
+  "chatMode": "채팅 모드",
+  "voiceMode": "음성 모드",
+  "askAQuestion": "질문을 입력해주세요...",
+  "stopTalking": "말 그만하기",
+  "startRecording": "녹음 시작",
+  "setting": "설정",
+  "settingDescription": "액세스 비밀번호를 입력하거나 본인의 젬니 키를 사용해주세요. 키는 브라우저를 통해 요청을 보내며 백엔드 서버로 전달되지 않습니다.",
+  "accessPassword": "액세스 비밀번호",
+  "accessPasswordPlaceholder": "액세스 비밀번호를 입력해주세요",
+  "geminiKey": "젬니 키",
+  "geminiKeyPlaceholder": "본인의 젬니 키를 입력해주세요",
+  "apiProxyUrl": "API 프록시 URL",
+  "apiProxyUrlPlaceholder": "API 프록시 URL을 입력해주세요 (선택사항)",
+  "followTheSystem": "시스템에 따르기",
+  "speechRecognition": "음성 인식",
+  "speechSynthesis": "음성 합성",
+  "soundSource": "소리 원천",
+  "language": "언어",
+  "save": "저장"
+}

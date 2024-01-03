@@ -1,0 +1,27 @@
+{
+  "title": "ジェミニプロと話す",
+  "status": {
+    "thinking": "考え中"
+  },
+  "regenerateAnswer": "回答を再生成",
+  "clearChatContent": "チャット内容を消去",
+  "chatMode": "チャットモード",
+  "voiceMode": "音声モード",
+  "askAQuestion": "質問を入力してください...",
+  "stopTalking": "話すのをやめる",
+  "startRecording": "録音を開始",
+  "setting": "設定",
+  "settingDescription": "アクセスパスワードを入力するか、独自のジェミニキーを使用してください。 キーはリクエストをブラウザを介して送信し、バックエンドサーバーには転送されません。",
+  "accessPassword": "アクセスパスワード",
+  "accessPasswordPlaceholder": "アクセスパスワードを入力してください",
+  "geminiKey": "ジェミニキー",
+  "geminiKeyPlaceholder": "ジェミニキーを入力してください",
+  "apiProxyUrl": "APIプロキシURL",
+  "apiProxyUrlPlaceholder": "APIプロキシURLを入力してください（任意）",
+  "followTheSystem": "システムに従う",
+  "speechRecognition": "音声認識",
+  "speechSynthesis": "音声合成",
+  "soundSource": "音源",
+  "language": "言語",
+  "save": "保存"
+}

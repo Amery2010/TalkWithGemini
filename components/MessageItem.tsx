@@ -13,13 +13,6 @@ const registerCopy = (className: string) => {
       return decodeURIComponent(trigger.getAttribute('data-clipboard-text') || '')
     },
   })
-  // 复制成功失败的提示
-  clipboard.on('success', () => {
-    console.info('复制成功')
-  })
-  clipboard.on('error', () => {
-    console.error('复制失败')
-  })
   return clipboard
 }
 

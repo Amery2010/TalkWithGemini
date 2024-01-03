@@ -1,0 +1,27 @@
+{
+  "title": "Общение с Gemini Pro",
+  "status": {
+    "thinking": "Думает"
+  },
+  "regenerateAnswer": "Сгенерировать ответ заново",
+  "clearChatContent": "Очистить содержимое чата",
+  "chatMode": "Режим чата",
+  "voiceMode": "Голосовой режим",
+  "askAQuestion": "Пожалуйста, введите вопрос...",
+  "stopTalking": "Прекратить разговор",
+  "startRecording": "Начать запись",
+  "setting": "Настройка",
+  "settingDescription": "Пожалуйста, введите пароль доступа или используйте свой собственный ключ Gemini. Ключ отправляет запрос через браузер и не будет передан на сервер.",
+  "accessPassword": "Пароль доступа",
+  "accessPasswordPlaceholder": "Пожалуйста, введите пароль доступа",
+  "geminiKey": "Ключ Gemini",
+  "geminiKeyPlaceholder": "Пожалуйста, введите свой ключ Gemini",
+  "apiProxyUrl": "URL прокси API",
+  "apiProxyUrlPlaceholder": "Пожалуйста, введите URL прокси API (по желанию)",
+  "followTheSystem": "Следовать системе",
+  "speechRecognition": "Распознавание речи",
+  "speechSynthesis": "Синтез речи",
+  "soundSource": "Звуковой источник",
+  "language": "Язык",
+  "save": "Сохранить"
+}

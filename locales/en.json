@@ -1,0 +1,27 @@
+{
+  "title": "Talk With Gemini Pro",
+  "status": {
+    "thinking": "Thingking"
+  },
+  "regenerateAnswer": "Regenerate answer",
+  "clearChatContent": "Clear chat content",
+  "chatMode": "Chat Mode",
+  "voiceMode": "Voice Mode",
+  "askAQuestion": "Please enter a question...",
+  "stopTalking": "Stop talking",
+  "startRecording": "Start recording",
+  "setting": "Setting",
+  "settingDescription": "Please enter the access password or use your own Gemini Key. The key sends the request through the browser and will not be forwarded to the backend server.",
+  "accessPassword": "Access password",
+  "accessPasswordPlaceholder": "Please enter access password",
+  "geminiKey": "Gemini Key",
+  "geminiKeyPlaceholder": "Please enter your Gemini key",
+  "apiProxyUrl": "API Proxy Url",
+  "apiProxyUrlPlaceholder": "Please enter API proxy url (optional)",
+  "followTheSystem": "Follow the system",
+  "speechRecognition": "Speech Recognition",
+  "speechSynthesis": "Speech Synthesis",
+  "soundSource": "Sound Source",
+  "language": "Language",
+  "save": "Save"
+}
