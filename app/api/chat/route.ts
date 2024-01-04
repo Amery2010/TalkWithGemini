@@ -10,6 +10,8 @@ type GeminiRequest = {
   sign: string
 }
 
+export const runtime = 'edge'
+
 const geminiApiKey = process.env.GEMINI_API_KEY as string
 const geminiApiBaseUrl = process.env.GEMINI_API_BASE_URL as string
 const password = process.env.ACCESS_PASSWORD as string
