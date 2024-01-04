@@ -30,5 +30,6 @@
   "selectTopicTip": "Choisissez un sujet ou posez directement une question",
   "changeTopic": "Changer de sujet",
   "topicSquare": "Place du sujet",
-  "selectTopic": "Veuillez sélectionner un sujet qui vous intéresse."
+  "selectTopic": "Veuillez sélectionner un sujet qui vous intéresse.",
+  "copy": "Copier"
 }

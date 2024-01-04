@@ -8,7 +8,7 @@ type MessageStore = {
   update: (content: string) => void
   clear: () => void
   save: () => void
-  revoke: () => void
+  revoke: (num: number) => void
 }
 
 export const useMessageStore = create<MessageStore>((set, get) => ({
@@ -38,7 +38,7 @@ export const useMessageStore = create<MessageStore>((set, get) => ({
   save: () => {
     storage.set<Message[]>('messages', get().messages)
   },
-  revoke: () => {
-    set((state) => ({ messages: state.messages.slice(0, state.messages.length - 2) }))
+  revoke: (num) => {
+    set((state) => ({ messages: state.messages.slice(0, state.messages.length - num) }))
   },
 }))

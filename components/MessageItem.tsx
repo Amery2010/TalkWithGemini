@@ -1,11 +1,17 @@
 'use client'
-import { memo, useEffect, useState } from 'react'
+import { memo, useEffect, useState, useCallback } from 'react'
 import MarkdownIt from 'markdown-it'
 import markdownHighlight from 'markdown-it-highlightjs'
 import markdownKatex from '@traptitech/markdown-it-katex'
 import Clipboard from 'clipboard'
+import { useTranslation } from 'react-i18next'
 import { User, Bot } from 'lucide-react'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
+import BubblesLoading from '@/components/BubblesLoading'
+
+interface MessageItemProps extends Message {
+  isLoading?: boolean
+}
 
 const registerCopy = (className: string) => {
   const clipboard = new Clipboard(className, {
@@ -16,52 +22,60 @@ const registerCopy = (className: string) => {
   return clipboard
 }
 
-function MessageItem({ role, content }: Message) {
+function MessageItem({ role, content, isLoading }: MessageItemProps) {
+  const { t } = useTranslation()
   const [html, setHtml] = useState<string>('')
 
-  const render = (content: string) => {
-    const md: MarkdownIt = MarkdownIt({
-      linkify: true,
-      breaks: true,
-    })
-      .use(markdownHighlight)
-      .use(markdownKatex)
+  const render = useCallback(
+    (content: string) => {
+      const md: MarkdownIt = MarkdownIt({
+        linkify: true,
+        breaks: true,
+      })
+        .use(markdownHighlight)
+        .use(markdownKatex)
 
-    const mathLineRender = md.renderer.rules.math_inline!
-    md.renderer.rules.math_inline = (...params) => {
-      const [tokens, idx] = params
-      const token = tokens[idx]
-      return `
+      const mathLineRender = md.renderer.rules.math_inline!
+      md.renderer.rules.math_inline = (...params) => {
+        const [tokens, idx] = params
+        const token = tokens[idx]
+        return `
         <div class="katex-inline-warpper">
-          <span class="copy copy-katex-inline" data-clipboard-text="${encodeURIComponent(token.content)}">复制</span>
+          <span class="copy copy-katex-inline" data-clipboard-text="${encodeURIComponent(token.content)}">${t(
+            'copy',
+          )}</span>
           ${mathLineRender(...params)}
         </div>`
-    }
-    const mathBlockRender = md.renderer.rules.math_block!
-    md.renderer.rules.math_block = (...params) => {
-      const [tokens, idx] = params
-      const token = tokens[idx]
-      return `
+      }
+      const mathBlockRender = md.renderer.rules.math_block!
+      md.renderer.rules.math_block = (...params) => {
+        const [tokens, idx] = params
+        const token = tokens[idx]
+        return `
         <div class="katex-block-warpper">
-          <span class="copy copy-katex-block" data-clipboard-text="${encodeURIComponent(token.content)}">复制</span>
+          <span class="copy copy-katex-block" data-clipboard-text="${encodeURIComponent(token.content)}">${t(
+            'copy',
+          )}</span>
           ${mathBlockRender(...params)}
         </div>`
-    }
-    const highlightRender = md.renderer.rules.fence!
-    md.renderer.rules.fence = (...params) => {
-      const [tokens, idx] = params
-      const token = tokens[idx]
-      return `
+      }
+      const highlightRender = md.renderer.rules.fence!
+      md.renderer.rules.fence = (...params) => {
+        const [tokens, idx] = params
+        const token = tokens[idx]
+        return `
         <div class="hljs-warpper">
           <div class="info">
             <span class="lang">${token.info.trim()}</span>
-            <span class="copy copy-code" data-clipboard-text="${encodeURIComponent(token.content)}">复制</span>
+            <span class="copy copy-code" data-clipboard-text="${encodeURIComponent(token.content)}">${t('copy')}</span>
           </div>
           ${highlightRender(...params)}
         </div>`
-    }
-    return md.render(content)
-  }
+      }
+      return md.render(content)
+    },
+    [t],
+  )
 
   useEffect(() => {
     setHtml(render(content))
@@ -74,7 +88,7 @@ function MessageItem({ role, content }: Message) {
       copyKatexBlock.destroy()
       copyCode.destroy()
     }
-  }, [content])
+  }, [content, render])
 
   return (
     <>
@@ -89,10 +103,14 @@ function MessageItem({ role, content }: Message) {
           </AvatarFallback>
         )}
       </Avatar>
-      <div
-        className="prose overflow-hidden break-words text-base leading-8"
-        dangerouslySetInnerHTML={{ __html: html }}
-      ></div>
+      {isLoading ? (
+        <BubblesLoading />
+      ) : (
+        <div
+          className="prose w-full overflow-hidden break-words text-base leading-8"
+          dangerouslySetInnerHTML={{ __html: html }}
+        ></div>
+      )}
     </>
   )
 }

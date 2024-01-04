@@ -34,7 +34,7 @@ import { generateSignature, generateUTCTimestamp } from '@/utils/signature'
 import { shuffleArray } from '@/utils/common'
 import topics from '@/constant/topics'
 import { customAlphabet } from 'nanoid'
-import { throttle } from 'lodash-es'
+import { throttle, findLastIndex } from 'lodash-es'
 
 const nanoid = customAlphabet('a-z0-9', 8)
 
@@ -136,6 +136,8 @@ export default function Home() {
     const newUserMessage: Message = { id: nanoid(), role: 'user', content: text }
     addMessage(newUserMessage)
     setStatus('thinkng')
+    const newModelMessage: Message = { id: nanoid(), role: 'model', content: '' }
+    addMessage(newModelMessage)
     if (apiKey !== '') {
       const config: request.RequestProps = {
         messages: [...messages, newUserMessage],
@@ -144,8 +146,6 @@ export default function Home() {
       if (apiProxy) config.baseUrl = apiProxy
       const response = await request.chat(config)
       if (typeof response !== 'string') {
-        const newModelMessage: Message = { id: nanoid(), role: 'model', content: '' }
-        addMessage(newModelMessage)
         speechQueue.current = new PromiseQueue()
         subtitleList.current = []
         setSpeechSilence(false)
@@ -196,8 +196,6 @@ export default function Home() {
         }),
       })
       if (response.status < 400 && response.body) {
-        const newModelMessage: Message = { id: nanoid(), role: 'model', content: '' }
-        addMessage(newModelMessage)
         speechQueue.current = new PromiseQueue()
         subtitleList.current = []
         setSpeechSilence(false)
@@ -225,8 +223,9 @@ export default function Home() {
   }
 
   const handleResubmit = async () => {
-    const lastQuestion = messages[messages.length - 2].content
-    revokeMessage()
+    const lastQuestionIndex = findLastIndex(messages, { role: 'user' })
+    const lastQuestion = messages[lastQuestionIndex].content
+    revokeMessage(messages.length - lastQuestionIndex + 1)
     await handleSubmit(lastQuestion)
   }
 
@@ -319,7 +318,7 @@ export default function Home() {
         </div>
         <ThemeToggle />
       </div>
-      {messages.length === 0 ? (
+      {messages.length === 0 && content === '' ? (
         <div className="relative flex h-full grow items-center justify-center text-sm">
           <div className="relative -top-8 text-center text-sm">
             <PackageOpen
@@ -356,9 +355,9 @@ export default function Home() {
               className="group text-slate-500 transition-colors last:text-slate-800 hover:text-slate-800 max-sm:hover:bg-transparent dark:last:text-slate-400 dark:hover:text-slate-400"
               key={msg.id}
             >
-              <div className="flex gap-3 p-4 hover:bg-[rgba(148,163,184,0.07)]">
+              <div className="flex gap-3 p-4 hover:bg-gray-50/80 dark:hover:bg-gray-900/80">
                 {!msg.error ? (
-                  <MessageItem role={msg.role} content={msg.content} />
+                  <MessageItem role={msg.role} content={msg.content} isLoading={msg.content === ''} />
                 ) : (
                   <ErrorMessageItem role={msg.role} content={msg.content} />
                 )}
@@ -380,9 +379,16 @@ export default function Home() {
               ) : null}
             </div>
           ))}
+          {content !== '' ? (
+            <div className="group text-slate-500 transition-colors last:text-slate-800 hover:text-slate-800 max-sm:hover:bg-transparent dark:last:text-slate-400 dark:hover:text-slate-400">
+              <div className="flex gap-3 p-4 hover:bg-gray-50/80 dark:hover:bg-gray-900/80">
+                <MessageItem role="user" content={content} />
+              </div>
+            </div>
+          ) : null}
         </div>
       )}
-      <div className="flex w-full max-w-screen-md gap-2 bg-[hsl(var(--background))] p-4 pb-8 max-sm:pb-4 landscape:max-md:pb-4">
+      <div className="sticky bottom-0 flex w-full max-w-screen-md gap-2 bg-[hsl(var(--background))] p-4 pb-8 max-sm:pb-4 landscape:max-md:pb-4">
         <Button title={t('voiceMode')} variant="secondary" size="icon" onClick={() => updateTalkMode('voice')}>
           <AudioLines />
         </Button>

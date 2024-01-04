@@ -37,7 +37,7 @@ const topics: Record<'en' | 'zh', Topic[]> = {
         {
           role: 'user',
           content:
-            'I want you to act as an interviewer. I will be the candidate, and you will ask me interview questions for a given position. I want you to only respond as the interviewer. Do not write down all the questions at once. I want you to only interview me. Ask me questions, wait for my response. Do not provide explanations. Ask me one by one, and wait for my answer.',
+            'I want you to be the interviewer. I will be the candidate and you will ask me interview questions for my given position. I want you to answer only as the interviewer, asking one question at a time and not writing explanations. Follow-up questions can be based on my previous answers, unless my answer does not involve technical concepts.',
         },
         { role: 'model', content: 'What position do you want me to interview you for?' },
       ],
@@ -115,7 +115,7 @@ const topics: Record<'en' | 'zh', Topic[]> = {
         {
           role: 'user',
           content:
-            '我想让你担任面试官。我将成为候选人，你将向我询问我给定职位的面试问题。我希望你只作为面试官回答。不要一次写出所有的问题。我希望你只对我进行采访。问我问题，等待我的回答。不要写解释。像面试官一样一个一个问我，等我回答。',
+            '我想让你担任面试官。我将成为候选人，你将向我询问我给定职位的面试问题。我希望你只作为面试官回答，一次只问一个问题，不要写解释。后续的问题可以根据我之前的回答进行追问，除非我的回答没有涉及技术概念。',
         },
         { role: 'model', content: '你想让我担任哪种职位的面试官呢？' },
       ],
