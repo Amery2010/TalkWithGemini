@@ -6,7 +6,7 @@ type MessageStore = {
   init: () => Message[]
   add: (message: Message) => void
   update: (content: string) => void
-  reset: () => void
+  clear: () => void
   save: () => void
   revoke: () => void
 }
@@ -31,8 +31,9 @@ export const useMessageStore = create<MessageStore>((set, get) => ({
       }
     })
   },
-  reset: () => {
+  clear: () => {
     set(() => ({ messages: [] }))
+    storage.set<Message[]>('messages', [])
   },
   save: () => {
     storage.set<Message[]>('messages', get().messages)

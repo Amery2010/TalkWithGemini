@@ -8,8 +8,9 @@ import 'highlight.js/styles/a11y-light.css'
 import './globals.css'
 
 export const metadata: Metadata = {
-  title: 'Talk With Gemini',
-  description: 'Talk with Gemini via voice.',
+  title: 'Talk With Gemini - 与 Gemini 交谈',
+  description: 'Talk with Gemini via voice. 通过声音与 Gemini 交谈。',
+  keywords: ['Gemini', 'Gemini Pro', 'Gemini Chat', 'AI', 'voice', 'Free Chatgpt', 'Chatgpt'],
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

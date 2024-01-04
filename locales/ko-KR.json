@@ -23,5 +23,12 @@
   "speechSynthesis": "음성 합성",
   "soundSource": "소리 원천",
   "language": "언어",
-  "save": "저장"
+  "save": "저장",
+  "changeTheme": "테마 변경",
+  "more": "더",
+  "chatEmpty": "채팅 기록이 비어 있습니다",
+  "selectTopicTip": "주제를 선택하거나 직접 질문하세요",
+  "changeTopic": "다른 주제로 바꾸다",
+  "topicSquare": "주제 광장",
+  "selectTopic": "관심 있는 주제를 선택하세요."
 }

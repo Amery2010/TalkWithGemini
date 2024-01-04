@@ -20,3 +20,15 @@ export function detectLanguage() {
   }
   return lang
 }
+
+export function shuffleArray<T>(array: T[]): T[] {
+  const newArray = array.slice() // Create a copy of the original array
+
+  for (let i = newArray.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1)) // Randomly generate an integer between 0 and i
+    // Swap the values of newArray[i] and newArray[j]
+    ;[newArray[i], newArray[j]] = [newArray[j], newArray[i]]
+  }
+
+  return newArray
+}

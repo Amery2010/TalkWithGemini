@@ -120,7 +120,7 @@
   right: 1em;
   z-index: 10;
   opacity: 0;
-  font-size: 1em;
+  font-size: 0.8em;
   text-align: right;
   line-height: 2em;
   color: rgba(120, 120, 120, 0.6);
@@ -133,6 +133,13 @@
 .katex-block-warpper:hover .copy,
 .katex-inline-warpper:hover .copy {
   opacity: 1;
+}
+.text-line-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 html.dark .hljs-warpper {
   background-color: rgba(120, 120, 120, 0.1);

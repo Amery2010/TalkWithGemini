@@ -23,5 +23,12 @@
   "speechSynthesis": "语音合成",
   "soundSource": "合成声源",
   "language": "系统语言",
-  "save": "保存"
+  "save": "保存",
+  "changeTheme": "切换主题",
+  "more": "更多",
+  "chatEmpty": "聊天记录为空",
+  "selectTopicTip": "请选择一个话题，或直接提问",
+  "changeTopic": "换一个话题",
+  "topicSquare": "话题广场",
+  "selectTopic": "请选择一个你感兴趣的话题。"
 }

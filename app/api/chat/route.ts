@@ -56,6 +56,7 @@ export async function POST(req: Request) {
     return new StreamingTextResponse(stream)
   } catch (error) {
     if (error instanceof Error) {
+      console.error(error.message)
       const messageParts = error.message.split('[400 Bad Request]')
       const errorMessage = messageParts.length > 1 ? messageParts[1].trim() : '服务端错误'
       return new NextResponse(errorMessage, { status: 500 })

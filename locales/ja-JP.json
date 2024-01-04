@@ -23,5 +23,12 @@
   "speechSynthesis": "音声合成",
   "soundSource": "音源",
   "language": "言語",
-  "save": "保存"
+  "save": "保存",
+  "changeTheme": "テーマを変更する",
+  "more": "もっと",
+  "chatEmpty": "チャット記録は空です",
+  "selectTopicTip": "トピックを選択するか、直接質問する",
+  "changeTopic": "トピックを変える",
+  "topicSquare": "トピックスクエア",
+  "selectTopic": "興味のあるトピックを選択してください。"
 }

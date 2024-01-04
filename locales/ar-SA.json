@@ -23,5 +23,12 @@
   "speechSynthesis": "توليف الكلام",
   "soundSource": "مصدر الصوت",
   "language": "اللغة",
-  "save": "حفظ"
+  "save": "حفظ",
+  "changeTheme": "تغيير الموضوع",
+  "more": "أكثر",
+  "chatEmpty": "سجل المحادثة فارغ",
+  "selectTopicTip": "اختر موضوعًا أو اسأل مباشرة",
+  "changeTopic": "غيِّر موضوعاً",
+  "topicSquare": "ساحة الموضوعات",
+  "selectTopic": "يرجى اختيار موضوع يثير اهتمامك"
 }

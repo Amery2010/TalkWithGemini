@@ -23,5 +23,12 @@
   "speechSynthesis": "Síntesis de voz",
   "soundSource": "Fuente de sonido",
   "language": "Idioma",
-  "save": "Guardar"
+  "save": "Guardar",
+  "changeTheme": "Cambiar tema",
+  "more": "más",
+  "chatEmpty": "El historial de chat está vacío",
+  "selectTopicTip": "Elige un tema o haz una pregunta directa",
+  "changeTopic": "Cambiar de tema",
+  "topicSquare": "Plaza de temas",
+  "selectTopic": "Por favor, elija un tema que le interese."
 }

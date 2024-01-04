@@ -14,3 +14,10 @@ declare interface Setting {
   ttsLang: string
   ttsVoice: string
 }
+
+declare interface Topic {
+  id: number
+  title: string
+  description: string
+  parts: Message[]
+}

@@ -89,7 +89,7 @@ function Setting({ open, onClose }: SettingProps) {
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="max-sm:h-full">
+      <DialogContent className="overflow-y-auto max-sm:h-full landscape:max-md:h-full">
         <DialogHeader>
           <DialogTitle>{t('setting')}</DialogTitle>
           <DialogDescription>{t('settingDescription')}</DialogDescription>
