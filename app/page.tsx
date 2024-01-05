@@ -1,19 +1,10 @@
 'use client'
-import { useRef, useState, useMemo, KeyboardEvent, useLayoutEffect, useEffect } from 'react'
+import { useRef, useState, useMemo, KeyboardEvent, useEffect, useCallback } from 'react'
 import { EdgeSpeechTTS } from '@lobehub/tts'
 import { useSpeechRecognition } from '@lobehub/tts/react'
 import { useAutoAnimate } from '@formkit/auto-animate/react'
 import SiriWave from 'siriwave'
-import {
-  MessageCircleHeart,
-  AudioLines,
-  Mic,
-  MessageSquareText,
-  MessagesSquare,
-  Settings,
-  Pause,
-  PackageOpen,
-} from 'lucide-react'
+import { MessageCircleHeart, AudioLines, Mic, MessageSquareText, Settings, Pause, PackageOpen } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import ThemeToggle from '@/components/ThemeToggle'
 import { Textarea } from '@/components/ui/textarea'
@@ -34,13 +25,14 @@ import { generateSignature, generateUTCTimestamp } from '@/utils/signature'
 import { shuffleArray } from '@/utils/common'
 import topics from '@/constant/topics'
 import { customAlphabet } from 'nanoid'
-import { throttle, findLastIndex } from 'lodash-es'
+import { findLastIndex } from 'lodash-es'
 
 const nanoid = customAlphabet('a-z0-9', 8)
 
 export default function Home() {
   const { t } = useTranslation()
   const siriWaveRef = useRef<HTMLDivElement>(null)
+  const scrollAreaBottomRef = useRef<HTMLDivElement>(null)
   const audioStreamRef = useRef<AudioStream>()
   const edgeSpeechRef = useRef<EdgeSpeechTTS>()
   const speechQueue = useRef<PromiseQueue>()
@@ -56,7 +48,6 @@ export default function Home() {
   const { password, apiKey, apiProxy, lang, sttLang, ttsLang, ttsVoice } = useSettingStore()
   const speechRecognition = useSpeechRecognition(sttLang)
   const [messageAutoAnimate] = useAutoAnimate()
-  const [topicAutoAnimate] = useAutoAnimate()
   const [randomTopic, setRandomTopic] = useState<Topic[]>([])
   const [talkMode, setTalkMode] = useState<'chat' | 'voice'>('chat')
   const [siriWave, setSiriWave] = useState<SiriWave>()
@@ -91,8 +82,8 @@ export default function Home() {
             const audio = await voice.arrayBuffer()
             setStatus('talking')
             const isSafari = /Safari/.test(navigator.userAgent) && !/Chrome/.test(navigator.userAgent)
-            siriWave?.setSpeed(isSafari ? 0.2 : 0.05)
-            siriWave?.setAmplitude(isSafari ? 3 : 2)
+            siriWave?.setSpeed(isSafari ? 0.1 : 0.05)
+            siriWave?.setAmplitude(2)
             audioStreamRef.current?.play({
               audioData: audio,
               onStart: () => {
@@ -176,10 +167,10 @@ export default function Home() {
             handleError(err.message)
           }
         }
-
         if (buffer.length > 0) {
           onStatement(buffer)
         }
+        scrollToBottom()
         setStatus('silence')
         saveMessages()
       } else {
@@ -213,6 +204,7 @@ export default function Home() {
             }
           },
         )
+        scrollToBottom()
         setStatus('silence')
         saveMessages()
       } else {
@@ -265,6 +257,7 @@ export default function Home() {
     setSpeechSilence(true)
     speechQueue.current?.empty()
     audioStreamRef.current?.stop()
+    setStatus('silence')
   }
 
   const handleKeyDown = (ev: KeyboardEvent<HTMLTextAreaElement>) => {
@@ -292,9 +285,9 @@ export default function Home() {
     })
   }
 
-  const scrollToBottom = throttle(() => {
-    window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' })
-  }, 300)
+  const scrollToBottom = useCallback(() => {
+    scrollAreaBottomRef.current?.scrollIntoView({ behavior: 'smooth' })
+  }, [])
 
   useEffect(() => {
     if (messages.length === 0) {
@@ -303,12 +296,16 @@ export default function Home() {
     }
   }, [messages, lang])
 
-  useLayoutEffect(() => {
+  useEffect(() => {
     scrollToBottom()
-  }, [scrollToBottom])
+  }, [content, scrollToBottom])
+
+  useEffect(() => {
+    requestAnimationFrame(scrollToBottom)
+  }, [messages.length, scrollToBottom])
 
   return (
-    <main className="mx-auto flex min-h-full max-w-screen-md flex-col justify-between pt-6 max-sm:pt-0 landscape:max-md:pt-0">
+    <main className="mx-auto flex min-h-full max-w-screen-md flex-col justify-between pb-20 pt-6 max-sm:pb-16 max-sm:pt-0 landscape:max-md:pt-0">
       <div className="mb-2 mt-6 flex justify-between p-4 max-sm:mt-2 landscape:max-md:mt-0">
         <div className="flex flex-row text-xl leading-8">
           <MessageCircleHeart className="h-10 w-10 text-red-400" />
@@ -328,7 +325,7 @@ export default function Home() {
             <p className="my-2 text-gray-300 dark:text-gray-700">{t('chatEmpty')}</p>
             <p className="text-gray-600">{t('selectTopicTip')}</p>
           </div>
-          <div ref={topicAutoAnimate} className="absolute bottom-2 flex text-gray-600">
+          <div className="absolute bottom-2 flex text-gray-600">
             {randomTopic.map((topic) => {
               return (
                 <div
@@ -349,7 +346,7 @@ export default function Home() {
           </div>
         </div>
       ) : (
-        <div ref={messageAutoAnimate} className="flex h-full grow flex-col justify-start">
+        <div ref={messageAutoAnimate} className="flex min-h-full flex-1 grow flex-col justify-start">
           {messages.map((msg, idx) => (
             <div
               className="group text-slate-500 transition-colors last:text-slate-800 hover:text-slate-800 max-sm:hover:bg-transparent dark:last:text-slate-400 dark:hover:text-slate-400"
@@ -386,9 +383,10 @@ export default function Home() {
               </div>
             </div>
           ) : null}
+          <div ref={scrollAreaBottomRef}></div>
         </div>
       )}
-      <div className="sticky bottom-0 flex w-full max-w-screen-md gap-2 bg-[hsl(var(--background))] p-4 pb-8 max-sm:pb-4 landscape:max-md:pb-4">
+      <div className="fixed bottom-0 flex w-full max-w-screen-md gap-2 bg-[hsl(var(--background))] p-4 pb-8 max-sm:pb-4 landscape:max-md:pb-4">
         <Button title={t('voiceMode')} variant="secondary" size="icon" onClick={() => updateTalkMode('voice')}>
           <AudioLines />
         </Button>
@@ -405,7 +403,7 @@ export default function Home() {
         </Button>
       </div>
       <div style={{ display: talkMode === 'voice' ? 'block' : 'none' }}>
-        <div className="fixed left-0 right-0 top-0 flex h-screen w-screen flex-col items-center justify-center bg-slate-900">
+        <div className="fixed left-0 right-0 top-0 flex h-full w-screen flex-col items-center justify-center bg-slate-900">
           <div className="h-1/5 w-full" ref={siriWaveRef}></div>
           <div className="absolute bottom-0 flex h-2/5 w-2/3 flex-col justify-between pb-12 text-center">
             <div className="text-sm leading-6">
