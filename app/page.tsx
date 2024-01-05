@@ -308,7 +308,7 @@ export default function Home() {
   }, [scrollToBottom])
 
   return (
-    <main className="mx-auto flex min-h-screen max-w-screen-md flex-col justify-between pt-6 max-sm:pt-0 landscape:max-md:pt-0">
+    <main className="mx-auto flex h-full max-w-screen-md flex-col justify-between pt-6 max-sm:pt-0 landscape:max-md:pt-0">
       <div className="mb-2 mt-6 flex justify-between p-4 max-sm:mt-2 landscape:max-md:mt-0">
         <div className="flex flex-row text-xl leading-8">
           <MessageCircleHeart className="h-10 w-10 text-red-400" />

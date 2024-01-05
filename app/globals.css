@@ -75,6 +75,10 @@
   }
 }
 
+html,
+body {
+  height: 100%;
+}
 .hljs-warpper {
   position: relative;
   width: 100%;

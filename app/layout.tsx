@@ -14,6 +14,20 @@ export const metadata: Metadata = {
   title: 'Talk with Gemini - 与 Gemini 交谈',
   description: 'Talk with Gemini via voice. 通过声音与 Gemini 交谈。',
   keywords: ['Gemini', 'Gemini Pro', 'Gemini Chat', 'AI', 'voice', 'Free Chatgpt', 'Chatgpt'],
+  viewport: {
+    width: 'device-width',
+    initialScale: 1,
+    minimumScale: 1,
+    maximumScale: 1,
+    viewportFit: 'cover',
+    userScalable: false,
+  },
+  icons: {
+    icon: {
+      type: 'image/svg+xml',
+      url: '/logo.svg',
+    },
+  },
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
