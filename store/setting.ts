@@ -12,6 +12,7 @@ interface SettingStore extends Setting {
   setSTTLang: (lang: string) => void
   setTTSLang: (lang: string) => void
   setTTSVoice: (voice: string) => void
+  setTalkMode: (mode: 'chat' | 'voice') => void
 }
 
 export const useSettingStore = create<SettingStore>((set) => ({
@@ -23,6 +24,7 @@ export const useSettingStore = create<SettingStore>((set) => ({
   ttsVoice: '',
   lang: '',
   isProtected: false,
+  talkMode: 'chat',
   init: (isProtected) => {
     const sttLang = storage.get<string>('sttLang')
     const ttsLang = storage.get<string>('ttsLang')
@@ -37,6 +39,7 @@ export const useSettingStore = create<SettingStore>((set) => ({
       ttsVoice: ttsVoice || 'en-US-JennyNeural',
       lang,
       isProtected: !!isProtected,
+      talkMode: (storage.get<string>('talkMode') as Setting['talkMode']) || 'chat',
     }
     if (!ttsVoice) {
       const voiceOptions = new EdgeSpeechTTS({ locale: state.ttsLang }).voiceOptions
@@ -72,5 +75,9 @@ export const useSettingStore = create<SettingStore>((set) => ({
   setTTSVoice: (voice) => {
     set(() => ({ ttsVoice: voice }))
     storage.set<string>('ttsVoice', voice)
+  },
+  setTalkMode: (mode) => {
+    set(() => ({ talkMode: mode }))
+    storage.set<string>('talkMode', mode)
   },
 }))

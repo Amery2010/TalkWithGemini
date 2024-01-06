@@ -14,6 +14,7 @@ declare interface Setting {
   ttsLang: string
   ttsVoice: string
   isProtected: boolean
+  talkMode: 'chat' | 'voice'
 }
 
 declare interface Topic {

@@ -1,11 +1,12 @@
 {
   "name": "talk-with-gemini",
-  "version": "0.6.0",
+  "version": "0.6.1",
   "private": true,
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "export": "cross-env NEXT_BUILD_EXPORT=true next build",
+    "build:docker": "cross-env NEXT_BUILD_MODE=standalone next build",
+    "build:export": "cross-env NEXT_BUILD_MODE=export next build",
     "start": "next start",
     "lint": "next lint"
   },

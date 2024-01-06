@@ -1,5 +1,5 @@
 'use client'
-import { useRef, useState, useMemo, KeyboardEvent, useEffect, useCallback } from 'react'
+import { useRef, useState, useMemo, KeyboardEvent, useEffect, useCallback, useLayoutEffect } from 'react'
 import { EdgeSpeechTTS } from '@lobehub/tts'
 import { useSpeechRecognition } from '@lobehub/tts/react'
 import { useAutoAnimate } from '@formkit/auto-animate/react'
@@ -45,11 +45,11 @@ export default function Home() {
     clear: clearMessages,
     revoke: revokeMessage,
   } = useMessageStore()
-  const { password, apiKey, apiProxy, lang, sttLang, ttsLang, ttsVoice } = useSettingStore()
+  const { isProtected, password, apiKey, apiProxy, lang, sttLang, ttsLang, ttsVoice, talkMode, setTalkMode } =
+    useSettingStore()
   const speechRecognition = useSpeechRecognition(sttLang)
   const [messageAutoAnimate] = useAutoAnimate()
   const [randomTopic, setRandomTopic] = useState<Topic[]>([])
-  const [talkMode, setTalkMode] = useState<'chat' | 'voice'>('chat')
   const [siriWave, setSiriWave] = useState<SiriWave>()
   const [content, setContent] = useState<string>('')
   const [subtitle, setSubtitle] = useState<string>('')
@@ -227,20 +227,6 @@ export default function Home() {
 
   const updateTalkMode = (type: 'chat' | 'voice') => {
     setTalkMode(type)
-    if (type === 'voice') {
-      setSiriWave(
-        new SiriWave({
-          container: siriWaveRef.current!,
-          style: 'ios9',
-          speed: 0.04,
-          amplitude: 0.1,
-          width: window.innerWidth,
-          height: window.innerHeight / 5,
-        }),
-      )
-    } else {
-      siriWave?.dispose()
-    }
   }
 
   const handleRecorder = () => {
@@ -270,7 +256,7 @@ export default function Home() {
   }
 
   const checkAccessStatus = () => {
-    if (password !== '' || apiKey !== '') {
+    if (!isProtected || apiKey !== '') {
       return true
     } else {
       setSetingOpen(true)
@@ -297,12 +283,23 @@ export default function Home() {
   }, [messages, lang])
 
   useEffect(() => {
-    scrollToBottom()
-  }, [content, scrollToBottom])
-
-  useEffect(() => {
     requestAnimationFrame(scrollToBottom)
   }, [messages.length, scrollToBottom])
+
+  useLayoutEffect(() => {
+    const instance = new SiriWave({
+      container: siriWaveRef.current!,
+      style: 'ios9',
+      speed: 0.04,
+      amplitude: 0.1,
+      width: window.innerWidth,
+      height: window.innerHeight / 5,
+    })
+    setSiriWave(instance)
+    return () => {
+      instance.dispose()
+    }
+  }, [])
 
   return (
     <main className="mx-auto flex min-h-full max-w-screen-md flex-col justify-between pb-20 pt-6 max-sm:pb-16 max-sm:pt-0 landscape:max-md:pt-0">
