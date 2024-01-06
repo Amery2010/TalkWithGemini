@@ -6,7 +6,7 @@ import { generateSignature, generateUTCTimestamp } from '@/utils/signature'
 type GeminiRequest = {
   model?: 'gemini-pro' | 'gemini-pro-vision'
   messages: Message[]
-  t: number
+  ts: number
   sign: string
 }
 
@@ -14,7 +14,7 @@ export const runtime = 'edge'
 
 const geminiApiKey = process.env.GEMINI_API_KEY as string
 const geminiApiBaseUrl = process.env.GEMINI_API_BASE_URL as string
-const password = process.env.ACCESS_PASSWORD as string
+const password = (process.env.ACCESS_PASSWORD as string) || ''
 
 function transformMessage(message: Message) {
   return {
@@ -28,14 +28,23 @@ function transformMessage(message: Message) {
 }
 
 export async function POST(req: Request) {
-  const { messages = [], model = 'gemini-pro', t, sign } = (await req.json()) as GeminiRequest
+  const { messages = [], model = 'gemini-pro', ts, sign } = (await req.json()) as GeminiRequest
 
-  const utcTimestamp = generateUTCTimestamp()
-  if (Math.abs(utcTimestamp - t) > 60000) {
-    return new NextResponse('请求参数已过期', { status: 403 })
+  if (password) {
+    const utcTimestamp = generateUTCTimestamp()
+    if (Math.abs(utcTimestamp - ts) > 60000) {
+      return NextResponse.json({ code: 40301, message: 'Request parameters have expired' }, { status: 403 })
+    }
+    if (sign !== generateSignature(password, ts)) {
+      return NextResponse.json(
+        { code: 40302, message: 'Authentication failed, please confirm whether the access password is correct' },
+        { status: 403 },
+      )
+    }
   }
-  if (sign !== generateSignature(password, t)) {
-    return new NextResponse('身份验证失败，请确认访问密码是否正确', { status: 403 })
+
+  if (!geminiApiKey) {
+    return NextResponse.json({ code: 50002, message: 'The server Gemini key is missing' }, { status: 500 })
   }
 
   try {
@@ -60,8 +69,8 @@ export async function POST(req: Request) {
     if (error instanceof Error) {
       console.error(error.message)
       const messageParts = error.message.split('[400 Bad Request]')
-      const errorMessage = messageParts.length > 1 ? messageParts[1].trim() : '服务端错误'
-      return new NextResponse(errorMessage, { status: 500 })
+      const errorMessage = messageParts.length > 1 ? messageParts[1].trim() : 'Server error'
+      return NextResponse.json({ code: 50001, message: errorMessage }, { status: 500 })
     }
   }
 }

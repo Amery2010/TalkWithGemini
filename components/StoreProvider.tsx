@@ -3,14 +3,14 @@ import { useLayoutEffect } from 'react'
 import { useSettingStore } from '@/store/setting'
 import { useMessageStore } from '@/store/chat'
 
-function StoreProvider({ children }: { children: React.ReactNode }) {
+function StoreProvider({ children, isProtected = false }: { children: React.ReactNode; isProtected?: boolean }) {
   const { init: initSettingStore } = useSettingStore()
   const { init: initMessageStore } = useMessageStore()
 
   useLayoutEffect(() => {
-    initSettingStore()
+    initSettingStore(isProtected)
     initMessageStore()
-  }, [initSettingStore, initMessageStore])
+  }, [initSettingStore, initMessageStore, isProtected])
   return children
 }
 

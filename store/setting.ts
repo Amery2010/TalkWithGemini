@@ -4,7 +4,7 @@ import storage from '@/utils/Storage'
 import { detectLanguage } from '@/utils/common'
 
 interface SettingStore extends Setting {
-  init: () => Setting
+  init: (isProtected: boolean) => Setting
   setPassword: (password: string) => void
   setApiKey: (key: string) => void
   setApiProxy: (url: string) => void
@@ -22,7 +22,8 @@ export const useSettingStore = create<SettingStore>((set) => ({
   ttsLang: '',
   ttsVoice: '',
   lang: '',
-  init: () => {
+  isProtected: false,
+  init: (isProtected) => {
     const sttLang = storage.get<string>('sttLang')
     const ttsLang = storage.get<string>('ttsLang')
     const ttsVoice = storage.get<string>('ttsVoice')
@@ -35,6 +36,7 @@ export const useSettingStore = create<SettingStore>((set) => ({
       ttsLang: ttsLang || lang,
       ttsVoice: ttsVoice || 'en-US-JennyNeural',
       lang,
+      isProtected: !!isProtected,
     }
     if (!ttsVoice) {
       const voiceOptions = new EdgeSpeechTTS({ locale: state.ttsLang }).voiceOptions

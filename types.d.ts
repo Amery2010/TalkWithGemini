@@ -13,6 +13,7 @@ declare interface Setting {
   sttLang: string
   ttsLang: string
   ttsVoice: string
+  isProtected: boolean
 }
 
 declare interface Topic {

@@ -182,7 +182,7 @@ export default function Home() {
         method: 'POST',
         body: JSON.stringify({
           messages: [...messages, newUserMessage],
-          t: utcTimestamp,
+          ts: utcTimestamp,
           sign: generateSignature(password, utcTimestamp),
         }),
       })

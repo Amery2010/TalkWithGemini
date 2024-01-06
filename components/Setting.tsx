@@ -33,6 +33,9 @@ function Setting({ open, onClose }: SettingProps) {
   const [sttLang, setSttLang] = useState<string>('')
   const [ttsLang, setTtsLang] = useState<string>('')
   const [ttsVoice, setTtsVoice] = useState<string>('')
+  const isProtected = useMemo(() => {
+    return settingStore.isProtected
+  }, [settingStore.isProtected])
   const voiceOptions = useMemo(() => {
     return new EdgeSpeechTTS({ locale: ttsLang }).voiceOptions || []
   }, [ttsLang])
@@ -94,22 +97,26 @@ function Setting({ open, onClose }: SettingProps) {
           <DialogTitle>{t('setting')}</DialogTitle>
           <DialogDescription>{t('settingDescription')}</DialogDescription>
         </DialogHeader>
-        <div className="grid gap-4 py-4">
-          <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="password" className="text-right">
-              <span className="leading-12 mr-1 text-red-500">*</span>
-              {t('accessPassword')}
-            </Label>
-            <Input
-              id="password"
-              type="password"
-              placeholder={t('accessPasswordPlaceholder')}
-              className="col-span-3"
-              defaultValue={password}
-              onChange={(ev) => setPassword(ev.target.value)}
-            />
-          </div>
-          <hr />
+        <div className="grid justify-start gap-4 py-4">
+          {isProtected ? (
+            <>
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="password" className="text-right">
+                  <span className="leading-12 mr-1 text-red-500">*</span>
+                  {t('accessPassword')}
+                </Label>
+                <Input
+                  id="password"
+                  type="password"
+                  placeholder={t('accessPasswordPlaceholder')}
+                  className="col-span-3"
+                  defaultValue={password}
+                  onChange={(ev) => setPassword(ev.target.value)}
+                />
+              </div>
+              <hr />
+            </>
+          ) : null}
           <div className="grid grid-cols-4 items-center gap-4">
             <Label htmlFor="key" className="text-right">
               <span className="leading-12 mr-1 text-red-500">*</span>
