@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { GoogleGenerativeAI } from '@fuyun/generative-ai'
+import { GoogleGenerativeAI, HarmCategory, HarmBlockThreshold } from '@fuyun/generative-ai'
 import { GoogleGenerativeAIStream, StreamingTextResponse, Message } from 'ai'
 import { generateSignature, generateUTCTimestamp } from '@/utils/signature'
 
@@ -49,14 +49,19 @@ export async function POST(req: Request) {
 
   try {
     const genAI = new GoogleGenerativeAI(geminiApiKey, geminiApiBaseUrl)
-    const geminiModel = genAI.getGenerativeModel({ model })
+    const geminiModel = genAI.getGenerativeModel({
+      model,
+      generationConfig: {
+        maxOutputTokens: 3000,
+        temperature: 0.6,
+        topP: 0.8,
+        topK: 16,
+      },
+    })
 
     const history = messages.length > 1 ? messages.slice(0, -1) : []
     const chat = geminiModel.startChat({
       history: history.map((msg) => transformMessage(msg)),
-      generationConfig: {
-        maxOutputTokens: 2000,
-      },
     })
 
     const newMessage = transformMessage(messages[messages.length - 1])
