@@ -217,7 +217,7 @@ export default function Home() {
   const handleResubmit = async () => {
     const lastQuestionIndex = findLastIndex(messages, { role: 'user' })
     const lastQuestion = messages[lastQuestionIndex].content
-    revokeMessage(messages.length - lastQuestionIndex + 1)
+    revokeMessage(messages.length - lastQuestionIndex)
     await handleSubmit(lastQuestion)
   }
 
@@ -304,11 +304,9 @@ export default function Home() {
   return (
     <main className="mx-auto flex min-h-full max-w-screen-md flex-col justify-between pb-20 pt-6 max-sm:pb-16 max-sm:pt-0 landscape:max-md:pt-0">
       <div className="mb-2 mt-6 flex justify-between p-4 max-sm:mt-2 landscape:max-md:mt-0">
-        <div className="flex flex-row text-xl leading-8">
-          <MessageCircleHeart className="h-10 w-10 text-red-400" />
-          <div className="ml-3 bg-gradient-to-r from-red-300 via-green-300 to-green-400 bg-clip-text font-bold leading-10 text-transparent">
-            {t('title')}
-          </div>
+        <div className="flex flex-row text-xl leading-8 text-red-400">
+          <MessageCircleHeart className="h-10 w-10" />
+          <div className="ml-3 font-bold leading-10">{t('title')}</div>
         </div>
         <ThemeToggle />
       </div>
@@ -380,9 +378,9 @@ export default function Home() {
               </div>
             </div>
           ) : null}
-          <div ref={scrollAreaBottomRef}></div>
         </div>
       )}
+      <div ref={scrollAreaBottomRef}></div>
       <div className="fixed bottom-0 flex w-full max-w-screen-md gap-2 bg-[hsl(var(--background))] p-4 pb-8 max-sm:pb-4 landscape:max-md:pb-4">
         <Button title={t('voiceMode')} variant="secondary" size="icon" onClick={() => updateTalkMode('voice')}>
           <AudioLines />
