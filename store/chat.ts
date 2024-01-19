@@ -1,14 +1,16 @@
 import { create } from 'zustand'
 import storage from '@/utils/Storage'
+import { findIndex } from 'lodash-es'
 
 type MessageStore = {
   messages: Message[]
   init: () => Message[]
   add: (message: Message) => void
-  update: (content: string) => void
+  update: (id: string, content: string) => void
+  replace: (id: string, message: Message) => void
   clear: () => void
   save: () => void
-  revoke: (num: number) => void
+  revoke: (id: string) => void
 }
 
 export const useMessageStore = create<MessageStore>((set, get) => ({
@@ -23,9 +25,19 @@ export const useMessageStore = create<MessageStore>((set, get) => ({
       messages: [...state.messages, message],
     }))
   },
-  update: (content) => {
+  update: (id, content) => {
     set((state) => {
-      state.messages[state.messages.length - 1].content += content
+      const index = findIndex(state.messages, { id })
+      state.messages[index].content += content
+      return {
+        messages: state.messages,
+      }
+    })
+  },
+  replace: (id, message) => {
+    set((state) => {
+      const index = findIndex(state.messages, { id })
+      state.messages[index] = message
       return {
         messages: state.messages,
       }
@@ -38,7 +50,10 @@ export const useMessageStore = create<MessageStore>((set, get) => ({
   save: () => {
     storage.set<Message[]>('messages', get().messages)
   },
-  revoke: (num) => {
-    set((state) => ({ messages: state.messages.slice(0, state.messages.length - num) }))
+  revoke: (id) => {
+    set((state) => {
+      const index = findIndex(state.messages, { id })
+      return { messages: state.messages.slice(0, index) }
+    })
   },
 }))

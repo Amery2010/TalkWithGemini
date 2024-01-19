@@ -25,9 +25,9 @@ import { generateSignature, generateUTCTimestamp } from '@/utils/signature'
 import { shuffleArray } from '@/utils/common'
 import topics from '@/constant/topics'
 import { customAlphabet } from 'nanoid'
-import { findLastIndex } from 'lodash-es'
+import { findLast } from 'lodash-es'
 
-const nanoid = customAlphabet('a-z0-9', 8)
+const nanoid = customAlphabet('1234567890abcdefghijklmnopqrstuvwxyz', 8)
 
 export default function Home() {
   const { t } = useTranslation()
@@ -37,17 +37,10 @@ export default function Home() {
   const edgeSpeechRef = useRef<EdgeSpeechTTS>()
   const speechQueue = useRef<PromiseQueue>()
   const subtitleList = useRef<string[]>([])
-  const {
-    messages,
-    add: addMessage,
-    update: updateMessage,
-    save: saveMessages,
-    clear: clearMessages,
-    revoke: revokeMessage,
-  } = useMessageStore()
-  const { isProtected, password, apiKey, apiProxy, lang, sttLang, ttsLang, ttsVoice, talkMode, setTalkMode } =
-    useSettingStore()
-  const speechRecognition = useSpeechRecognition(sttLang)
+  const messageStore = useMessageStore()
+  const messagesRef = useRef(useMessageStore.getState().messages)
+  const settingStore = useSettingStore()
+  const speechRecognition = useSpeechRecognition(settingStore.sttLang)
   const [messageAutoAnimate] = useAutoAnimate()
   const [randomTopic, setRandomTopic] = useState<Topic[]>([])
   const [siriWave, setSiriWave] = useState<SiriWave>()
@@ -76,7 +69,7 @@ export default function Home() {
           if (speechSilence) reject(false)
           const voice = await edgeSpeechRef.current?.create({
             input: content,
-            options: { voice: ttsVoice },
+            options: { voice: settingStore.ttsVoice },
           })
           if (voice) {
             const audio = await voice.arrayBuffer()
@@ -93,7 +86,7 @@ export default function Home() {
               onFinished: () => {
                 setStatus('silence')
                 setSubtitle('')
-                saveMessages()
+                messageStore.save()
                 siriWave?.setSpeed(0.04)
                 siriWave?.setAmplitude(0.1)
               },
@@ -104,7 +97,7 @@ export default function Home() {
     )
   }
 
-  const handleError = async (message: string, code?: number) => {
+  const handleError = async (id: string, message: string, code?: number) => {
     const newModelMessage: Message = {
       id: nanoid(),
       role: 'model',
@@ -112,121 +105,107 @@ export default function Home() {
       error: true,
     }
     setStatus('silence')
-    addMessage(newModelMessage)
+    messageStore.replace(id, newModelMessage)
     setSubtitle(message)
   }
 
   const handleSubmit = async (text: string) => {
-    if (talkMode === 'voice') {
+    if (settingStore.talkMode === 'voice') {
       if (!audioStreamRef.current) {
         audioStreamRef.current = new AudioStream()
       }
-      edgeSpeechRef.current = new EdgeSpeechTTS({ locale: ttsLang })
+      edgeSpeechRef.current = new EdgeSpeechTTS({ locale: settingStore.ttsLang })
     }
     setContent('')
     const newUserMessage: Message = { id: nanoid(), role: 'user', content: text }
-    addMessage(newUserMessage)
+    messageStore.add(newUserMessage)
     setStatus('thinkng')
     const newModelMessage: Message = { id: nanoid(), role: 'model', content: '' }
-    addMessage(newModelMessage)
-    if (apiKey !== '') {
-      const config: request.RequestProps = {
-        messages: [...messages, newUserMessage],
-        key: apiKey,
-      }
-      if (apiProxy) config.baseUrl = apiProxy
-      const response = await request.chat(config)
-      if (typeof response !== 'string') {
-        speechQueue.current = new PromiseQueue()
-        subtitleList.current = []
-        setSpeechSilence(false)
-        const onStatement = (line: string) => {
-          if (talkMode === 'voice') {
-            const text = filterMarkdown(line)
+    messageStore.add(newModelMessage)
+    const handleResponse = async (data: ReadableStream) => {
+      speechQueue.current = new PromiseQueue()
+      subtitleList.current = []
+      setSpeechSilence(false)
+      await textStream(
+        data,
+        (content) => {
+          messageStore.update(newModelMessage.id, content)
+          scrollToBottom()
+        },
+        (statement) => {
+          if (settingStore.talkMode === 'voice') {
+            const text = filterMarkdown(statement)
             subtitleList.current.push(text)
             speech(text)
           }
-        }
-
-        const reg = /(?:\n\n|\r\r|\r\n\r\n)/
-        let buffer = ''
-        try {
-          for await (const chunk of response) {
-            const chunkText = chunk.text()
-            updateMessage(chunkText)
-            scrollToBottom()
-            const lines = (buffer + chunkText).split(reg)
-            buffer = lines.pop() || ''
-
-            for (const line of lines) {
-              onStatement(line)
+        },
+      )
+      scrollToBottom()
+      setStatus('silence')
+      messageStore.save()
+    }
+    if (settingStore.apiKey !== '') {
+      const config: request.RequestProps = {
+        messages: messagesRef.current.slice(0, -1),
+        apiKey: settingStore.apiKey,
+      }
+      if (settingStore.apiProxy) config.baseUrl = settingStore.apiProxy
+      try {
+        const result = await request.chat(config)
+        const encoder = new TextEncoder()
+        const readableStream = new ReadableStream({
+          async start(controller) {
+            try {
+              for await (const chunk of result.stream) {
+                const chunkText = chunk.text()
+                controller.enqueue(encoder.encode(chunkText))
+              }
+            } catch (error) {
+              if (error instanceof Error) {
+                handleError(newModelMessage.id, error.message)
+              }
             }
-          }
-        } catch (err) {
-          if (err instanceof Error) {
-            handleError(err.message)
-          }
-        }
-        if (buffer.length > 0) {
-          onStatement(buffer)
-        }
-        scrollToBottom()
-        setStatus('silence')
-        saveMessages()
-      } else {
-        handleError(response)
+            controller.close()
+          },
+        })
+        handleResponse(readableStream)
+      } catch (error) {
+        if (error instanceof Error) handleError(newModelMessage.id, error.message)
       }
     } else {
       const utcTimestamp = generateUTCTimestamp()
       const response = await fetch('/api/chat', {
         method: 'POST',
         body: JSON.stringify({
-          messages: [...messages, newUserMessage],
+          messages: messagesRef.current.slice(0, -1),
           ts: utcTimestamp,
-          sign: generateSignature(password, utcTimestamp),
+          sign: generateSignature(settingStore.password, utcTimestamp),
         }),
       })
       if (response.status < 400 && response.body) {
-        speechQueue.current = new PromiseQueue()
-        subtitleList.current = []
-        setSpeechSilence(false)
-        await textStream(
-          response.body,
-          (content) => {
-            updateMessage(content)
-            scrollToBottom()
-          },
-          (statement) => {
-            if (talkMode === 'voice') {
-              const text = filterMarkdown(statement)
-              subtitleList.current.push(text)
-              speech(text)
-            }
-          },
-        )
-        scrollToBottom()
-        setStatus('silence')
-        saveMessages()
+        handleResponse(response.body)
       } else {
         const errorMessage = await response.text()
-        handleError(errorMessage, response.status)
+        handleError(newModelMessage.id, errorMessage, response.status)
       }
     }
   }
 
   const handleResubmit = async () => {
-    const lastQuestionIndex = findLastIndex(messages, { role: 'user' })
-    const lastQuestion = messages[lastQuestionIndex].content
-    revokeMessage(messages.length - lastQuestionIndex)
-    await handleSubmit(lastQuestion)
+    const lastQuestion = findLast(messageStore.messages, { role: 'user' })
+    if (lastQuestion) {
+      const { id, content } = lastQuestion
+      messageStore.revoke(id)
+      await handleSubmit(content)
+    }
   }
 
   const handleCleanMessage = () => {
-    clearMessages()
+    messageStore.clear()
   }
 
   const updateTalkMode = (type: 'chat' | 'voice') => {
-    setTalkMode(type)
+    settingStore.setTalkMode(type)
   }
 
   const handleRecorder = () => {
@@ -256,7 +235,7 @@ export default function Home() {
   }
 
   const checkAccessStatus = () => {
-    if (!isProtected || apiKey !== '') {
+    if (!settingStore.isProtected || settingStore.apiKey !== '') {
       return true
     } else {
       setSetingOpen(true)
@@ -265,9 +244,9 @@ export default function Home() {
   }
 
   const initTopic = (topic: Topic) => {
-    clearMessages()
+    messageStore.clear()
     topic.parts.forEach((part) => {
-      addMessage({ id: nanoid(), ...part })
+      messageStore.add({ id: nanoid(), ...part })
     })
   }
 
@@ -275,16 +254,18 @@ export default function Home() {
     scrollAreaBottomRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [])
 
+  useEffect(() => useMessageStore.subscribe((state) => (messagesRef.current = state.messages)), [])
+
   useEffect(() => {
-    if (messages.length === 0) {
-      const langType = lang.split('-')[0] === 'zh' ? 'zh' : 'en'
+    if (messageStore.messages.length === 0) {
+      const langType = settingStore.lang.split('-')[0] === 'zh' ? 'zh' : 'en'
       setRandomTopic(shuffleArray<Topic>(topics[langType]).slice(0, 3))
     }
-  }, [messages, lang])
+  }, [messageStore.messages, settingStore.lang])
 
   useEffect(() => {
     requestAnimationFrame(scrollToBottom)
-  }, [messages.length, scrollToBottom])
+  }, [messageStore.messages.length, scrollToBottom])
 
   useLayoutEffect(() => {
     const instance = new SiriWave({
@@ -310,7 +291,7 @@ export default function Home() {
         </div>
         <ThemeToggle />
       </div>
-      {messages.length === 0 && content === '' ? (
+      {messageStore.messages.length === 0 && content === '' ? (
         <div className="relative flex min-h-full grow items-center justify-center text-sm">
           <div className="relative -top-8 text-center text-sm">
             <PackageOpen
@@ -342,19 +323,15 @@ export default function Home() {
         </div>
       ) : (
         <div ref={messageAutoAnimate} className="flex min-h-full flex-1 grow flex-col justify-start">
-          {messages.map((msg, idx) => (
+          {messageStore.messages.map((msg, idx) => (
             <div
               className="group text-slate-500 transition-colors last:text-slate-800 hover:text-slate-800 max-sm:hover:bg-transparent dark:last:text-slate-400 dark:hover:text-slate-400"
               key={msg.id}
             >
               <div className="flex gap-3 p-4 hover:bg-gray-50/80 dark:hover:bg-gray-900/80">
-                {!msg.error ? (
-                  <MessageItem role={msg.role} content={msg.content} isLoading={msg.content === ''} />
-                ) : (
-                  <ErrorMessageItem role={msg.role} content={msg.content} />
-                )}
+                {!msg.error ? <MessageItem {...msg} isLoading={msg.content === ''} /> : <ErrorMessageItem {...msg} />}
               </div>
-              {msg.role === 'model' && idx === messages.length - 1 ? (
+              {msg.role === 'model' && idx === messageStore.messages.length - 1 ? (
                 <div className="my-2 flex h-4 justify-center text-xs text-slate-400 opacity-0 transition-opacity duration-300 group-hover:opacity-100 dark:text-slate-600">
                   <span className="mx-2 cursor-pointer hover:text-slate-500" onClick={() => handleResubmit()}>
                     {t('regenerateAnswer')}
@@ -374,7 +351,7 @@ export default function Home() {
           {content !== '' ? (
             <div className="group text-slate-500 transition-colors last:text-slate-800 hover:text-slate-800 max-sm:hover:bg-transparent dark:last:text-slate-400 dark:hover:text-slate-400">
               <div className="flex gap-3 p-4 hover:bg-gray-50/80 dark:hover:bg-gray-900/80">
-                <MessageItem role="user" content={content} />
+                <MessageItem id="tmp" role="user" content={content} />
               </div>
             </div>
           ) : null}
@@ -397,7 +374,7 @@ export default function Home() {
           <Settings />
         </Button>
       </div>
-      <div style={{ display: talkMode === 'voice' ? 'block' : 'none' }}>
+      <div style={{ display: settingStore.talkMode === 'voice' ? 'block' : 'none' }}>
         <div className="fixed left-0 right-0 top-0 flex h-full w-screen flex-col items-center justify-center bg-slate-900">
           <div className="h-1/5 w-full" ref={siriWaveRef}></div>
           <div className="absolute bottom-0 flex h-2/5 w-2/3 flex-col justify-between pb-12 text-center">

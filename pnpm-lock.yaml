@@ -675,7 +675,7 @@ packages:
       immer: 10.0.3
       leva: 0.9.35(@types/react-dom@18.2.17)(@types/react@18.2.38)(react-dom@18.2.0)(react@18.2.0)
       lodash-es: 4.17.21
-      lucide-react: 0.306.0(react@18.2.0)
+      lucide-react: 0.312.0(react@18.2.0)
       polished: 4.2.2
       prism-react-renderer: 2.3.1(react@18.2.0)
       query-string: 8.1.0
@@ -4109,8 +4109,8 @@ packages:
       react: 18.2.0
     dev: false
 
-  /lucide-react@0.306.0(react@18.2.0):
-    resolution: {integrity: sha512-eShuk2PI3vxN4YN8kNPmhAsroSvPXbtaxU/UX/zrBcLLg8FeFH9MG7C2EYzYsT2rNrPVjbP7rpBz3mOviZYN3A==}
+  /lucide-react@0.312.0(react@18.2.0):
+    resolution: {integrity: sha512-3UZsqyswRXjW4t+nw+InICewSimjPKHuSxiFYqTshv9xkK3tPPntXk/lvXc9pKlXIxm3v9WKyoxcrB6YHhP+dg==}
     peerDependencies:
       react: ^16.5.1 || ^17.0.0 || ^18.0.0
     dependencies:

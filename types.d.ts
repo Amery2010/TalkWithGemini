@@ -1,5 +1,5 @@
 declare interface Message {
-  id?: string
+  id: string
   role: 'user' | 'model'
   content: string
   error?: boolean
@@ -21,5 +21,5 @@ declare interface Topic {
   id: number
   title: string
   description: string
-  parts: Message[]
+  parts: Omit<Message, 'id'>[]
 }
