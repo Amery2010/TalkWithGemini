@@ -42,21 +42,16 @@ export async function POST(req: Request) {
     return NextResponse.json({ code: 50001, message: errorMessage })
   }
 
-  return chat({
+  const result = await chat({
     messages,
     model,
     apiKey: geminiApiKey,
     baseUrl: geminiApiBaseUrl,
   })
-    .then((result) => {
-      try {
-        const stream = GoogleGenerativeAIStream(result)
-        return new StreamingTextResponse(stream)
-      } catch (error) {
-        if (error instanceof Error) handleError(error.message)
-      }
-    })
-    .catch((error) => {
-      if (error instanceof Error) handleError(error.message)
-    })
+  try {
+    const stream = GoogleGenerativeAIStream(result)
+    return new StreamingTextResponse(stream)
+  } catch (error) {
+    if (error instanceof Error) handleError(error.message)
+  }
 }
