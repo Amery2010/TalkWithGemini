@@ -1,28 +1,38 @@
 /**
  * Text stream truncation processing
- * @param readable readable stream
- * @param onMessage message callback function
- * @param onStatement statement callback function, used in talk mode
+ * @param options.readable readable stream
+ * @param options.locale locale lang
+ * @param options.onMessage message callback function
+ * @param options.onStatement statement callback function, used in talk mode
+ * @param options.sentenceLength sentence length, default is 80
  */
-export default async function textStream(
-  readable: ReadableStream,
-  onMessage: (text: string) => void,
-  onStatement: (statement: string) => void,
-) {
+export default async function textStream(options: {
+  readable: ReadableStream
+  locale: string
+  onMessage: (text: string) => void
+  onStatement: (statement: string) => void
+  sentenceLength?: number
+}) {
+  const { readable, locale, onMessage, onStatement, sentenceLength = 80 } = options
   const reader = readable.getReader()
 
   const decoder = new TextDecoder('utf-8')
-  const reg = /(?:\n\n|\r\r|\r\n\r\n)/
   let buffer = ''
   let remainText = ''
   const chunks: string[] = []
 
   const handleChunk = (chunk: string) => {
-    const lines = (buffer + chunk).split(reg)
-    buffer = lines.pop() || ''
+    const text = buffer + chunk
+    if (text.length >= sentenceLength) {
+      const segmenter = new Intl.Segmenter(locale, { granularity: 'sentence' })
+      const segments = segmenter.segment(text)
+      const lines = Array.from(segments).map((item) => item.segment)
 
-    for (const line of lines) {
-      onStatement(line)
+      buffer = lines.pop() || ''
+
+      onStatement(lines.join(''))
+    } else {
+      buffer = text
     }
   }
   const handleRemainingText = () => {

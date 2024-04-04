@@ -8,16 +8,16 @@
       "source": "/(.*)",
       "headers": [
         {
-          "key": "X-Real-IP",
-          "value": "$remote_addr"
+          "key": "X-Content-Type-Options",
+          "value": "nosniff"
         },
         {
-          "key": "X-Forwarded-For",
-          "value": "$proxy_add_x_forwarded_for"
+          "key": "X-Frame-Options",
+          "value": "DENY"
         },
         {
-          "key": "Host",
-          "value": "$http_host"
+          "key": "X-XSS-Protection",
+          "value": "1; mode=block"
         }
       ]
     }

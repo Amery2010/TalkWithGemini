@@ -9,7 +9,7 @@ import 'highlight.js/styles/a11y-light.css'
 import './globals.css'
 
 const HEAD_SCRIPTS = process.env.HEAD_SCRIPTS as string
-const password = (process.env.ACCESS_PASSWORD as string) || ''
+const NEXT_PUBLIC_ENABLE_PROTECT = process.env.NEXT_PUBLIC_ENABLE_PROTECT as string
 
 export const metadata: Metadata = {
   title: 'Talk with Gemini - 与 Gemini 交谈',
@@ -38,7 +38,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <head>{HEAD_SCRIPTS ? <Script id="headscript">{HEAD_SCRIPTS}</Script> : null}</head>
       <body>
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
-          <StoreProvider isProtected={password !== ''}>
+          <StoreProvider isProtected={NEXT_PUBLIC_ENABLE_PROTECT === '1'}>
             <I18Provider>{children}</I18Provider>
           </StoreProvider>
         </ThemeProvider>

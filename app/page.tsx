@@ -110,12 +110,6 @@ export default function Home() {
   }
 
   const handleSubmit = async (text: string) => {
-    if (settingStore.talkMode === 'voice') {
-      if (!audioStreamRef.current) {
-        audioStreamRef.current = new AudioStream()
-      }
-      edgeSpeechRef.current = new EdgeSpeechTTS({ locale: settingStore.ttsLang })
-    }
     setContent('')
     const newUserMessage: Message = { id: nanoid(), role: 'user', content: text }
     messageStore.add(newUserMessage)
@@ -126,20 +120,21 @@ export default function Home() {
       speechQueue.current = new PromiseQueue()
       subtitleList.current = []
       setSpeechSilence(false)
-      await textStream(
-        data,
-        (content) => {
+      await textStream({
+        readable: data,
+        locale: settingStore.lang,
+        onMessage: (content) => {
           messageStore.update(newModelMessage.id, content)
           scrollToBottom()
         },
-        (statement) => {
+        onStatement: (statement) => {
           if (settingStore.talkMode === 'voice') {
             const text = filterMarkdown(statement)
             subtitleList.current.push(text)
             speech(text)
           }
         },
-      )
+      })
       scrollToBottom()
       setStatus('silence')
       messageStore.save()
@@ -266,6 +261,13 @@ export default function Home() {
   useEffect(() => {
     requestAnimationFrame(scrollToBottom)
   }, [messageStore.messages.length, scrollToBottom])
+
+  useEffect(() => {
+    if (settingStore.talkMode === 'voice') {
+      audioStreamRef.current = new AudioStream()
+      edgeSpeechRef.current = new EdgeSpeechTTS({ locale: settingStore.ttsLang })
+    }
+  }, [settingStore.talkMode, settingStore.ttsLang])
 
   useLayoutEffect(() => {
     const instance = new SiriWave({
