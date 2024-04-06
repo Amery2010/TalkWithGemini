@@ -173,3 +173,6 @@ html.dark .hljs-warpper ::-webkit-scrollbar-thumb {
 html.dark .hljs-warpper ::-webkit-scrollbar-thumb:hover {
   background-color: rgb(71, 85, 105);
 }
+.inline-image {
+  max-height: 300px;
+}

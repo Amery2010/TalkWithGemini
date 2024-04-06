@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import { GoogleGenerativeAIStream, StreamingTextResponse } from 'ai'
-import { chat } from '@/utils/request'
+import chat from '@/utils/chat'
 import { generateSignature, generateUTCTimestamp } from '@/utils/signature'
 
 type GeminiRequest = {
@@ -33,25 +33,27 @@ export async function POST(req: Request) {
   }
 
   if (!geminiApiKey) {
-    return NextResponse.json({ code: 50002, message: 'The server Gemini key is missing' })
+    return NextResponse.json({ code: 50002, message: 'The server Gemini key is missing' }, { status: 500 })
   }
 
   const handleError = (message: string) => {
     const messageParts = message.split('[400 Bad Request]')
     const errorMessage = messageParts.length > 1 ? messageParts[1].trim() : 'Server error'
-    return NextResponse.json({ code: 50001, message: errorMessage })
+    return NextResponse.json({ code: 50001, message: errorMessage }, { status: 500 })
   }
 
-  const result = await chat({
-    messages,
-    model,
-    apiKey: geminiApiKey,
-    baseUrl: geminiApiBaseUrl,
-  })
   try {
+    const result = await chat({
+      messages,
+      model,
+      apiKey: geminiApiKey,
+      baseUrl: geminiApiBaseUrl,
+    })
     const stream = GoogleGenerativeAIStream(result)
     return new StreamingTextResponse(stream)
   } catch (error) {
-    if (error instanceof Error) handleError(error.message)
+    if (error instanceof Error) {
+      return handleError(error.message)
+    }
   }
 }

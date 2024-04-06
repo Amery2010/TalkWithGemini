@@ -4,6 +4,7 @@
  * @param options.locale locale lang
  * @param options.onMessage message callback function
  * @param options.onStatement statement callback function, used in talk mode
+ * @param options.onFinish finish callback function
  * @param options.sentenceLength sentence length, default is 80
  */
 export default async function textStream(options: {
@@ -11,9 +12,10 @@ export default async function textStream(options: {
   locale: string
   onMessage: (text: string) => void
   onStatement: (statement: string) => void
+  onFinish: () => void
   sentenceLength?: number
 }) {
-  const { readable, locale, onMessage, onStatement, sentenceLength = 80 } = options
+  const { readable, locale, onMessage, onStatement, onFinish, sentenceLength = 80 } = options
   const reader = readable.getReader()
 
   const decoder = new TextDecoder('utf-8')
@@ -52,6 +54,8 @@ export default async function textStream(options: {
       } else {
         if (chunks.length > 0) {
           handleRemainingText()
+        } else {
+          onFinish()
         }
       }
     }
@@ -61,8 +65,9 @@ export default async function textStream(options: {
   while (true) {
     let { value, done } = await reader.read()
     if (done) {
-      buffer && onStatement(buffer)
-      chunks.length > 0 && handleRemainingText()
+      if (buffer) onStatement(buffer)
+      if (chunks.length > 0) handleRemainingText()
+      onFinish()
       break
     }
     // stream: true is important here, fix the bug of incomplete line

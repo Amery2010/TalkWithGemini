@@ -4,7 +4,17 @@ import { EdgeSpeechTTS } from '@lobehub/tts'
 import { useSpeechRecognition } from '@lobehub/tts/react'
 import { useAutoAnimate } from '@formkit/auto-animate/react'
 import SiriWave from 'siriwave'
-import { MessageCircleHeart, AudioLines, Mic, MessageSquareText, Settings, Pause, PackageOpen } from 'lucide-react'
+import {
+  MessageCircleHeart,
+  AudioLines,
+  Mic,
+  MessageSquareText,
+  Settings,
+  Pause,
+  PackageOpen,
+  SendHorizontal,
+  Github,
+} from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import ThemeToggle from '@/components/ThemeToggle'
 import { Textarea } from '@/components/ui/textarea'
@@ -14,9 +24,10 @@ import ErrorMessageItem from '@/components/ErrorMessageItem'
 import Setting from '@/components/Setting'
 import Topic from '@/components/Topic'
 import Button from '@/components/Button'
+import ImageUploader from '@/components/ImageUploader'
 import { useMessageStore } from '@/store/chat'
 import { useSettingStore } from '@/store/setting'
-import * as request from '@/utils/request'
+import chat, { type RequestProps } from '@/utils/chat'
 import AudioStream from '@/utils/AudioStream'
 import PromiseQueue from '@/utils/PromiseQueue'
 import filterMarkdown from '@/utils/filterMarkdown'
@@ -25,8 +36,9 @@ import { generateSignature, generateUTCTimestamp } from '@/utils/signature'
 import { shuffleArray } from '@/utils/common'
 import topics from '@/constant/topics'
 import { customAlphabet } from 'nanoid'
-import { findLast } from 'lodash-es'
+import { findLast, findIndex } from 'lodash-es'
 
+const GITHUB_URL = process.env.NEXT_PUBLIC_GITHUB_URL
 const nanoid = customAlphabet('1234567890abcdefghijklmnopqrstuvwxyz', 8)
 
 export default function Home() {
@@ -38,10 +50,10 @@ export default function Home() {
   const speechQueue = useRef<PromiseQueue>()
   const subtitleList = useRef<string[]>([])
   const messageStore = useMessageStore()
-  const messagesRef = useRef(useMessageStore.getState().messages)
   const settingStore = useSettingStore()
   const speechRecognition = useSpeechRecognition(settingStore.sttLang)
   const [messageAutoAnimate] = useAutoAnimate()
+  const [textareaHeight, setTextareaHeight] = useState<number>(40)
   const [randomTopic, setRandomTopic] = useState<Topic[]>([])
   const [siriWave, setSiriWave] = useState<SiriWave>()
   const [content, setContent] = useState<string>('')
@@ -134,19 +146,25 @@ export default function Home() {
             speech(text)
           }
         },
+        onFinish: () => {
+          scrollToBottom()
+          setStatus('silence')
+          messageStore.save()
+        },
       })
-      scrollToBottom()
-      setStatus('silence')
-      messageStore.save()
     }
+    const model =
+      findIndex(messageStore.messages, (item) => item.type === 'image') !== -1 ? 'gemini-pro-vision' : 'gemini-pro'
+    const { messages } = useMessageStore.getState()
     if (settingStore.apiKey !== '') {
-      const config: request.RequestProps = {
-        messages: messagesRef.current.slice(0, -1),
+      const config: RequestProps = {
+        messages: messages.slice(0, -1),
         apiKey: settingStore.apiKey,
+        model,
       }
       if (settingStore.apiProxy) config.baseUrl = settingStore.apiProxy
       try {
-        const result = await request.chat(config)
+        const result = await chat(config)
         const encoder = new TextEncoder()
         const readableStream = new ReadableStream({
           async start(controller) {
@@ -172,7 +190,8 @@ export default function Home() {
       const response = await fetch('/api/chat', {
         method: 'POST',
         body: JSON.stringify({
-          messages: messagesRef.current.slice(0, -1),
+          messages: messages.slice(0, -1),
+          model,
           ts: utcTimestamp,
           sign: generateSignature(settingStore.password, utcTimestamp),
         }),
@@ -229,8 +248,14 @@ export default function Home() {
     }
   }
 
+  const handleImageUpload = (imageDataList: string[]) => {
+    imageDataList.forEach((imageData) => {
+      messageStore.add({ id: nanoid(), role: 'user', content: imageData, type: 'image' })
+    })
+  }
+
   const checkAccessStatus = () => {
-    if (!settingStore.isProtected || settingStore.apiKey !== '') {
+    if (settingStore.password !== '' || settingStore.apiKey !== '') {
       return true
     } else {
       setSetingOpen(true)
@@ -248,8 +273,6 @@ export default function Home() {
   const scrollToBottom = useCallback(() => {
     scrollAreaBottomRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [])
-
-  useEffect(() => useMessageStore.subscribe((state) => (messagesRef.current = state.messages)), [])
 
   useEffect(() => {
     if (messageStore.messages.length === 0) {
@@ -291,7 +314,14 @@ export default function Home() {
           <MessageCircleHeart className="h-10 w-10" />
           <div className="ml-3 font-bold leading-10">{t('title')}</div>
         </div>
-        <ThemeToggle />
+        <div className="flex items-center gap-1">
+          {GITHUB_URL ? (
+            <Button title={t('github')} variant="ghost" size="icon" className="h-8 w-8">
+              <Github className="h-5 w-5" onClick={() => window.open(GITHUB_URL)} />
+            </Button>
+          ) : null}
+          <ThemeToggle />
+        </div>
       </div>
       {messageStore.messages.length === 0 && content === '' ? (
         <div className="relative flex min-h-full grow items-center justify-center text-sm">
@@ -360,18 +390,34 @@ export default function Home() {
         </div>
       )}
       <div ref={scrollAreaBottomRef}></div>
-      <div className="fixed bottom-0 flex w-full max-w-screen-md gap-2 bg-[hsl(var(--background))] p-4 pb-8 max-sm:pb-4 landscape:max-md:pb-4">
+      <div className="fixed bottom-0 flex w-full max-w-screen-md items-end gap-2 bg-[hsl(var(--background))] p-4 pb-8 max-sm:pb-4 landscape:max-md:pb-4">
         <Button title={t('voiceMode')} variant="secondary" size="icon" onClick={() => updateTalkMode('voice')}>
           <AudioLines />
         </Button>
-        <Textarea
-          className="min-h-10"
-          rows={1}
-          value={content}
-          placeholder={t('askAQuestion')}
-          onChange={(ev) => setContent(ev.target.value)}
-          onKeyDown={handleKeyDown}
-        />
+        <div className="relative w-full">
+          <Textarea
+            className="max-h-[120px] min-h-10 px-2 pr-16"
+            style={{ height: `${textareaHeight}px` }}
+            value={content}
+            placeholder={t('askAQuestion')}
+            onChange={(ev) => {
+              setContent(ev.target.value)
+              setTextareaHeight(ev.target.scrollHeight)
+            }}
+            onKeyDown={handleKeyDown}
+          />
+          <div className="absolute bottom-1 right-1 flex">
+            <div className="box-border flex h-8 w-8 cursor-pointer items-center justify-center text-slate-600 hover:text-slate-800">
+              <ImageUploader onChange={handleImageUpload} />
+            </div>
+            <div
+              className="box-border flex h-8 w-8 cursor-pointer items-center justify-center text-slate-600 hover:text-slate-800"
+              onClick={() => handleSubmit(content)}
+            >
+              <SendHorizontal />
+            </div>
+          </div>
+        </div>
         <Button title={t('setting')} variant="secondary" size="icon" onClick={() => setSetingOpen(true)}>
           <Settings />
         </Button>

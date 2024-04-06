@@ -22,7 +22,7 @@ const registerCopy = (className: string) => {
   return clipboard
 }
 
-function MessageItem({ role, content, isLoading }: MessageItemProps) {
+function MessageItem({ role, type, content, isLoading }: MessageItemProps) {
   const { t } = useTranslation()
   const [html, setHtml] = useState<string>('')
 
@@ -40,37 +40,42 @@ function MessageItem({ role, content, isLoading }: MessageItemProps) {
         const [tokens, idx] = params
         const token = tokens[idx]
         return `
-        <div class="katex-inline-warpper">
-          <span class="copy copy-katex-inline" data-clipboard-text="${encodeURIComponent(token.content)}">${t(
-            'copy',
-          )}</span>
-          ${mathLineRender(...params)}
-        </div>`
+          <div class="katex-inline-warpper">
+            <span class="copy copy-katex-inline" data-clipboard-text="${encodeURIComponent(token.content)}">${t(
+              'copy',
+            )}</span>
+            ${mathLineRender(...params)}
+          </div>
+        `
       }
       const mathBlockRender = md.renderer.rules.math_block!
       md.renderer.rules.math_block = (...params) => {
         const [tokens, idx] = params
         const token = tokens[idx]
         return `
-        <div class="katex-block-warpper">
-          <span class="copy copy-katex-block" data-clipboard-text="${encodeURIComponent(token.content)}">${t(
-            'copy',
-          )}</span>
-          ${mathBlockRender(...params)}
-        </div>`
+          <div class="katex-block-warpper">
+            <span class="copy copy-katex-block" data-clipboard-text="${encodeURIComponent(token.content)}">${t(
+              'copy',
+            )}</span>
+            ${mathBlockRender(...params)}
+          </div>
+        `
       }
       const highlightRender = md.renderer.rules.fence!
       md.renderer.rules.fence = (...params) => {
         const [tokens, idx] = params
         const token = tokens[idx]
         return `
-        <div class="hljs-warpper">
-          <div class="info">
-            <span class="lang">${token.info.trim()}</span>
-            <span class="copy copy-code" data-clipboard-text="${encodeURIComponent(token.content)}">${t('copy')}</span>
+          <div class="hljs-warpper">
+            <div class="info">
+              <span class="lang">${token.info.trim()}</span>
+              <span class="copy copy-code" data-clipboard-text="${encodeURIComponent(token.content)}">${t(
+                'copy',
+              )}</span>
+            </div>
+            ${highlightRender(...params)}
           </div>
-          ${highlightRender(...params)}
-        </div>`
+        `
       }
       return md.render(content)
     },
@@ -78,17 +83,24 @@ function MessageItem({ role, content, isLoading }: MessageItemProps) {
   )
 
   useEffect(() => {
-    setHtml(render(content))
-    const copyKatexInline = registerCopy('.copy-katex-inline')
-    const copyKatexBlock = registerCopy('.copy-katex-block')
-    const copyCode = registerCopy('.copy-code')
-    return () => {
-      setHtml('')
-      copyKatexInline.destroy()
-      copyKatexBlock.destroy()
-      copyCode.destroy()
+    if (type === 'image') {
+      setHtml(`<img class="inline-image" src=${content} />`)
+      return () => {
+        setHtml('')
+      }
+    } else {
+      setHtml(render(content))
+      const copyKatexInline = registerCopy('.copy-katex-inline')
+      const copyKatexBlock = registerCopy('.copy-katex-block')
+      const copyCode = registerCopy('.copy-code')
+      return () => {
+        setHtml('')
+        copyKatexInline.destroy()
+        copyKatexBlock.destroy()
+        copyCode.destroy()
+      }
     }
-  }, [content, render])
+  }, [content, type, render])
 
   return (
     <>
