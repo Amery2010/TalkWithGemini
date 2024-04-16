@@ -1,5 +1,4 @@
 import { create } from 'zustand'
-import { EdgeSpeechTTS } from '@lobehub/tts'
 import storage from '@/utils/Storage'
 import { detectLanguage } from '@/utils/common'
 
@@ -40,10 +39,6 @@ export const useSettingStore = create<SettingStore>((set) => ({
       lang,
       isProtected: !!isProtected,
       talkMode: (storage.get<string>('talkMode') as Setting['talkMode']) || 'chat',
-    }
-    if (!ttsVoice) {
-      const voiceOptions = new EdgeSpeechTTS({ locale: state.ttsLang }).voiceOptions
-      state.ttsVoice = voiceOptions ? (voiceOptions[0].value as string) : 'en-US-JennyNeural'
     }
     set(() => state)
     return state

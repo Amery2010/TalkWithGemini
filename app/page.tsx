@@ -1,7 +1,6 @@
 'use client'
 import { useRef, useState, useMemo, KeyboardEvent, useEffect, useCallback, useLayoutEffect } from 'react'
-import { EdgeSpeechTTS } from '@lobehub/tts'
-import { useSpeechRecognition } from '@lobehub/tts/react'
+import { EdgeSpeech, SpeechRecognition } from '@xiangfa/polly'
 import { useAutoAnimate } from '@formkit/auto-animate/react'
 import SiriWave from 'siriwave'
 import {
@@ -46,17 +45,18 @@ export default function Home() {
   const siriWaveRef = useRef<HTMLDivElement>(null)
   const scrollAreaBottomRef = useRef<HTMLDivElement>(null)
   const audioStreamRef = useRef<AudioStream>()
-  const edgeSpeechRef = useRef<EdgeSpeechTTS>()
+  const edgeSpeechRef = useRef<EdgeSpeech>()
+  const speechRecognitionRef = useRef<SpeechRecognition>()
   const speechQueue = useRef<PromiseQueue>()
   const subtitleList = useRef<string[]>([])
   const messageStore = useMessageStore()
   const settingStore = useSettingStore()
-  const speechRecognition = useSpeechRecognition(settingStore.sttLang)
   const [messageAutoAnimate] = useAutoAnimate()
   const [textareaHeight, setTextareaHeight] = useState<number>(40)
   const [randomTopic, setRandomTopic] = useState<Topic[]>([])
   const [siriWave, setSiriWave] = useState<SiriWave>()
   const [content, setContent] = useState<string>('')
+  const [speechText, setSpeechText] = useState<string>('')
   const [subtitle, setSubtitle] = useState<string>('')
   const [settingOpen, setSetingOpen] = useState<boolean>(false)
   const [topicOpen, setTopicOpen] = useState<boolean>(false)
@@ -123,6 +123,7 @@ export default function Home() {
 
   const handleSubmit = async (text: string) => {
     setContent('')
+    setTextareaHeight(40)
     const newUserMessage: Message = { id: nanoid(), role: 'user', content: text }
     messageStore.add(newUserMessage)
     setStatus('thinkng')
@@ -224,11 +225,14 @@ export default function Home() {
 
   const handleRecorder = () => {
     if (!checkAccessStatus()) return false
-    if (speechRecognition.isRecording) {
-      speechRecognition.stop()
-      if (speechRecognition.text) handleSubmit(speechRecognition.text)
+    if (!audioStreamRef.current) {
+      audioStreamRef.current = new AudioStream()
+    }
+    if (speechRecognitionRef.current?.isRecording) {
+      speechRecognitionRef.current.stop()
+      handleSubmit(speechRecognitionRef.current.text)
     } else {
-      speechRecognition.start()
+      speechRecognitionRef.current?.start()
     }
   }
 
@@ -286,11 +290,18 @@ export default function Home() {
   }, [messageStore.messages.length, scrollToBottom])
 
   useEffect(() => {
-    if (settingStore.talkMode === 'voice') {
-      audioStreamRef.current = new AudioStream()
-      edgeSpeechRef.current = new EdgeSpeechTTS({ locale: settingStore.ttsLang })
-    }
-  }, [settingStore.talkMode, settingStore.ttsLang])
+    const setting = useSettingStore.getState()
+    const edgeSpeech = new EdgeSpeech({ locale: setting.ttsLang })
+    edgeSpeechRef.current = edgeSpeech
+    const voiceOptions = edgeSpeech.voiceOptions
+    setting.setTTSVoice(voiceOptions ? (voiceOptions[0].value as string) : 'en-US-JennyNeural')
+    speechRecognitionRef.current = new SpeechRecognition({
+      locale: setting.sttLang,
+      onUpdate: (text) => {
+        setSpeechText(text)
+      },
+    })
+  }, [])
 
   useLayoutEffect(() => {
     const instance = new SiriWave({
@@ -407,11 +418,11 @@ export default function Home() {
             onKeyDown={handleKeyDown}
           />
           <div className="absolute bottom-1 right-1 flex">
-            <div className="box-border flex h-8 w-8 cursor-pointer items-center justify-center text-slate-600 hover:text-slate-800">
+            <div className="box-border flex h-8 w-8 cursor-pointer items-center justify-center text-slate-800">
               <ImageUploader onChange={handleImageUpload} />
             </div>
             <div
-              className="box-border flex h-8 w-8 cursor-pointer items-center justify-center text-slate-600 hover:text-slate-800"
+              className="box-border flex h-8 w-8 cursor-pointer items-center justify-center text-slate-800"
               onClick={() => handleSubmit(content)}
             >
               <SendHorizontal />
@@ -428,8 +439,8 @@ export default function Home() {
           <div className="absolute bottom-0 flex h-2/5 w-2/3 flex-col justify-between pb-12 text-center">
             <div className="text-sm leading-6">
               <div className="animate-pulse text-lg text-white">{statusText}</div>
-              {speechRecognition.isRecording ? (
-                <div className="text-center text-green-300">{speechRecognition.text}</div>
+              {speechRecognitionRef.current?.isRecording ? (
+                <div className="text-center text-green-300">{speechText}</div>
               ) : (
                 <div className="text-center text-red-300">{subtitle}</div>
               )}
@@ -462,7 +473,7 @@ export default function Home() {
                   size="icon"
                   onClick={() => handleRecorder()}
                 >
-                  {speechRecognition.isRecording ? speechRecognition.formattedTime : <Mic className="h-8 w-8" />}
+                  <Mic className="h-8 w-8" />
                 </Button>
               )}
               <Button

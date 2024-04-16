@@ -1,5 +1,5 @@
 import { memo, useEffect, useMemo, useState } from 'react'
-import { EdgeSpeechTTS } from '@lobehub/tts'
+import { EdgeSpeech } from '@xiangfa/polly'
 import { useTranslation } from 'react-i18next'
 import {
   Dialog,
@@ -37,7 +37,7 @@ function Setting({ open, onClose }: SettingProps) {
     return settingStore.isProtected
   }, [settingStore.isProtected])
   const voiceOptions = useMemo(() => {
-    return new EdgeSpeechTTS({ locale: ttsLang }).voiceOptions || []
+    return new EdgeSpeech({ locale: ttsLang }).voiceOptions || []
   }, [ttsLang])
 
   const handleSubmit = () => {
@@ -56,7 +56,7 @@ function Setting({ open, onClose }: SettingProps) {
 
   const handleTTSChange = (value: string) => {
     setTtsLang(value)
-    const options = new EdgeSpeechTTS({ locale: value }).voiceOptions
+    const options = new EdgeSpeech({ locale: value }).voiceOptions
     if (options) {
       setTtsVoice(options[0].value as string)
     }
