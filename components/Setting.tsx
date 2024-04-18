@@ -171,11 +171,11 @@ function Setting({ open, onClose }: SettingProps) {
             </Select>
           </div>
           <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="tts" className="text-right">
+            <Label htmlFor="ttsVoice" className="text-right">
               {t('soundSource')}
             </Label>
             <Select value={ttsVoice} onValueChange={setTtsVoice}>
-              <SelectTrigger id="tts" className="col-span-3">
+              <SelectTrigger id="ttsVoice" className="col-span-3">
                 <SelectValue placeholder={t('followTheSystem')} />
               </SelectTrigger>
               <SelectContent>

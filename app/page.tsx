@@ -32,7 +32,7 @@ import PromiseQueue from '@/utils/PromiseQueue'
 import filterMarkdown from '@/utils/filterMarkdown'
 import textStream from '@/utils/textStream'
 import { generateSignature, generateUTCTimestamp } from '@/utils/signature'
-import { shuffleArray } from '@/utils/common'
+import { shuffleArray, formatTime } from '@/utils/common'
 import topics from '@/constant/topics'
 import { customAlphabet } from 'nanoid'
 import { findLast, findIndex } from 'lodash-es'
@@ -56,8 +56,9 @@ export default function Home() {
   const [randomTopic, setRandomTopic] = useState<Topic[]>([])
   const [siriWave, setSiriWave] = useState<SiriWave>()
   const [content, setContent] = useState<string>('')
-  const [speechText, setSpeechText] = useState<string>('')
   const [subtitle, setSubtitle] = useState<string>('')
+  const [isRecording, setIsRecording] = useState<boolean>(false)
+  const [recordTime, setRecordTime] = useState<number>(0)
   const [settingOpen, setSetingOpen] = useState<boolean>(false)
   const [topicOpen, setTopicOpen] = useState<boolean>(false)
   const [speechSilence, setSpeechSilence] = useState<boolean>(false)
@@ -122,6 +123,7 @@ export default function Home() {
   }
 
   const handleSubmit = async (text: string) => {
+    if (content === '') return false
     setContent('')
     setTextareaHeight(40)
     const newUserMessage: Message = { id: nanoid(), role: 'user', content: text }
@@ -149,7 +151,6 @@ export default function Home() {
         },
         onFinish: () => {
           scrollToBottom()
-          setStatus('silence')
           messageStore.save()
         },
       })
@@ -228,11 +229,21 @@ export default function Home() {
     if (!audioStreamRef.current) {
       audioStreamRef.current = new AudioStream()
     }
-    if (speechRecognitionRef.current?.isRecording) {
-      speechRecognitionRef.current.stop()
-      handleSubmit(speechRecognitionRef.current.text)
-    } else {
-      speechRecognitionRef.current?.start()
+    if (speechRecognitionRef.current) {
+      if (isRecording) {
+        speechRecognitionRef.current.stop()
+        if (settingStore.talkMode === 'voice') {
+          handleSubmit(speechRecognitionRef.current.text)
+          setRecordTime(0)
+        }
+        setIsRecording(false)
+      } else {
+        speechRecognitionRef.current.start()
+        setIsRecording(true)
+        if (settingStore.talkMode === 'voice') {
+          updateRecordTime()
+        }
+      }
     }
   }
 
@@ -244,7 +255,7 @@ export default function Home() {
   }
 
   const handleKeyDown = (ev: KeyboardEvent<HTMLTextAreaElement>) => {
-    if (ev.key === 'Enter' && !ev.shiftKey) {
+    if (ev.key === 'Enter' && !ev.shiftKey && !isRecording) {
       if (!checkAccessStatus()) return false
       // Prevent the default carriage return and line feed behavior
       ev.preventDefault()
@@ -278,6 +289,15 @@ export default function Home() {
     scrollAreaBottomRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [])
 
+  const updateRecordTime = useCallback(() => {
+    setTimeout(() => {
+      setRecordTime((time) => time + 1)
+      if (speechRecognitionRef.current?.isRecording) {
+        updateRecordTime()
+      }
+    }, 1000)
+  }, [])
+
   useEffect(() => {
     if (messageStore.messages.length === 0) {
       const langType = settingStore.lang.split('-')[0] === 'zh' ? 'zh' : 'en'
@@ -291,17 +311,23 @@ export default function Home() {
 
   useEffect(() => {
     const setting = useSettingStore.getState()
-    const edgeSpeech = new EdgeSpeech({ locale: setting.ttsLang })
-    edgeSpeechRef.current = edgeSpeech
-    const voiceOptions = edgeSpeech.voiceOptions
-    setting.setTTSVoice(voiceOptions ? (voiceOptions[0].value as string) : 'en-US-JennyNeural')
     speechRecognitionRef.current = new SpeechRecognition({
       locale: setting.sttLang,
       onUpdate: (text) => {
-        setSpeechText(text)
+        setContent(text)
       },
     })
-  }, [])
+  }, [settingStore.sttLang])
+
+  useEffect(() => {
+    const setting = useSettingStore.getState()
+    const edgeSpeech = new EdgeSpeech({ locale: setting.ttsLang })
+    edgeSpeechRef.current = edgeSpeech
+    const voiceOptions = edgeSpeech.voiceOptions
+    if (setting.ttsVoice === '') {
+      setting.setTTSVoice(voiceOptions ? (voiceOptions[0].value as string) : 'en-US-JennyNeural')
+    }
+  }, [settingStore.ttsLang])
 
   useLayoutEffect(() => {
     const instance = new SiriWave({
@@ -320,10 +346,10 @@ export default function Home() {
 
   return (
     <main className="mx-auto flex min-h-full max-w-screen-md flex-col justify-between pb-20 pt-6 max-sm:pb-16 max-sm:pt-0 landscape:max-md:pt-0">
-      <div className="mb-2 mt-6 flex justify-between p-4 max-sm:mt-2 landscape:max-md:mt-0">
-        <div className="flex flex-row text-xl leading-8 text-red-400">
-          <MessageCircleHeart className="h-10 w-10" />
-          <div className="ml-3 font-bold leading-10">{t('title')}</div>
+      <div className="mb-2 mt-6 flex justify-between p-4 pr-2 max-sm:mt-2 max-sm:pr-2 landscape:max-md:mt-0">
+        <div className="flex flex-row text-xl leading-8 text-red-400 max-sm:text-base">
+          <MessageCircleHeart className="h-10 w-10 max-sm:h-8 max-sm:w-8" />
+          <div className="ml-3 font-bold leading-10 max-sm:leading-8">{t('title')}</div>
         </div>
         <div className="flex items-center gap-1">
           {GITHUB_URL ? (
@@ -332,6 +358,15 @@ export default function Home() {
             </Button>
           ) : null}
           <ThemeToggle />
+          <Button
+            className="h-8 w-8"
+            title={t('setting')}
+            variant="ghost"
+            size="icon"
+            onClick={() => setSetingOpen(true)}
+          >
+            <Settings className="h-5 w-5" />
+          </Button>
         </div>
       </div>
       {messageStore.messages.length === 0 && content === '' ? (
@@ -401,13 +436,13 @@ export default function Home() {
         </div>
       )}
       <div ref={scrollAreaBottomRef}></div>
-      <div className="fixed bottom-0 flex w-full max-w-screen-md items-end gap-2 bg-[hsl(var(--background))] p-4 pb-8 max-sm:pb-4 landscape:max-md:pb-4">
+      <div className="fixed bottom-0 flex w-full max-w-screen-md items-end gap-2 bg-[hsl(var(--background))] p-4 pb-8 max-sm:p-2 max-sm:pb-3 landscape:max-md:pb-4">
         <Button title={t('voiceMode')} variant="secondary" size="icon" onClick={() => updateTalkMode('voice')}>
           <AudioLines />
         </Button>
         <div className="relative w-full">
           <Textarea
-            className="max-h-[120px] min-h-10 px-2 pr-16"
+            className="max-h-[120px] min-h-10 px-2 pr-16 transition-[height]"
             style={{ height: `${textareaHeight}px` }}
             value={content}
             placeholder={t('askAQuestion')}
@@ -423,14 +458,20 @@ export default function Home() {
             </div>
             <div
               className="box-border flex h-8 w-8 cursor-pointer items-center justify-center text-slate-800"
-              onClick={() => handleSubmit(content)}
+              onClick={() => handleRecorder()}
             >
-              <SendHorizontal />
+              <Mic className={isRecording ? `animate-pulse` : ''} />
             </div>
           </div>
         </div>
-        <Button title={t('setting')} variant="secondary" size="icon" onClick={() => setSetingOpen(true)}>
-          <Settings />
+        <Button
+          title={t('send')}
+          variant="secondary"
+          size="icon"
+          disabled={isRecording}
+          onClick={() => handleSubmit(content)}
+        >
+          <SendHorizontal />
         </Button>
       </div>
       <div style={{ display: settingStore.talkMode === 'voice' ? 'block' : 'none' }}>
@@ -439,10 +480,10 @@ export default function Home() {
           <div className="absolute bottom-0 flex h-2/5 w-2/3 flex-col justify-between pb-12 text-center">
             <div className="text-sm leading-6">
               <div className="animate-pulse text-lg text-white">{statusText}</div>
-              {speechRecognitionRef.current?.isRecording ? (
-                <div className="text-center text-green-300">{speechText}</div>
-              ) : (
+              {status === 'talking' ? (
                 <div className="text-center text-red-300">{subtitle}</div>
+              ) : (
+                <div className="text-center text-green-300">{content}</div>
               )}
             </div>
             <div className="flex items-center justify-center pt-2">
@@ -471,9 +512,10 @@ export default function Home() {
                   title={t('startRecording')}
                   variant="destructive"
                   size="icon"
+                  disabled={status === 'thinkng'}
                   onClick={() => handleRecorder()}
                 >
-                  <Mic className="h-8 w-8" />
+                  {isRecording ? formatTime(recordTime) : <Mic className="h-8 w-8" />}
                 </Button>
               )}
               <Button
