@@ -22,8 +22,8 @@ class PromiseQueue {
   }
 
   public empty() {
-    this.executing = false
     this.queue = []
+    this.executing = false
   }
 
   private async executeNext(): Promise<void> {

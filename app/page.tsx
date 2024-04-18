@@ -58,6 +58,7 @@ export default function Home() {
   const [content, setContent] = useState<string>('')
   const [subtitle, setSubtitle] = useState<string>('')
   const [isRecording, setIsRecording] = useState<boolean>(false)
+  const [recordTimer, setRecordTimer] = useState<NodeJS.Timeout>()
   const [recordTime, setRecordTime] = useState<number>(0)
   const [settingOpen, setSetingOpen] = useState<boolean>(false)
   const [topicOpen, setTopicOpen] = useState<boolean>(false)
@@ -234,6 +235,7 @@ export default function Home() {
         speechRecognitionRef.current.stop()
         if (settingStore.talkMode === 'voice') {
           handleSubmit(speechRecognitionRef.current.text)
+          endRecordTimer()
           setRecordTime(0)
         }
         setIsRecording(false)
@@ -241,7 +243,7 @@ export default function Home() {
         speechRecognitionRef.current.start()
         setIsRecording(true)
         if (settingStore.talkMode === 'voice') {
-          updateRecordTime()
+          startRecordTime()
         }
       }
     }
@@ -289,14 +291,16 @@ export default function Home() {
     scrollAreaBottomRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [])
 
-  const updateRecordTime = useCallback(() => {
-    setTimeout(() => {
+  const startRecordTime = () => {
+    const intervalTimer = setInterval(() => {
       setRecordTime((time) => time + 1)
-      if (speechRecognitionRef.current?.isRecording) {
-        updateRecordTime()
-      }
     }, 1000)
-  }, [])
+    setRecordTimer(intervalTimer)
+  }
+
+  const endRecordTimer = () => {
+    clearInterval(recordTimer)
+  }
 
   useEffect(() => {
     if (messageStore.messages.length === 0) {

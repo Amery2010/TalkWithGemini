@@ -97,7 +97,7 @@ function Setting({ open, onClose }: SettingProps) {
           <DialogTitle>{t('setting')}</DialogTitle>
           <DialogDescription>{t('settingDescription')}</DialogDescription>
         </DialogHeader>
-        <div className="grid justify-start gap-4 py-4">
+        <div className="grid justify-center gap-4 py-4">
           {isProtected ? (
             <>
               <div className="grid grid-cols-4 items-center gap-4">
