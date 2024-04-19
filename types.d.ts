@@ -16,6 +16,7 @@ declare interface Setting {
   ttsVoice: string
   isProtected: boolean
   talkMode: 'chat' | 'voice'
+  maxHistoryLength: number
 }
 
 declare interface Topic {

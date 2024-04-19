@@ -33,5 +33,7 @@
   "selectTopic": "請選擇您感興趣的話題。",
   "copy": "複製",
   "github": "Github",
-  "send": "發送"
+  "send": "發送",
+  "maxHistoryLength": "最大歷史長度",
+  "unlimited": "無限制"
 }

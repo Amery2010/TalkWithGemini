@@ -33,5 +33,7 @@
   "selectTopic": "관심 있는 주제를 선택하세요.",
   "copy": "복사",
   "github": "Github",
-  "send": "보내기"
+  "send": "보내기",
+  "maxHistoryLength": "최대 역사적 길이",
+  "unlimited": "제한 없음"
 }

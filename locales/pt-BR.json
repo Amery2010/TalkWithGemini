@@ -33,5 +33,7 @@
   "selectTopic": "Por favor, escolha um tópico que lhe interesse.",
   "copy": "Copiar",
   "github": "Github",
-  "send": "Enviar"
+  "send": "Enviar",
+  "maxHistoryLength": "Comprimento histórico máximo",
+  "unlimited": "Sem limite"
 }

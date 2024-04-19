@@ -2,8 +2,14 @@ import { create } from 'zustand'
 import storage from '@/utils/Storage'
 import { findIndex } from 'lodash-es'
 
+type Summary = {
+  ids: string[]
+  content: string
+}
+
 type MessageStore = {
   messages: Message[]
+  summary: Summary
   init: () => Message[]
   add: (message: Message) => void
   update: (id: string, content: string) => void
@@ -11,13 +17,22 @@ type MessageStore = {
   clear: () => void
   save: () => void
   revoke: (id: string) => void
+  summarize: (ids: string[], content: string) => void
 }
 
 export const useMessageStore = create<MessageStore>((set, get) => ({
   messages: [],
+  summary: {
+    ids: [],
+    content: '',
+  },
   init: () => {
-    const messages: Message[] = storage.get<Message[]>('messages') || []
-    set(() => ({ messages }))
+    const messages = storage.get<Message[]>('messages') || []
+    const summary = storage.get<Summary>('summary') || {
+      ids: [],
+      content: '',
+    }
+    set(() => ({ messages, summary }))
     return messages
   },
   add: (message) => {
@@ -44,8 +59,18 @@ export const useMessageStore = create<MessageStore>((set, get) => ({
     })
   },
   clear: () => {
-    set(() => ({ messages: [] }))
+    set(() => ({
+      messages: [],
+      summary: {
+        ids: [],
+        content: '',
+      },
+    }))
     storage.set<Message[]>('messages', [])
+    storage.set<Summary>('summary', {
+      ids: [],
+      content: '',
+    })
   },
   save: () => {
     storage.set<Message[]>('messages', get().messages)
@@ -55,5 +80,14 @@ export const useMessageStore = create<MessageStore>((set, get) => ({
       const index = findIndex(state.messages, { id })
       return { messages: state.messages.slice(0, index) }
     })
+  },
+  summarize: (ids, content) => {
+    set(() => ({
+      summary: {
+        ids,
+        content,
+      },
+    }))
+    storage.set<Summary>('summary', get().summary)
   },
 }))

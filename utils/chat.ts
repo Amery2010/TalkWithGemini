@@ -1,15 +1,16 @@
 import { GoogleGenerativeAI } from '@fuyun/generative-ai'
 import { generationConfig, safetySettings } from '@/constant/modelSettings'
-import { isUndefined } from 'lodash-es'
+import { getVisionPrompt } from '@/utils/prompt'
+import { isUndefined, groupBy } from 'lodash-es'
 
 export type RequestProps = {
   model?: 'gemini-pro' | 'gemini-pro-vision'
-  messages: Message[]
+  messages: Pick<Message, 'role' | 'content' | 'type'>[]
   apiKey: string
   baseUrl?: string
 }
 
-function transformMessage(message: Message) {
+function transformMessage(message: Pick<Message, 'role' | 'content' | 'type'>) {
   return {
     role: message.role === 'user' ? 'user' : 'model',
     parts: [
@@ -29,34 +30,9 @@ export default function chat({ messages = [], model = 'gemini-pro', apiKey, base
     throw new Error('Request parameter error')
   }
   if (model === 'gemini-pro-vision') {
-    const textMessages: Message[] = []
-    const imageMessage: Message[] = []
-    messages.forEach((item) => {
-      if (item.type === 'image') {
-        imageMessage.push(item)
-      } else {
-        textMessages.push(item)
-      }
-    })
-    const conversation = `
-      The following conversation is my question about those pictures and your explanation:
-      """
-      ${textMessages
-        .map((item) => {
-          return `${item.role === 'user' ? 'Question' : 'Answer'}: ${item.content}`
-        })
-        .join('\n')}
-      """
-      Just remember the conversation and do not include the above when answering!
-    `
-    const content = `
-      Please answer my question in the language I asked it in:
-      """
-      ${message.content}
-      """
-    `
-    const prompt = textMessages.length > 0 ? conversation + content : content
-    const imageDataList = imageMessage.map((item) => {
+    const messageGroup = groupBy(messages, 'type')
+    const prompt = getVisionPrompt(message, messageGroup.text || [])
+    const imageDataList = messageGroup.image.map((item) => {
       const data = item.content.split(';base64,')
       return {
         inlineData: {

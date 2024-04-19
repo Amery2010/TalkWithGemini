@@ -33,5 +33,7 @@
   "selectTopic": "興味のあるトピックを選択してください。",
   "copy": "コピー",
   "github": "Github",
-  "send": "送信"
+  "send": "送信",
+  "maxHistoryLength": "最大歴史長",
+  "unlimited": "制限なし"
 }

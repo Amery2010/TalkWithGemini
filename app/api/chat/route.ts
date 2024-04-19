@@ -37,10 +37,9 @@ export async function POST(req: Request) {
   }
 
   const handleError = (message: string) => {
-    console.error(message)
     const messageParts = message.split('[400 Bad Request]')
-    const errorMessage = messageParts.length > 1 ? messageParts[1].trim() : 'Server error'
-    return NextResponse.json({ code: 50001, message: errorMessage }, { status: 500 })
+    const errorMessage = messageParts.length > 1 ? messageParts[1].trim() : 'Unknown error'
+    return NextResponse.json({ code: 400, message: errorMessage }, { status: 400 })
   }
 
   try {

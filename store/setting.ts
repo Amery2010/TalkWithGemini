@@ -12,6 +12,7 @@ interface SettingStore extends Setting {
   setTTSLang: (lang: string) => void
   setTTSVoice: (voice: string) => void
   setTalkMode: (mode: 'chat' | 'voice') => void
+  setMaxHistoryLength: (length: number) => void
 }
 
 export const useSettingStore = create<SettingStore>((set) => ({
@@ -24,6 +25,7 @@ export const useSettingStore = create<SettingStore>((set) => ({
   lang: '',
   isProtected: false,
   talkMode: 'chat',
+  maxHistoryLength: 0,
   init: (isProtected) => {
     const sttLang = storage.get<string>('sttLang')
     const ttsLang = storage.get<string>('ttsLang')
@@ -39,6 +41,7 @@ export const useSettingStore = create<SettingStore>((set) => ({
       lang,
       isProtected: !!isProtected,
       talkMode: (storage.get<string>('talkMode') as Setting['talkMode']) || 'chat',
+      maxHistoryLength: Number(storage.get<string>('maxHistoryLength') || '0'),
     }
     set(() => state)
     return state
@@ -74,5 +77,9 @@ export const useSettingStore = create<SettingStore>((set) => ({
   setTalkMode: (mode) => {
     set(() => ({ talkMode: mode }))
     storage.set<string>('talkMode', mode)
+  },
+  setMaxHistoryLength: (length) => {
+    set(() => ({ maxHistoryLength: length }))
+    storage.set<string>('maxHistoryLength', length.toString())
   },
 }))

@@ -33,5 +33,7 @@
   "selectTopic": "يرجى اختيار موضوع يثير اهتمامك",
   "copy": "نسخ",
   "github": "Github",
-  "send": "إرسال"
+  "send": "إرسال",
+  "maxHistoryLength": "أقصى طول تاريخي",
+  "unlimited": "بدون قيود"
 }

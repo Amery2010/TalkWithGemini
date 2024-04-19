@@ -27,14 +27,15 @@ import ImageUploader from '@/components/ImageUploader'
 import { useMessageStore } from '@/store/chat'
 import { useSettingStore } from '@/store/setting'
 import chat, { type RequestProps } from '@/utils/chat'
+import { summarizePrompt, getVoiceModelPrompt, getSummaryPrompt } from '@/utils/prompt'
 import AudioStream from '@/utils/AudioStream'
 import PromiseQueue from '@/utils/PromiseQueue'
-import textStream from '@/utils/textStream'
+import textStream, { streamToText } from '@/utils/textStream'
 import { generateSignature, generateUTCTimestamp } from '@/utils/signature'
 import { shuffleArray, formatTime } from '@/utils/common'
 import topics from '@/constant/topics'
 import { customAlphabet } from 'nanoid'
-import { findLast, findIndex } from 'lodash-es'
+import { findLast, isFunction, groupBy, pick } from 'lodash-es'
 
 const GITHUB_URL = process.env.NEXT_PUBLIC_GITHUB_URL
 const nanoid = customAlphabet('1234567890abcdefghijklmnopqrstuvwxyz', 8)
@@ -118,82 +119,25 @@ export default function Home() {
     scrollAreaBottomRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [])
 
-  const handleError = useCallback(async (id: string, message: string, code?: number) => {
-    const { replace: replaceMessage } = useMessageStore.getState()
-    const newModelMessage: Message = {
-      id: nanoid(),
-      role: 'model',
-      content: code ? `${code}: ${message}` : message,
-      error: true,
-    }
-    setStatus('silence')
-    replaceMessage(id, newModelMessage)
-    setSubtitle(message)
-  }, [])
-
-  const handleSubmit = useCallback(
-    async (text: string): Promise<void> => {
-      if (content === '') return Promise.reject(false)
-      const { lang, talkMode, apiKey, apiProxy, password } = useSettingStore.getState()
-      const { add: addMessage, update: updateMesssage, save: saveMessage } = useMessageStore.getState()
-      setContent('')
-      setTextareaHeight(40)
-      if (talkMode === 'voice') {
-        setStatus('thinkng')
-        setSubtitle('')
-      }
-      const newUserMessage: Message = { id: nanoid(), role: 'user', content: text }
-      addMessage(newUserMessage)
-      const newModelMessage: Message = { id: nanoid(), role: 'model', content: '' }
-      addMessage(newModelMessage)
-      const handleResponse = async (data: ReadableStream) => {
-        speechQueue.current = new PromiseQueue()
-        setSpeechSilence(false)
-        await textStream({
-          readable: data,
-          locale: lang,
-          onMessage: (content) => {
-            updateMesssage(newModelMessage.id, content)
-            scrollToBottom()
-          },
-          onStatement: (statement) => {
-            if (talkMode === 'voice') {
-              // Remove list symbols and adjust layout
-              const audioText = statement.replaceAll('*', '').replaceAll('\n\n', '\n')
-              speech(audioText)
-            }
-          },
-          onFinish: () => {
-            scrollToBottom()
-            saveMessage()
-          },
-        })
-      }
-      const model =
-        findIndex(messagesRef.current, (item) => item.type === 'image') !== -1 ? 'gemini-pro-vision' : 'gemini-pro'
-      const messageList =
-        talkMode === 'voice'
-          ? ([
-              {
-                id: 'voiceSystemUser',
-                role: 'user',
-                content: `You are an all-knowing friend of mine, we are communicating face to face.
-                   Please answer my question in short sentences.
-                   Please avoid using any text content other than the text used for spoken communication.
-                   The answer to the question is to avoid using list items with *, humans do not use any text formatting symbols in the communication process.
-                  `,
-              },
-              {
-                id: 'voiceSystemModel',
-                role: 'model',
-                content: 'Okay, I will answer your question in short sentences!',
-              },
-              ...messagesRef.current,
-            ] as Message[])
-          : messagesRef.current
+  const fetchAnswer = useCallback(
+    async ({
+      messages,
+      model,
+      onResponse,
+      onError,
+    }: {
+      messages: Message[]
+      model: 'gemini-pro' | 'gemini-pro-vision'
+      onResponse: (readableStream: ReadableStream) => void
+      onError?: (error: string, code?: number) => void
+    }) => {
+      const { apiKey, apiProxy, password } = useSettingStore.getState()
+      const messageList = [...messages].map((item) => {
+        return pick(item, ['role', 'content', 'type'])
+      })
       if (apiKey !== '') {
         const config: RequestProps = {
-          messages: messageList.slice(0, -1),
+          messages: messageList,
           apiKey: apiKey,
           model,
         }
@@ -209,37 +153,149 @@ export default function Home() {
                   controller.enqueue(encoder.encode(chunkText))
                 }
               } catch (error) {
-                if (error instanceof Error) {
-                  handleError(newModelMessage.id, error.message)
+                if (error instanceof Error && isFunction(onError)) {
+                  onError(error.message)
                 }
               }
               controller.close()
             },
           })
-          handleResponse(readableStream)
+          onResponse(readableStream)
         } catch (error) {
-          if (error instanceof Error) handleError(newModelMessage.id, error.message)
+          if (error instanceof Error && isFunction(onError)) {
+            onError(error.message)
+          }
         }
       } else {
         const utcTimestamp = generateUTCTimestamp()
         const response = await fetch('/api/chat', {
           method: 'POST',
           body: JSON.stringify({
-            messages: messageList.slice(0, -1),
+            messages: messageList,
             model,
             ts: utcTimestamp,
             sign: generateSignature(password, utcTimestamp),
           }),
         })
         if (response.status < 400 && response.body) {
-          handleResponse(response.body)
+          onResponse(response.body)
         } else {
-          const errorMessage = await response.text()
-          handleError(newModelMessage.id, errorMessage, response.status)
+          const { message, code } = await response.json()
+          if (isFunction(onError)) {
+            onError(message, code)
+          }
         }
       }
     },
-    [content, handleError, scrollToBottom, speech],
+    [],
+  )
+
+  const summarize = useCallback(
+    async (messages: Message[]) => {
+      const { summary, summarize: summarizeChat } = useMessageStore.getState()
+      const { ids, prompt } = summarizePrompt(messages, summary.ids, summary.content)
+      await fetchAnswer({
+        messages: [{ id: 'summary', role: 'user', type: 'text', content: prompt }],
+        model: 'gemini-pro',
+        onResponse: async (readableStream) => {
+          const text = await streamToText(readableStream)
+          summarizeChat(ids, text.trim())
+        },
+      })
+    },
+    [fetchAnswer],
+  )
+
+  const handleError = useCallback(async (id: string, message: string, code?: number) => {
+    const { replace: replaceMessage } = useMessageStore.getState()
+    const newModelMessage: Message = {
+      id: nanoid(),
+      role: 'model',
+      content: code ? `${code}: ${message}` : message,
+      error: true,
+    }
+    setStatus('silence')
+    replaceMessage(id, newModelMessage)
+    setSubtitle(message)
+  }, [])
+
+  const handleResponse = useCallback(
+    async (data: ReadableStream, currentMessage: Message) => {
+      const { lang, talkMode, maxHistoryLength } = useSettingStore.getState()
+      const { summary, update: updateMesssage, save: saveMessage } = useMessageStore.getState()
+      speechQueue.current = new PromiseQueue()
+      setSpeechSilence(false)
+      await textStream({
+        readable: data,
+        locale: lang,
+        onMessage: (content) => {
+          updateMesssage(currentMessage.id, content)
+          scrollToBottom()
+        },
+        onStatement: (statement) => {
+          if (talkMode === 'voice') {
+            // Remove list symbols and adjust layout
+            const audioText = statement.replaceAll('*', '').replaceAll('\n\n', '\n')
+            speech(audioText)
+          }
+        },
+        onFinish: async () => {
+          scrollToBottom()
+          saveMessage()
+          if (maxHistoryLength > 0) {
+            const messageGroup = groupBy(messagesRef.current, 'type')
+            const messageList = messageGroup.text.filter((item) => !summary.ids.includes(item.id))
+            if (messageList.length > maxHistoryLength) {
+              await summarize(messageGroup.text)
+            }
+          }
+        },
+      })
+    },
+    [scrollToBottom, speech, summarize],
+  )
+
+  const handleSubmit = useCallback(
+    async (text: string): Promise<void> => {
+      if (content === '') return Promise.reject(false)
+      const { talkMode } = useSettingStore.getState()
+      const { summary, add: addMessage } = useMessageStore.getState()
+      setContent('')
+      setTextareaHeight(40)
+      const newUserMessage: Message = { id: nanoid(), role: 'user', type: 'text', content: text }
+      addMessage(newUserMessage)
+      const newModelMessage: Message = { id: nanoid(), role: 'model', type: 'text', content: '' }
+      addMessage(newModelMessage)
+      let model: 'gemini-pro' | 'gemini-pro-vision' = 'gemini-pro'
+      let messages: Message[] = []
+      const messageGroup = groupBy(messagesRef.current.slice(0, -1), 'type')
+      if (messageGroup.image && messageGroup.image.length > 0) {
+        model = 'gemini-pro-vision'
+        messages = [...messageGroup.image]
+      }
+      if (summary.content === '') {
+        messages = [...messages, ...messageGroup.text]
+      } else {
+        const newMessages = messageGroup.text.filter((item) => !summary.ids.includes(item.id))
+        messages = [...messages, ...getSummaryPrompt(summary.content), ...newMessages]
+      }
+      if (talkMode === 'voice') {
+        messages = getVoiceModelPrompt(messages)
+        setStatus('thinkng')
+        setSubtitle('')
+      }
+      await fetchAnswer({
+        messages,
+        model,
+        onResponse: (stream) => {
+          handleResponse(stream, newModelMessage)
+        },
+        onError: (message, code) => {
+          handleError(newModelMessage.id, message, code)
+        },
+      })
+    },
+    [content, fetchAnswer, handleResponse, handleError],
   )
 
   const handleResubmit = useCallback(async () => {
@@ -330,7 +386,7 @@ export default function Home() {
   const handleImageUpload = useCallback((imageDataList: string[]) => {
     const { add: addMessage } = useMessageStore.getState()
     imageDataList.forEach((imageData) => {
-      addMessage({ id: nanoid(), role: 'user', content: imageData, type: 'image' })
+      addMessage({ id: nanoid(), role: 'user', type: 'image', content: imageData })
     })
   }, [])
 

@@ -13,6 +13,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Button } from '@/components/ui/button'
+import { Slider } from '@/components/ui/slider'
 import i18n from '@/plugins/i18n'
 import locales from '@/constant/locales'
 import { useSettingStore } from '@/store/setting'
@@ -29,6 +30,7 @@ function Setting({ open, onClose }: SettingProps) {
   const [password, setPassword] = useState<string>('')
   const [apiKey, setApiKey] = useState<string>('')
   const [apiProxy, setApiProxy] = useState<string>('')
+  const [maxHistoryLength, setMaxHistoryLength] = useState<number>(0)
   const [lang, setLang] = useState<string>('')
   const [sttLang, setSttLang] = useState<string>('')
   const [ttsLang, setTtsLang] = useState<string>('')
@@ -44,6 +46,7 @@ function Setting({ open, onClose }: SettingProps) {
     if (password !== settingStore.password) settingStore.setPassword(password)
     if (apiKey !== settingStore.apiKey) settingStore.setApiKey(apiKey)
     if (apiProxy !== settingStore.apiProxy) settingStore.setApiProxy(apiProxy)
+    if (maxHistoryLength !== settingStore.maxHistoryLength) settingStore.setMaxHistoryLength(maxHistoryLength)
     if (lang !== settingStore.lang) settingStore.setLang(lang)
     if (sttLang !== settingStore.sttLang) settingStore.setSTTLang(sttLang)
     if (ttsLang !== settingStore.ttsLang) settingStore.setTTSLang(ttsLang)
@@ -88,6 +91,7 @@ function Setting({ open, onClose }: SettingProps) {
     setSttLang(settingStore.sttLang)
     setTtsLang(settingStore.ttsLang)
     setTtsVoice(settingStore.ttsVoice)
+    setMaxHistoryLength(settingStore.maxHistoryLength)
   }, [settingStore])
 
   return (
@@ -142,6 +146,25 @@ function Setting({ open, onClose }: SettingProps) {
               defaultValue={apiProxy}
               onChange={(ev) => setApiProxy(ev.target.value)}
             />
+          </div>
+          <hr />
+          <div className="grid grid-cols-4 items-center gap-4">
+            <Label htmlFor="maxHistoryLength" className="text-right">
+              {t('maxHistoryLength')}
+            </Label>
+            <div className="col-span-3 flex">
+              <Slider
+                id="maxHistoryLength"
+                className="flex-1"
+                defaultValue={[maxHistoryLength]}
+                max={50}
+                step={1}
+                onValueChange={(values) => setMaxHistoryLength(values[0])}
+              />
+              <span className="w-1/4 text-center text-sm">
+                {maxHistoryLength === 0 ? t('unlimited') : maxHistoryLength}
+              </span>
+            </div>
           </div>
           <hr />
           <div className="grid grid-cols-4 items-center gap-4">

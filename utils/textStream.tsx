@@ -54,8 +54,6 @@ export default async function textStream(options: {
       } else {
         if (chunks.length > 0) {
           handleRemainingText()
-        } else {
-          onFinish()
         }
       }
     }
@@ -76,4 +74,15 @@ export default async function textStream(options: {
     handleRemainingText()
     handleChunk(chunk)
   }
+}
+
+export async function streamToText(readableStream: ReadableStream): Promise<string> {
+  const reader = readableStream.getReader()
+  let text = ''
+  while (true) {
+    const { done, value } = await reader.read()
+    if (done) break
+    text += new TextDecoder().decode(value)
+  }
+  return text
 }
