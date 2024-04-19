@@ -47,7 +47,6 @@ export default function Home() {
   const edgeSpeechRef = useRef<EdgeSpeech>()
   const speechRecognitionRef = useRef<SpeechRecognition>()
   const speechQueue = useRef<PromiseQueue>()
-  const subtitleList = useRef<string[]>([])
   const messagesRef = useRef(useMessageStore.getState().messages)
   const messageStore = useMessageStore()
   const settingStore = useSettingStore()
@@ -96,13 +95,12 @@ export default function Home() {
               siriWave?.setAmplitude(2)
               audioStreamRef.current?.play({
                 audioData: audio,
-                onStart: () => {
-                  const nextSubtitle = subtitleList.current.shift()
-                  if (nextSubtitle) setSubtitle(nextSubtitle)
+                text: content,
+                onStart: (text) => {
+                  setSubtitle(text)
                 },
                 onFinished: () => {
                   setStatus('silence')
-                  setSubtitle('')
                   saveMessage()
                   siriWave?.setSpeed(0.04)
                   siriWave?.setAmplitude(0.1)
@@ -140,14 +138,16 @@ export default function Home() {
       const { add: addMessage, update: updateMesssage, save: saveMessage } = useMessageStore.getState()
       setContent('')
       setTextareaHeight(40)
+      if (talkMode === 'voice') {
+        setStatus('thinkng')
+        setSubtitle('')
+      }
       const newUserMessage: Message = { id: nanoid(), role: 'user', content: text }
       addMessage(newUserMessage)
-      setStatus('thinkng')
       const newModelMessage: Message = { id: nanoid(), role: 'model', content: '' }
       addMessage(newModelMessage)
       const handleResponse = async (data: ReadableStream) => {
         speechQueue.current = new PromiseQueue()
-        subtitleList.current = []
         setSpeechSilence(false)
         await textStream({
           readable: data,
@@ -158,12 +158,12 @@ export default function Home() {
           },
           onStatement: (statement) => {
             if (talkMode === 'voice') {
-              subtitleList.current.push(statement)
-              speech(statement)
+              // Remove list symbols and adjust layout
+              const audioText = statement.replaceAll('*', '').replaceAll('\n\n', '\n')
+              speech(audioText)
             }
           },
           onFinish: () => {
-            setStatus('silence')
             scrollToBottom()
             saveMessage()
           },
@@ -446,7 +446,7 @@ export default function Home() {
         </div>
       ) : (
         <div ref={messageAutoAnimate} className="flex min-h-full flex-1 grow flex-col justify-start">
-          {messagesRef.current.map((msg, idx) => (
+          {messageStore.messages.map((msg, idx) => (
             <div
               className="group text-slate-500 transition-colors last:text-slate-800 hover:text-slate-800 max-sm:hover:bg-transparent dark:last:text-slate-400 dark:hover:text-slate-400"
               key={msg.id}
@@ -454,7 +454,7 @@ export default function Home() {
               <div className="flex gap-3 p-4 hover:bg-gray-50/80 dark:hover:bg-gray-900/80">
                 {!msg.error ? <MessageItem {...msg} isLoading={msg.content === ''} /> : <ErrorMessageItem {...msg} />}
               </div>
-              {msg.role === 'model' && idx === messagesRef.current.length - 1 ? (
+              {msg.role === 'model' && idx === messageStore.messages.length - 1 ? (
                 <div className="my-2 flex h-4 justify-center text-xs text-slate-400 duration-300 dark:text-slate-600">
                   <span className="mx-2 cursor-pointer hover:text-slate-500" onClick={() => handleResubmit()}>
                     {t('regenerateAnswer')}
@@ -526,7 +526,7 @@ export default function Home() {
             <div className="text-sm leading-6">
               <div className="animate-pulse text-lg text-white">{statusText}</div>
               {status === 'talking' ? (
-                <div className="text-center text-red-300">{subtitle}</div>
+                <pre className="text-center text-red-300">{subtitle}</pre>
               ) : (
                 <div className="text-center text-green-300">{content}</div>
               )}

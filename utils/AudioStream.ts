@@ -1,60 +1,67 @@
+interface AudioOptions {
+  audioData: ArrayBuffer
+  text?: string
+  onStart?: (text: string) => void
+  onFinished?: () => void
+}
+
 class AudioStream {
   audioContext: AudioContext
-  audioBufferSource: AudioBufferSourceNode | null
-  queue: ArrayBuffer[]
-  isPlaying: boolean
+  queue: AudioOptions[] = []
+  audioBufferSources: AudioBufferSourceNode[] = []
+  isPlaying: boolean = false
   constructor() {
     // 创建 AudioContext
     this.audioContext = new AudioContext()
-    this.audioBufferSource = null
-    this.queue = []
-    this.isPlaying = false
   }
-  public play(options: { audioData: ArrayBuffer; onStart?: () => void; onFinished?: () => void }) {
+  public play(options: AudioOptions) {
     // 如果音频正在播放则进行缓存
     if (this.isPlaying) {
-      this.queue.push(options.audioData)
+      this.queue.push(options)
       return false
     }
 
-    if (typeof options.onStart === 'function') options.onStart()
-
     // 创建新的 AudioBufferSourceNode
-    this.audioBufferSource = this.audioContext.createBufferSource()
+    const audioBufferSource = this.audioContext.createBufferSource()
+
+    if (typeof options.onStart === 'function') options.onStart(options.text || '')
 
     // 解码音频数据为 AudioBuffer
     this.audioContext.decodeAudioData(options.audioData, (buffer: AudioBuffer) => {
-      if (this.audioBufferSource && buffer) {
+      if (audioBufferSource) {
         // 设置 AudioBufferSourceNode 的音频数据
-        this.audioBufferSource.buffer = buffer
+        audioBufferSource.buffer = buffer
 
         // 连接 AudioBufferSourceNode 到音频输出
-        this.audioBufferSource.connect(this.audioContext.destination)
+        audioBufferSource.connect(this.audioContext.destination)
 
         // 播放音频
-        this.audioBufferSource.start()
+        audioBufferSource.start()
         this.isPlaying = true
 
         // 在音频播放结束时，执行回调函数以继续下一段音频流的播放
-        this.audioBufferSource.addEventListener('ended', async () => {
+        audioBufferSource.addEventListener('ended', async () => {
           this.isPlaying = false
-          const data = this.queue.shift()
+          const newOptions = this.queue.shift()
           // 在此处进行下一段音频流的处理和播放
-          if (data) {
-            this.play({ audioData: data, onStart: options.onStart, onFinished: options.onFinished })
+          if (newOptions) {
+            this.play(newOptions)
           } else {
             if (typeof options.onFinished === 'function') options.onFinished()
           }
         })
       }
     })
+
+    this.audioBufferSources.push(audioBufferSource)
   }
   public stop() {
-    if (this.audioBufferSource) {
-      this.queue = []
-      this.audioBufferSource.disconnect()
-      this.audioBufferSource.stop()
-    }
+    this.queue = []
+    this.audioBufferSources.forEach((audioBufferSource) => {
+      audioBufferSource.disconnect()
+      audioBufferSource.stop()
+    })
+    this.audioBufferSources = []
   }
 }
 

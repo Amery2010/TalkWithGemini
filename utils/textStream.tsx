@@ -32,9 +32,7 @@ export default async function textStream(options: {
 
       buffer = lines.pop() || ''
 
-      for (const line of lines) {
-        if (line.trim().length > 0) onStatement(line)
-      }
+      onStatement(lines.join(''))
     } else {
       buffer = text
     }
