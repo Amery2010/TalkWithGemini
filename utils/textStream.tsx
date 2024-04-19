@@ -15,7 +15,7 @@ export default async function textStream(options: {
   onFinish: () => void
   sentenceLength?: number
 }) {
-  const { readable, locale, onMessage, onStatement, onFinish, sentenceLength = 80 } = options
+  const { readable, locale, onMessage, onStatement, onFinish, sentenceLength = 20 } = options
   const reader = readable.getReader()
 
   const decoder = new TextDecoder('utf-8')
@@ -32,7 +32,9 @@ export default async function textStream(options: {
 
       buffer = lines.pop() || ''
 
-      onStatement(lines.join(''))
+      for (const line of lines) {
+        if (line.trim().length > 0) onStatement(line)
+      }
     } else {
       buffer = text
     }

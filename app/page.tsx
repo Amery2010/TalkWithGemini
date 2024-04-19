@@ -29,7 +29,6 @@ import { useSettingStore } from '@/store/setting'
 import chat, { type RequestProps } from '@/utils/chat'
 import AudioStream from '@/utils/AudioStream'
 import PromiseQueue from '@/utils/PromiseQueue'
-import filterMarkdown from '@/utils/filterMarkdown'
 import textStream from '@/utils/textStream'
 import { generateSignature, generateUTCTimestamp } from '@/utils/signature'
 import { shuffleArray, formatTime } from '@/utils/common'
@@ -49,6 +48,7 @@ export default function Home() {
   const speechRecognitionRef = useRef<SpeechRecognition>()
   const speechQueue = useRef<PromiseQueue>()
   const subtitleList = useRef<string[]>([])
+  const messagesRef = useRef(useMessageStore.getState().messages)
   const messageStore = useMessageStore()
   const settingStore = useSettingStore()
   const [messageAutoAnimate] = useAutoAnimate()
@@ -75,43 +75,53 @@ export default function Home() {
     }
   }, [status, t])
 
-  const speech = (content: string) => {
-    if (content.length === 0) return
-    speechQueue.current?.enqueue(
-      () =>
-        new Promise(async (resolve, reject) => {
-          if (speechSilence) reject(false)
-          const voice = await edgeSpeechRef.current?.create({
-            input: content,
-            options: { voice: settingStore.ttsVoice },
-          })
-          if (voice) {
-            const audio = await voice.arrayBuffer()
-            setStatus('talking')
-            const isSafari = /Safari/.test(navigator.userAgent) && !/Chrome/.test(navigator.userAgent)
-            siriWave?.setSpeed(isSafari ? 0.1 : 0.05)
-            siriWave?.setAmplitude(2)
-            audioStreamRef.current?.play({
-              audioData: audio,
-              onStart: () => {
-                const nextSubtitle = subtitleList.current.shift()
-                if (nextSubtitle) setSubtitle(nextSubtitle)
-              },
-              onFinished: () => {
-                setStatus('silence')
-                setSubtitle('')
-                messageStore.save()
-                siriWave?.setSpeed(0.04)
-                siriWave?.setAmplitude(0.1)
-              },
+  const speech = useCallback(
+    (content: string) => {
+      if (content.length === 0) return
+      speechQueue.current?.enqueue(
+        () =>
+          new Promise(async (resolve, reject) => {
+            if (speechSilence) reject(false)
+            const { ttsVoice } = useSettingStore.getState()
+            const voice = await edgeSpeechRef.current?.create({
+              input: content,
+              options: { voice: ttsVoice },
             })
-            resolve(true)
-          }
-        }),
-    )
-  }
+            if (voice) {
+              const { save: saveMessage } = useMessageStore.getState()
+              const audio = await voice.arrayBuffer()
+              setStatus('talking')
+              const isSafari = /Safari/.test(navigator.userAgent) && !/Chrome/.test(navigator.userAgent)
+              siriWave?.setSpeed(isSafari ? 0.1 : 0.05)
+              siriWave?.setAmplitude(2)
+              audioStreamRef.current?.play({
+                audioData: audio,
+                onStart: () => {
+                  const nextSubtitle = subtitleList.current.shift()
+                  if (nextSubtitle) setSubtitle(nextSubtitle)
+                },
+                onFinished: () => {
+                  setStatus('silence')
+                  setSubtitle('')
+                  saveMessage()
+                  siriWave?.setSpeed(0.04)
+                  siriWave?.setAmplitude(0.1)
+                },
+              })
+              resolve(true)
+            }
+          }),
+      )
+    },
+    [siriWave, speechSilence],
+  )
 
-  const handleError = async (id: string, message: string, code?: number) => {
+  const scrollToBottom = useCallback(() => {
+    scrollAreaBottomRef.current?.scrollIntoView({ behavior: 'smooth' })
+  }, [])
+
+  const handleError = useCallback(async (id: string, message: string, code?: number) => {
+    const { replace: replaceMessage } = useMessageStore.getState()
     const newModelMessage: Message = {
       id: nanoid(),
       role: 'model',
@@ -119,121 +129,170 @@ export default function Home() {
       error: true,
     }
     setStatus('silence')
-    messageStore.replace(id, newModelMessage)
+    replaceMessage(id, newModelMessage)
     setSubtitle(message)
-  }
+  }, [])
 
-  const handleSubmit = async (text: string) => {
-    if (content === '') return false
-    setContent('')
-    setTextareaHeight(40)
-    const newUserMessage: Message = { id: nanoid(), role: 'user', content: text }
-    messageStore.add(newUserMessage)
-    setStatus('thinkng')
-    const newModelMessage: Message = { id: nanoid(), role: 'model', content: '' }
-    messageStore.add(newModelMessage)
-    const handleResponse = async (data: ReadableStream) => {
-      speechQueue.current = new PromiseQueue()
-      subtitleList.current = []
-      setSpeechSilence(false)
-      await textStream({
-        readable: data,
-        locale: settingStore.lang,
-        onMessage: (content) => {
-          messageStore.update(newModelMessage.id, content)
-          scrollToBottom()
-        },
-        onStatement: (statement) => {
-          if (settingStore.talkMode === 'voice') {
-            const text = filterMarkdown(statement)
-            subtitleList.current.push(text)
-            speech(text)
-          }
-        },
-        onFinish: () => {
-          scrollToBottom()
-          messageStore.save()
-        },
-      })
-    }
-    const model =
-      findIndex(messageStore.messages, (item) => item.type === 'image') !== -1 ? 'gemini-pro-vision' : 'gemini-pro'
-    const { messages } = useMessageStore.getState()
-    if (settingStore.apiKey !== '') {
-      const config: RequestProps = {
-        messages: messages.slice(0, -1),
-        apiKey: settingStore.apiKey,
-        model,
-      }
-      if (settingStore.apiProxy) config.baseUrl = settingStore.apiProxy
-      try {
-        const result = await chat(config)
-        const encoder = new TextEncoder()
-        const readableStream = new ReadableStream({
-          async start(controller) {
-            try {
-              for await (const chunk of result.stream) {
-                const chunkText = chunk.text()
-                controller.enqueue(encoder.encode(chunkText))
-              }
-            } catch (error) {
-              if (error instanceof Error) {
-                handleError(newModelMessage.id, error.message)
-              }
+  const handleSubmit = useCallback(
+    async (text: string): Promise<void> => {
+      if (content === '') return Promise.reject(false)
+      const { lang, talkMode, apiKey, apiProxy, password } = useSettingStore.getState()
+      const { add: addMessage, update: updateMesssage, save: saveMessage } = useMessageStore.getState()
+      setContent('')
+      setTextareaHeight(40)
+      const newUserMessage: Message = { id: nanoid(), role: 'user', content: text }
+      addMessage(newUserMessage)
+      setStatus('thinkng')
+      const newModelMessage: Message = { id: nanoid(), role: 'model', content: '' }
+      addMessage(newModelMessage)
+      const handleResponse = async (data: ReadableStream) => {
+        speechQueue.current = new PromiseQueue()
+        subtitleList.current = []
+        setSpeechSilence(false)
+        await textStream({
+          readable: data,
+          locale: lang,
+          onMessage: (content) => {
+            updateMesssage(newModelMessage.id, content)
+            scrollToBottom()
+          },
+          onStatement: (statement) => {
+            if (talkMode === 'voice') {
+              subtitleList.current.push(statement)
+              speech(statement)
             }
-            controller.close()
+          },
+          onFinish: () => {
+            setStatus('silence')
+            scrollToBottom()
+            saveMessage()
           },
         })
-        handleResponse(readableStream)
-      } catch (error) {
-        if (error instanceof Error) handleError(newModelMessage.id, error.message)
       }
-    } else {
-      const utcTimestamp = generateUTCTimestamp()
-      const response = await fetch('/api/chat', {
-        method: 'POST',
-        body: JSON.stringify({
-          messages: messages.slice(0, -1),
+      const model =
+        findIndex(messagesRef.current, (item) => item.type === 'image') !== -1 ? 'gemini-pro-vision' : 'gemini-pro'
+      const messageList =
+        talkMode === 'voice'
+          ? ([
+              {
+                id: 'voiceSystemUser',
+                role: 'user',
+                content: `You are an all-knowing friend of mine, we are communicating face to face.
+                   Please answer my question in short sentences.
+                   Please avoid using any text content other than the text used for spoken communication.
+                   The answer to the question is to avoid using list items with *, humans do not use any text formatting symbols in the communication process.
+                  `,
+              },
+              {
+                id: 'voiceSystemModel',
+                role: 'model',
+                content: 'Okay, I will answer your question in short sentences!',
+              },
+              ...messagesRef.current,
+            ] as Message[])
+          : messagesRef.current
+      if (apiKey !== '') {
+        const config: RequestProps = {
+          messages: messageList.slice(0, -1),
+          apiKey: apiKey,
           model,
-          ts: utcTimestamp,
-          sign: generateSignature(settingStore.password, utcTimestamp),
-        }),
-      })
-      if (response.status < 400 && response.body) {
-        handleResponse(response.body)
+        }
+        if (apiProxy) config.baseUrl = apiProxy
+        try {
+          const result = await chat(config)
+          const encoder = new TextEncoder()
+          const readableStream = new ReadableStream({
+            async start(controller) {
+              try {
+                for await (const chunk of result.stream) {
+                  const chunkText = chunk.text()
+                  controller.enqueue(encoder.encode(chunkText))
+                }
+              } catch (error) {
+                if (error instanceof Error) {
+                  handleError(newModelMessage.id, error.message)
+                }
+              }
+              controller.close()
+            },
+          })
+          handleResponse(readableStream)
+        } catch (error) {
+          if (error instanceof Error) handleError(newModelMessage.id, error.message)
+        }
       } else {
-        const errorMessage = await response.text()
-        handleError(newModelMessage.id, errorMessage, response.status)
+        const utcTimestamp = generateUTCTimestamp()
+        const response = await fetch('/api/chat', {
+          method: 'POST',
+          body: JSON.stringify({
+            messages: messageList.slice(0, -1),
+            model,
+            ts: utcTimestamp,
+            sign: generateSignature(password, utcTimestamp),
+          }),
+        })
+        if (response.status < 400 && response.body) {
+          handleResponse(response.body)
+        } else {
+          const errorMessage = await response.text()
+          handleError(newModelMessage.id, errorMessage, response.status)
+        }
       }
-    }
-  }
+    },
+    [content, handleError, scrollToBottom, speech],
+  )
 
-  const handleResubmit = async () => {
-    const lastQuestion = findLast(messageStore.messages, { role: 'user' })
+  const handleResubmit = useCallback(async () => {
+    const { revoke: revokeMessage } = useMessageStore.getState()
+    const lastQuestion = findLast(messagesRef.current, { role: 'user' })
     if (lastQuestion) {
       const { id, content } = lastQuestion
-      messageStore.revoke(id)
+      revokeMessage(id)
       await handleSubmit(content)
     }
-  }
+  }, [handleSubmit])
 
-  const handleCleanMessage = () => {
-    messageStore.clear()
-  }
+  const handleCleanMessage = useCallback(() => {
+    const { clear: clearMessage } = useMessageStore.getState()
+    clearMessage()
+  }, [])
 
-  const updateTalkMode = (type: 'chat' | 'voice') => {
-    settingStore.setTalkMode(type)
-  }
+  const updateTalkMode = useCallback((type: 'chat' | 'voice') => {
+    const { setTalkMode } = useSettingStore.getState()
+    setTalkMode(type)
+  }, [])
 
-  const handleRecorder = () => {
+  const checkAccessStatus = useCallback(() => {
+    const { password, apiKey } = useSettingStore.getState()
+    if (password !== '' || apiKey !== '') {
+      return true
+    } else {
+      setSetingOpen(true)
+      return false
+    }
+  }, [])
+
+  const startRecordTime = useCallback(() => {
+    const intervalTimer = setInterval(() => {
+      setRecordTime((time) => time + 1)
+    }, 1000)
+    setRecordTimer(intervalTimer)
+  }, [])
+
+  const endRecordTimer = useCallback(() => {
+    clearInterval(recordTimer)
+  }, [recordTimer])
+
+  const handleRecorder = useCallback(() => {
     if (!checkAccessStatus()) return false
     if (!audioStreamRef.current) {
       audioStreamRef.current = new AudioStream()
     }
     if (speechRecognitionRef.current) {
+      const { talkMode } = useSettingStore.getState()
       if (isRecording) {
         speechRecognitionRef.current.stop()
-        if (settingStore.talkMode === 'voice') {
+        if (talkMode === 'voice') {
           handleSubmit(speechRecognitionRef.current.text)
           endRecordTimer()
           setRecordTime(0)
@@ -242,81 +301,63 @@ export default function Home() {
       } else {
         speechRecognitionRef.current.start()
         setIsRecording(true)
-        if (settingStore.talkMode === 'voice') {
+        if (talkMode === 'voice') {
           startRecordTime()
         }
       }
     }
-  }
+  }, [checkAccessStatus, handleSubmit, startRecordTime, endRecordTimer, isRecording])
 
-  const handleStopTalking = () => {
+  const handleStopTalking = useCallback(() => {
     setSpeechSilence(true)
     speechQueue.current?.empty()
     audioStreamRef.current?.stop()
     setStatus('silence')
-  }
-
-  const handleKeyDown = (ev: KeyboardEvent<HTMLTextAreaElement>) => {
-    if (ev.key === 'Enter' && !ev.shiftKey && !isRecording) {
-      if (!checkAccessStatus()) return false
-      // Prevent the default carriage return and line feed behavior
-      ev.preventDefault()
-      handleSubmit(content)
-    }
-  }
-
-  const handleImageUpload = (imageDataList: string[]) => {
-    imageDataList.forEach((imageData) => {
-      messageStore.add({ id: nanoid(), role: 'user', content: imageData, type: 'image' })
-    })
-  }
-
-  const checkAccessStatus = () => {
-    if (settingStore.password !== '' || settingStore.apiKey !== '') {
-      return true
-    } else {
-      setSetingOpen(true)
-      return false
-    }
-  }
-
-  const initTopic = (topic: Topic) => {
-    messageStore.clear()
-    topic.parts.forEach((part) => {
-      messageStore.add({ id: nanoid(), ...part })
-    })
-  }
-
-  const scrollToBottom = useCallback(() => {
-    scrollAreaBottomRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [])
 
-  const startRecordTime = () => {
-    const intervalTimer = setInterval(() => {
-      setRecordTime((time) => time + 1)
-    }, 1000)
-    setRecordTimer(intervalTimer)
-  }
+  const handleKeyDown = useCallback(
+    (ev: KeyboardEvent<HTMLTextAreaElement>) => {
+      if (ev.key === 'Enter' && !ev.shiftKey && !isRecording) {
+        if (!checkAccessStatus()) return false
+        // Prevent the default carriage return and line feed behavior
+        ev.preventDefault()
+        handleSubmit(content)
+      }
+    },
+    [content, isRecording, handleSubmit, checkAccessStatus],
+  )
 
-  const endRecordTimer = () => {
-    clearInterval(recordTimer)
-  }
+  const handleImageUpload = useCallback((imageDataList: string[]) => {
+    const { add: addMessage } = useMessageStore.getState()
+    imageDataList.forEach((imageData) => {
+      addMessage({ id: nanoid(), role: 'user', content: imageData, type: 'image' })
+    })
+  }, [])
+
+  const initTopic = useCallback((topic: Topic) => {
+    const { add: addMessage, clear: clearMessage } = useMessageStore.getState()
+    clearMessage()
+    topic.parts.forEach((part) => {
+      addMessage({ id: nanoid(), ...part })
+    })
+  }, [])
+
+  useEffect(() => useMessageStore.subscribe((state) => (messagesRef.current = state.messages)), [])
 
   useEffect(() => {
-    if (messageStore.messages.length === 0) {
+    if (messagesRef.current.length === 0) {
       const langType = settingStore.lang.split('-')[0] === 'zh' ? 'zh' : 'en'
       setRandomTopic(shuffleArray<Topic>(topics[langType]).slice(0, 3))
     }
-  }, [messageStore.messages, settingStore.lang])
+  }, [settingStore.lang])
 
   useEffect(() => {
     requestAnimationFrame(scrollToBottom)
-  }, [messageStore.messages.length, scrollToBottom])
+  }, [messagesRef.current.length, scrollToBottom])
 
   useEffect(() => {
-    const setting = useSettingStore.getState()
     speechRecognitionRef.current = new SpeechRecognition({
-      locale: setting.sttLang,
+      locale: settingStore.sttLang,
       onUpdate: (text) => {
         setContent(text)
       },
@@ -405,7 +446,7 @@ export default function Home() {
         </div>
       ) : (
         <div ref={messageAutoAnimate} className="flex min-h-full flex-1 grow flex-col justify-start">
-          {messageStore.messages.map((msg, idx) => (
+          {messagesRef.current.map((msg, idx) => (
             <div
               className="group text-slate-500 transition-colors last:text-slate-800 hover:text-slate-800 max-sm:hover:bg-transparent dark:last:text-slate-400 dark:hover:text-slate-400"
               key={msg.id}
@@ -413,8 +454,8 @@ export default function Home() {
               <div className="flex gap-3 p-4 hover:bg-gray-50/80 dark:hover:bg-gray-900/80">
                 {!msg.error ? <MessageItem {...msg} isLoading={msg.content === ''} /> : <ErrorMessageItem {...msg} />}
               </div>
-              {msg.role === 'model' && idx === messageStore.messages.length - 1 ? (
-                <div className="my-2 flex h-4 justify-center text-xs text-slate-400 opacity-0 transition-opacity duration-300 group-hover:opacity-100 dark:text-slate-600">
+              {msg.role === 'model' && idx === messagesRef.current.length - 1 ? (
+                <div className="my-2 flex h-4 justify-center text-xs text-slate-400 duration-300 dark:text-slate-600">
                   <span className="mx-2 cursor-pointer hover:text-slate-500" onClick={() => handleResubmit()}>
                     {t('regenerateAnswer')}
                   </span>

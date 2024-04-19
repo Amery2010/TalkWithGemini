@@ -24,7 +24,7 @@ class AudioStream {
 
     // 解码音频数据为 AudioBuffer
     this.audioContext.decodeAudioData(options.audioData, (buffer: AudioBuffer) => {
-      if (this.audioBufferSource) {
+      if (this.audioBufferSource && buffer) {
         // 设置 AudioBufferSourceNode 的音频数据
         this.audioBufferSource.buffer = buffer
 

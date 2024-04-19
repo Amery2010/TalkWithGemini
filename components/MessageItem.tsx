@@ -2,12 +2,14 @@
 import { memo, useEffect, useState, useCallback } from 'react'
 import MarkdownIt from 'markdown-it'
 import markdownHighlight from 'markdown-it-highlightjs'
+import highlight from 'highlight.js'
 import markdownKatex from '@traptitech/markdown-it-katex'
 import Clipboard from 'clipboard'
 import { useTranslation } from 'react-i18next'
 import { User, Bot } from 'lucide-react'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import BubblesLoading from '@/components/BubblesLoading'
+import { upperFirst } from 'lodash-es'
 
 interface MessageItemProps extends Message {
   isLoading?: boolean
@@ -65,15 +67,16 @@ function MessageItem({ role, type, content, isLoading }: MessageItemProps) {
       md.renderer.rules.fence = (...params) => {
         const [tokens, idx] = params
         const token = tokens[idx]
+        const lang = token.info.trim()
         return `
           <div class="hljs-warpper">
             <div class="info">
-              <span class="lang">${token.info.trim()}</span>
+              <span class="lang">${upperFirst(lang)}</span>
               <span class="copy copy-code" data-clipboard-text="${encodeURIComponent(token.content)}">${t(
                 'copy',
               )}</span>
             </div>
-            ${highlightRender(...params)}
+            ${highlight.getLanguage(lang) ? highlightRender(...params) : null}
           </div>
         `
       }
