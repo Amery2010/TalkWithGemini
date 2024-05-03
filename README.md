@@ -12,7 +12,7 @@ Deploy your private Gemini application for free with one click, supporting Gemin
 
 [![Open in Gitpod](https://gitpod.io/button/open-in-gitpod.svg)](https://gitpod.io/#https://github.com/Amery2010/TalkWithGemini)
 
-![cover](./docs/images/cover.png)
+![cover](./docs/images/screenshot.jpg)
 
 > [!NOTE]
 >
@@ -213,29 +213,24 @@ pnpm dev
 > ⚠️ Note: Most of the time, the docker version will lag behind the latest version by 1 to 2 days, so the "update exists" prompt will continue to appear after deployment, which is normal.
 
 ```shell
-docker pull xiangfa/talk-with-gemini
+docker pull xiangfa/talk-with-gemini:latest
 
-docker run -d -p 3000:3000 \
-   -e OPENAI_API_KEY=sk-xxxx \
-   -e CODE=your-password \
-   xiangfa/talk-with-gemini
+docker run -d -p 3000:3000 xiangfa/talk-with-gemini
 ```
 
-You can start service behind a proxy:
+You can also specify additional environment variables:
 
 ```shell
 docker run -d -p 3000:3000 \
-   -e OPENAI_API_KEY=sk-xxxx \
-   -e CODE=your-password \
-   -e PROXY_URL=http://localhost:7890 \
+   -e GEMINI_API_KEY=AIza... \
+   -e ACCESS_PASSWORD=your-password \
+   -e GEMINI_API_BASE_URL=http://localhost:7890 \
    xiangfa/talk-with-gemini
 ```
 
-If your proxy needs password, use:
+If you need to specify other environment variables, please add `-e key=value` to the above command to specify it.
 
-```shell
--e PROXY_URL="http://127.0.0.1:7890 user pass"
-```
+## 部署
 
 ### 容器部署（推荐）
 
@@ -244,32 +239,46 @@ If your proxy needs password, use:
 > ⚠️ 注意：docker 版本在大多数时间都会落后最新的版本 1 到 2 天，所以部署后会持续出现“存在更新”的提示，属于正常现象。
 
 ```shell
-docker pull xiangfa/talk-with-gemini
+docker pull xiangfa/talk-with-gemini:latest
 
-docker run -d -p 3000:3000 \
-   -e OPENAI_API_KEY=sk-xxxx \
-   -e CODE=页面访问密码 \
-   xiangfa/talk-with-gemini
+docker run -d -p 3000:3000 xiangfa/talk-with-gemini
 ```
 
-您也可以指定 proxy：
+您也可以指定额外的环境变量：
 
 ```shell
 docker run -d -p 3000:3000 \
-   -e OPENAI_API_KEY=sk-xxxx \
-   -e CODE=页面访问密码 \
-   --net=host \
-   -e PROXY_URL=http://127.0.0.1:7890 \
+   -e GEMINI_API_KEY=AIza... \
+   -e ACCESS_PASSWORD=页面访问密码 \
+   -e GEMINI_API_BASE_URL=http://127.0.0.1:7890 \
    xiangfa/talk-with-gemini
-```
-
-如果您的本地代理需要账号密码，可以使用：
-
-```shell
--e PROXY_URL="http://127.0.0.1:7890 user password"
 ```
 
 如果您需要指定其他环境变量，请自行在上述命令中增加 `-e 环境变量=环境变量值` 来指定。
+
+### static deployment
+
+You can also build a static page version directly, and then upload all files in the `out` directory to any website service that supports static pages.
+
+```shell
+pnpm build:export
+```
+
+If you deploy the project in a subdirectory and encounter resource loading failures when accessing, please modify the `nextConfig.basePath` in the `next.config.js` file to the specific directory of your subdirectory `nextConfig.basePath = '/path/project'.
+
+**Static deployment does not support setting environment variables**
+
+### 静态部署
+
+您也可以直接构建静态页面版本，然后将 `out` 目录下的所有文件上传到任何支持静态页面的网站服务。
+
+```shell
+pnpm build:export
+```
+
+如果您将项目部署在子目录下，在访问时会遇到资源加载失败的情况，请修改 `next.config.js` 文件中 `nextConfig.basePath` 为您子目录的具体目录 `nextConfig.basePath = '/路径/项目名称'`。
+
+**静态部署不支持设置环境变量**
 
 ## LICENSE
 

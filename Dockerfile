@@ -22,12 +22,6 @@ WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
-ENV NEXT_PUBLIC_ENABLE_PROTECT="1"
-ENV ACCESS_PASSWORD=""
-ENV GEMINI_API_KEY=""
-ENV GEMINI_API_BASE_URL=""
-ENV HEAD_SCRIPTS=""
-
 # Next.js collects completely anonymous telemetry data about general usage.
 # Learn more here: https://nextjs.org/telemetry
 # Uncomment the following line in case you want to disable telemetry during the build.

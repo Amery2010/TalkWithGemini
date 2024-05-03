@@ -37,6 +37,7 @@ import topics from '@/constant/topics'
 import { customAlphabet } from 'nanoid'
 import { findLast, isFunction, groupBy, pick } from 'lodash-es'
 
+const buildMode = process.env.NEXT_PUBLIC_BUILD_MODE as string
 const nanoid = customAlphabet('1234567890abcdefghijklmnopqrstuvwxyz', 8)
 
 export default function Home() {
@@ -179,9 +180,13 @@ export default function Home() {
         if (response.status < 400 && response.body) {
           onResponse(response.body)
         } else {
-          const { message, code } = await response.json()
-          if (isFunction(onError)) {
-            onError(message, code)
+          if (response.headers.get('Content-Type') === 'text/html') {
+            setSetingOpen(true)
+          } else {
+            const { message, code } = await response.json()
+            if (isFunction(onError)) {
+              onError(message, code)
+            }
           }
         }
       }
@@ -318,12 +323,14 @@ export default function Home() {
   }, [])
 
   const checkAccessStatus = useCallback(() => {
-    const { password, apiKey } = useSettingStore.getState()
-    if (password !== '' || apiKey !== '') {
-      return true
-    } else {
+    const { isProtected, password, apiKey } = useSettingStore.getState()
+    const isProtectedMode = isProtected && (password === '' || apiKey === '')
+    const isStaticMode = buildMode === 'export' && apiKey === ''
+    if (isProtectedMode || isStaticMode) {
       setSetingOpen(true)
       return false
+    } else {
+      return true
     }
   }, [])
 
@@ -579,9 +586,9 @@ export default function Home() {
             <div className="text-sm leading-6">
               <div className="animate-pulse text-lg text-white">{statusText}</div>
               {status === 'talking' ? (
-                <pre className="text-center text-red-300">{subtitle}</pre>
+                <div className="whitespace-pre-wrap text-center text-red-300">{subtitle}</div>
               ) : (
-                <div className="text-center text-green-300">{content}</div>
+                <div className="whitespace-pre-wrap text-center text-green-300">{content}</div>
               )}
             </div>
             <div className="flex items-center justify-center pt-2">
