@@ -22,6 +22,7 @@ WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
+ENV NEXT_PUBLIC_ENABLE_PROTECT="1"
 ENV ACCESS_PASSWORD=""
 ENV GEMINI_API_KEY=""
 ENV GEMINI_API_BASE_URL=""

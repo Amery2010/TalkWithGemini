@@ -37,7 +37,6 @@ import topics from '@/constant/topics'
 import { customAlphabet } from 'nanoid'
 import { findLast, isFunction, groupBy, pick } from 'lodash-es'
 
-const GITHUB_URL = process.env.NEXT_PUBLIC_GITHUB_URL
 const nanoid = customAlphabet('1234567890abcdefghijklmnopqrstuvwxyz', 8)
 
 export default function Home() {
@@ -453,11 +452,9 @@ export default function Home() {
           <div className="ml-3 font-bold leading-10 max-sm:leading-8">{t('title')}</div>
         </div>
         <div className="flex items-center gap-1">
-          {GITHUB_URL ? (
-            <Button title={t('github')} variant="ghost" size="icon" className="h-8 w-8">
-              <Github className="h-5 w-5" onClick={() => window.open(GITHUB_URL)} />
-            </Button>
-          ) : null}
+          <Button title={t('github')} variant="ghost" size="icon" className="h-8 w-8">
+            <Github className="h-5 w-5" onClick={() => window.open('https://github.com/Amery2010/TalkWithGemini')} />
+          </Button>
           <ThemeToggle />
           <Button
             className="h-8 w-8"

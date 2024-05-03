@@ -2,7 +2,6 @@
   "github": {
     "silent": true
   },
-  "regions": ["sfo1"],
   "headers": [
     {
       "source": "/(.*)",
