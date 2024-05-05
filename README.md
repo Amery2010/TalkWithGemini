@@ -1,5 +1,9 @@
 <h1 align="center">Talk With Gemini</h1>
 
+![GitHub License](https://img.shields.io/github/license/Amery2010/TalkWithGemini)
+![GitHub Release](https://img.shields.io/github/v/release/Amery2010/TalkWithGemini)
+![Docker Image Size (tag)](https://img.shields.io/docker/image-size/xiangfa/talk-with-gemini/latest)
+
 Deploy your private Gemini application for free with one click, supporting Gemini Pro and Gemini Pro Vision models.
 
 一键免费部署您的私人 Gemini 应用, 支持 Gemini Pro 和 Gemini Pro Vision 模型。
@@ -8,7 +12,7 @@ Deploy your private Gemini application for free with one click, supporting Gemin
 
 [网页版](https://gemini.u14.app/)
 
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2FAmery2010%2FTalkWithGemini&env=GEMINI_API_KEY&project-name=talk-with-gemini&repository-name=TalkWithGemini)
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2FAmery2010%2FTalkWithGemini&project-name=talk-with-gemini&repository-name=TalkWithGemini)
 
 [![Open in Gitpod](https://gitpod.io/button/open-in-gitpod.svg)](https://gitpod.io/#https://github.com/Amery2010/TalkWithGemini)
 
@@ -84,14 +88,14 @@ Deploy your private Gemini application for free with one click, supporting Gemin
 
 1. Get [Gemini API Key](https://aistudio.google.com/app/apikey)
 2. Click
-   [![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2FAmery2010%2FTalkWithGemini&env=GEMINI_API_KEY&project-name=talk-with-gemini&repository-name=TalkWithGemini)
+   [![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2FAmery2010%2FTalkWithGemini&project-name=talk-with-gemini&repository-name=TalkWithGemini)
 3. Start using
 
 ## 开始使用
 
 1. 获取 [Gemini API Key](https://aistudio.google.com/app/apikey)
 2. 单击
-   [![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2FAmery2010%2FTalkWithGemini&env=GEMINI_API_KEY&project-name=talk-with-gemini&repository-name=TalkWithGemini)
+   [![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2FAmery2010%2FTalkWithGemini&project-name=talk-with-gemini&repository-name=TalkWithGemini)
 3. 开始使用
 
 ### Updating Code
