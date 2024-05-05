@@ -324,7 +324,7 @@ export default function Home() {
 
   const checkAccessStatus = useCallback(() => {
     const { isProtected, password, apiKey } = useSettingStore.getState()
-    const isProtectedMode = isProtected && (password === '' || apiKey === '')
+    const isProtectedMode = isProtected && password === '' && apiKey === ''
     const isStaticMode = buildMode === 'export' && apiKey === ''
     if (isProtectedMode || isStaticMode) {
       setSetingOpen(true)
@@ -558,11 +558,11 @@ export default function Home() {
             onKeyDown={handleKeyDown}
           />
           <div className="absolute bottom-1 right-1 flex">
-            <div className="box-border flex h-8 w-8 cursor-pointer items-center justify-center text-slate-800">
+            <div className="box-border flex h-8 w-8 cursor-pointer items-center justify-center text-slate-800 dark:text-slate-600">
               <ImageUploader onChange={handleImageUpload} />
             </div>
             <div
-              className="box-border flex h-8 w-8 cursor-pointer items-center justify-center text-slate-800"
+              className="box-border flex h-8 w-8 cursor-pointer items-center justify-center text-slate-800 dark:text-slate-600"
               onClick={() => handleRecorder()}
             >
               <Mic className={isRecording ? `animate-pulse` : ''} />
@@ -593,7 +593,7 @@ export default function Home() {
             </div>
             <div className="flex items-center justify-center pt-2">
               <Button
-                className="h-10 w-10 rounded-full text-slate-700"
+                className="h-10 w-10 rounded-full text-slate-700 dark:text-slate-500"
                 title={t('chatMode')}
                 variant="secondary"
                 size="icon"
@@ -624,7 +624,7 @@ export default function Home() {
                 </Button>
               )}
               <Button
-                className="h-10 w-10 rounded-full text-slate-700"
+                className="h-10 w-10 rounded-full text-slate-700 dark:text-slate-500"
                 title={t('setting')}
                 variant="secondary"
                 size="icon"

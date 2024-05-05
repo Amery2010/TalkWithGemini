@@ -46,10 +46,11 @@ Deploy your private Gemini application for free with one click, supporting Gemin
 - Talk mode: Let you talk directly to Gemini
 - Visual recognition allows Gemini to understand the content of the picture
 - Full Markdown support: LaTex formulas, code highlighting, and more
+- Automatically compress contextual chat records to save Tokens while supporting very long conversations
+- Privacy and security, all data is saved locally in the user's browser
 - Well-designed UI, responsive design, supports dark mode
 - Extremely fast first screen loading speed, supporting streaming response
-- Privacy and security, all data is saved locally in the user's browser
-- Automatically compress contextual chat records to save Tokens while supporting very long conversations
+- Static deployment supports deployment on any website service that supports static pages, such as Github Page, Cloudflare, Vercel, etc.
 - Multi-language support: English, Simplified Chinese, Traditional Chinese, Japanese, 한국어, Español, Deutsch, Français, Português, Русский and العربية
 
 ## 主要功能
@@ -58,10 +59,11 @@ Deploy your private Gemini application for free with one click, supporting Gemin
 - 语音模式：让您直接与 Gemini 对话
 - 视觉识别，让 Gemini 可以看懂图片内容
 - 完整的 Markdown 支持：LaTex 公式、代码高亮等等
+- 自动压缩上下文聊天记录，在节省 Token 的同时支持超长对话
+- 隐私安全，所有数据保存在用户浏览器本地
 - 精心设计的 UI，响应式设计，支持深色模式
 - 极快的首屏加载速度，支持流式响应
-- 隐私安全，所有数据保存在用户浏览器本地
-- 自动压缩上下文聊天记录，在节省 Token 的同时支持超长对话
+- 静态部署，支持部署在任何支持静态页面的网站服务，比如 Github Page、Cloudflare、Vercel 等
 - 多国语言支持：English、简体中文、繁体中文、日本語、한국어、Español、Deutsch、Français、Português、Русский 以及 العربية
 
 ## Roadmap
@@ -144,7 +146,7 @@ If you do not want users to use the server api, set this value to 1.
 
 Injected script code can be used for statistics or error tracking.
 
-＃＃ 环境变量
+## 环境变量
 
 ### `GEMINI_API_KEY`（可选）
 
@@ -182,11 +184,15 @@ NodeJS >= 18，Docker >= 20
 
 ## Development
 
+If you have not installed pnpm
+
 ```shell
-# If you have not installed pnpm
 npm install -g pnpm
+```
+
+```shell
 # 1. install nodejs and yarn first
-# 2. config local env vars in `.env.local`
+# 2. config local variables, please change `.env.example` to `.env` or `.env.local`
 # 3. run
 pnpm install
 pnpm dev
@@ -194,11 +200,15 @@ pnpm dev
 
 ## 开发
 
+如果您没安装过 pnpm
+
 ```shell
-# 如果您没安装过 pnpm
 npm install -g pnpm
+```
+
+```shell
 # 1. 先安装nodejs和yarn
-# 2. 在 `.env.local` 中配置本地环境变量
+# 2. 配置本地变量，请将 `.env.example` 改为 `.env` 或 `.env.local`
 # 3. 运行
 pnpm install
 pnpm dev
@@ -258,7 +268,7 @@ docker run -d -p 3000:3000 \
 
 ### static deployment
 
-You can also build a static page version directly, and then upload all files in the `out` directory to any website service that supports static pages.
+You can also build a static page version directly, and then upload all files in the `out` directory to any website service that supports static pages, such as Github Page, Cloudflare, Vercel, etc..
 
 ```shell
 pnpm build:export
@@ -270,7 +280,7 @@ If you deploy the project in a subdirectory and encounter resource loading failu
 
 ### 静态部署
 
-您也可以直接构建静态页面版本，然后将 `out` 目录下的所有文件上传到任何支持静态页面的网站服务。
+您也可以直接构建静态页面版本，然后将 `out` 目录下的所有文件上传到任何支持静态页面的网站服务，比如 Github Page、Cloudflare、Vercel 等。
 
 ```shell
 pnpm build:export
@@ -281,5 +291,9 @@ pnpm build:export
 **静态部署不支持设置环境变量**
 
 ## LICENSE
+
+[GPL-3.0-only](https://opensource.org/license/gpl-3-0)
+
+## 开源协议
 
 [GPL-3.0-only](https://opensource.org/license/gpl-3-0)
