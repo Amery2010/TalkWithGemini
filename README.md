@@ -18,6 +18,22 @@ Deploy your private Gemini application for free with one click, supporting Gemin
 
 ![cover](./docs/images/screenshot.jpg)
 
+> [!NOTE]
+>
+> #### Solution for "User location is not supported for the API use"
+>
+> You can refer to the following two Gemini Api proxy projects [gemini-proxy](https://github.com/Jazee6/gemini-proxy) and [**palm-netlify-proxy**](https://github.com/antergone/palm-netlify-proxy) deployment method.
+>
+> **Note that Vercel and Netlify prohibit users from deploying proxy services. This solution may result in account suspension, so use with caution**
+
+> [!注意]
+>
+> #### “User location is not supported for the API use” 的解决方案
+>
+> 可以参考以下两个 Gemini Api 代理项目 [gemini-proxy](https://github.com/Jazee6/gemini-proxy) 和 [**palm-netlify-proxy**](https://github.com/antergone/palm-netlify-proxy) 的部署方式。
+>
+> **注意 Vercel 和 Netlify 禁止用户部署代理服务，该解决方案可能会导致封号，需谨慎使用**
+
 ## Features
 
 - **Deploy for free with one-click** on Vercel in under 1 minute
