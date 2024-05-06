@@ -37,7 +37,7 @@ export const useSettingStore = create<SettingStore>((set) => ({
       apiProxy: storage.get<string>('apiProxy') || 'https://generativelanguage.googleapis.com',
       sttLang: sttLang || lang,
       ttsLang: ttsLang || lang,
-      ttsVoice: ttsVoice || 'en-US-JennyNeural',
+      ttsVoice: ttsVoice || '',
       lang,
       isProtected: !!isProtected,
       talkMode: (storage.get<string>('talkMode') as Setting['talkMode']) || 'chat',

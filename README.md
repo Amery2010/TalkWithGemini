@@ -1,4 +1,4 @@
-<h1 align="center">Talk With Gemini</h1>
+# Talk With Gemini
 
 ![GitHub License](https://img.shields.io/github/license/Amery2010/TalkWithGemini)
 ![GitHub Release](https://img.shields.io/github/v/release/Amery2010/TalkWithGemini)

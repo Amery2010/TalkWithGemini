@@ -187,6 +187,9 @@ export default function Home() {
             if (isFunction(onError)) {
               onError(message, code)
             }
+            if (code === 40302 || code === 50002) {
+              setSetingOpen(true)
+            }
           }
         }
       }
