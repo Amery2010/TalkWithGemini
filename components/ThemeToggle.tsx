@@ -7,13 +7,15 @@ import Button from '@/components/Button'
 
 function ThemeToggle() {
   const { t } = useTranslation()
-  const { theme, setTheme } = useTheme()
+  const { theme, setTheme, systemTheme } = useTheme()
 
   const handleThemeChange = () => {
     if (theme === 'system') {
-      setTheme('light')
-    } else if (theme === 'light') {
-      setTheme('dark')
+      if (systemTheme === 'dark') {
+        setTheme('light')
+      } else if (systemTheme === 'light') {
+        setTheme('dark')
+      }
     } else {
       setTheme('system')
     }

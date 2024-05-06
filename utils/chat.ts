@@ -1,10 +1,10 @@
-import { GoogleGenerativeAI } from '@fuyun/generative-ai'
+import { GoogleGenerativeAI } from '@google/generative-ai'
 import { generationConfig, safetySettings } from '@/constant/modelSettings'
 import { getVisionPrompt } from '@/utils/prompt'
 import { isUndefined, groupBy } from 'lodash-es'
 
 export type RequestProps = {
-  model?: 'gemini-pro' | 'gemini-pro-vision'
+  model?: string
   messages: Pick<Message, 'role' | 'content' | 'type'>[]
   apiKey: string
   baseUrl?: string
@@ -22,8 +22,8 @@ function transformMessage(message: Pick<Message, 'role' | 'content' | 'type'>) {
 }
 
 export default function chat({ messages = [], model = 'gemini-pro', apiKey, baseUrl }: RequestProps) {
-  const genAI = new GoogleGenerativeAI(apiKey, baseUrl)
-  const geminiModel = genAI.getGenerativeModel({ model })
+  const genAI = new GoogleGenerativeAI(apiKey)
+  const geminiModel = genAI.getGenerativeModel({ model }, { baseUrl })
 
   const message = messages.pop()
   if (isUndefined(message)) {

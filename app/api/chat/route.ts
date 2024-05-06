@@ -4,7 +4,7 @@ import chat from '@/utils/chat'
 import { generateSignature, generateUTCTimestamp } from '@/utils/signature'
 
 type GeminiRequest = {
-  model?: 'gemini-pro' | 'gemini-pro-vision'
+  model?: string
   messages: Message[]
   ts: number
   sign: string
