@@ -1,7 +1,7 @@
-import { HarmCategory, HarmBlockThreshold } from '@fuyun/generative-ai'
+import { HarmCategory, HarmBlockThreshold } from '@google/generative-ai'
 
 export const generationConfig = {
-  maxOutputTokens: 4000,
+  // maxOutputTokens: 4000,
   temperature: 0.6,
   topP: 0.8,
   // topK: 16,
