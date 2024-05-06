@@ -14,12 +14,13 @@ export const runtime = 'edge'
 
 const geminiApiKey = process.env.GEMINI_API_KEY as string
 const geminiApiBaseUrl = process.env.GEMINI_API_BASE_URL as string
+const isProtected = (process.env.NEXT_PUBLIC_ENABLE_PROTECT as string) === '1'
 const password = (process.env.ACCESS_PASSWORD as string) || ''
 
 export async function POST(req: Request) {
   const { messages = [], model = 'gemini-pro', ts, sign } = (await req.json()) as GeminiRequest
 
-  if (password) {
+  if (isProtected && password !== '') {
     const utcTimestamp = generateUTCTimestamp()
     if (Math.abs(utcTimestamp - ts) > 60000) {
       return NextResponse.json({ code: 40301, message: 'Request parameters have expired' }, { status: 403 })

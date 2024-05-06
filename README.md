@@ -18,32 +18,6 @@ Deploy your private Gemini application for free with one click, supporting Gemin
 
 ![cover](./docs/images/screenshot.jpg)
 
-> [!NOTE]
->
-> #### Solution for "User location is not supported for the API use"
->
-> If you encounter the issue **"User location is not supported for the API use"**, follow these steps to resolve it:
->
-> 1. Go to this [**palm-netlify-proxy**](https://github.com/antergone/palm-netlify-proxy) repo and click **"Deploy With Netlify"**.
-> 2. Once the deployment is complete, you will receive a domain name assigned by Netlify (e.g., `https://xxx.netlify.app`).
-> 3. In your **Talk With Gemini** project, set an environment variable named `GEMINI_API_BASE_URL` with the value being the domain you got from deploying the palm proxy (`https://xxx.netlify.app`).
-> 4. Redeploy your **Talk With Gemini** project to finalize the configuration. This should resolve the issue.
->
-> Thanks to [**antergone**](https://github.com/antergone/palm-netlify-proxy) for providing this solution.
-
-> [!注意]
->
-> #### “User location is not supported for the API use”的解决方案
->
-> 如果您遇到问题**“User location is not supported for the API use”**，请按照以下步骤解决：
->
-> 1. 打开 [**palm-netlify-proxy**](https://github.com/antergone/palm-netlify-proxy) 存储库并单击 **“Deploy With Netlify”**。
-> 2. 部署完成后，您将收到 Netlify 分配的域名（例如`https://xxx.netlify.app`）。
-> 3. 在您的 **Talk With Gemini** 项目中，设置名为“GEMINI_API_BASE_URL”的环境变量，其值为您部署 palm 代理时获得的域 (“https://xxx.netlify.app”)。
-> 4. 重新部署 **Talk With Gemini** 项目以完成配置。 这应该可以解决问题。
->
-> 感谢 [**antergone**](https://github.com/antergone/palm-netlify-proxy) 提供此解决方案。
-
 ## Features
 
 - **Deploy for free with one-click** on Vercel in under 1 minute
@@ -138,13 +112,13 @@ Override Gemini Pro api request base url.
 
 ### `ACCESS_PASSWORD` (optional)
 
-Access password.
+Access password, needs to be used in conjunction with `NEXT_PUBLIC_ENABLE_PROTECT`, that is, NEXT_PUBLIC_ENABLE_PROTECT=1.
 
 ### `NEXT_PUBLIC_ENABLE_PROTECT` (optional)
 
-> Default: 1
+> Default: 0
 
-If you do not want users to use the server api, set this value to 1.
+If you don't want visitors to use your server API directly, set this value to 1.
 
 ### `HEAD_SCRIPTS` (optional)
 
@@ -166,13 +140,13 @@ Injected script code can be used for statistics or error tracking.
 
 ### `ACCESS_PASSWORD`（可选）
 
-访问密码。
+访问密码，需要和 `NEXT_PUBLIC_ENABLE_PROTECT` 配合使用，即 NEXT_PUBLIC_ENABLE_PROTECT=1。
 
 ### `NEXT_PUBLIC_ENABLE_PROTECT`（可选）
 
-> 默认：1
+> 默认：0
 
-如果您不希望用户使用服务器 api，请将此值设置为 1。
+如果您不希望访客直接使用您的服务器 api，请将此值设置为 1。
 
 ### `HEAD_SCRIPTS` （可选）
 
@@ -237,8 +211,8 @@ You can also specify additional environment variables:
 ```shell
 docker run -d -p 3000:3000 \
    -e GEMINI_API_KEY=AIza... \
+   -e NEXT_PUBLIC_ENABLE_PROTECT=1 \
    -e ACCESS_PASSWORD=your-password \
-   -e GEMINI_API_BASE_URL=http://localhost:7890 \
    xiangfa/talk-with-gemini
 ```
 
@@ -263,8 +237,8 @@ docker run -d -p 3000:3000 xiangfa/talk-with-gemini
 ```shell
 docker run -d -p 3000:3000 \
    -e GEMINI_API_KEY=AIza... \
+   -e NEXT_PUBLIC_ENABLE_PROTECT=1 \
    -e ACCESS_PASSWORD=页面访问密码 \
-   -e GEMINI_API_BASE_URL=http://127.0.0.1:7890 \
    xiangfa/talk-with-gemini
 ```
 
