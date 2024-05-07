@@ -21,10 +21,11 @@ import { toPairs, values } from 'lodash-es'
 
 type SettingProps = {
   open: boolean
+  hiddenTalkPanel?: boolean
   onClose: () => void
 }
 
-function Setting({ open, onClose }: SettingProps) {
+function Setting({ open, hiddenTalkPanel, onClose }: SettingProps) {
   const { t } = useTranslation()
   const settingStore = useSettingStore()
   const [password, setPassword] = useState<string>('')
@@ -166,52 +167,56 @@ function Setting({ open, onClose }: SettingProps) {
               </span>
             </div>
           </div>
-          <hr />
-          <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="stt" className="text-right">
-              {t('speechRecognition')}
-            </Label>
-            <Select value={sttLang} onValueChange={setSttLang}>
-              <SelectTrigger id="stt" className="col-span-3">
-                <SelectValue placeholder={t('followTheSystem')} />
-              </SelectTrigger>
-              <SelectContent>
-                <LangOptions />
-              </SelectContent>
-            </Select>
-          </div>
-          <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="tts" className="text-right">
-              {t('speechSynthesis')}
-            </Label>
-            <Select value={ttsLang} onValueChange={handleTTSChange}>
-              <SelectTrigger id="tts" className="col-span-3">
-                <SelectValue placeholder={t('followTheSystem')} />
-              </SelectTrigger>
-              <SelectContent>
-                <LangOptions />
-              </SelectContent>
-            </Select>
-          </div>
-          <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="ttsVoice" className="text-right">
-              {t('soundSource')}
-            </Label>
-            <Select value={ttsVoice} onValueChange={setTtsVoice}>
-              <SelectTrigger id="ttsVoice" className="col-span-3">
-                <SelectValue placeholder={t('followTheSystem')} />
-              </SelectTrigger>
-              <SelectContent>
-                {values(voiceOptions).map((option) => {
-                  return (
-                    <SelectItem key={option.value} value={option.value as string}>
-                      {option.label}
-                    </SelectItem>
-                  )
-                })}
-              </SelectContent>
-            </Select>
-          </div>
+          {!hiddenTalkPanel ? (
+            <>
+              <hr />
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="stt" className="text-right">
+                  {t('speechRecognition')}
+                </Label>
+                <Select value={sttLang} onValueChange={setSttLang}>
+                  <SelectTrigger id="stt" className="col-span-3">
+                    <SelectValue placeholder={t('followTheSystem')} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <LangOptions />
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="tts" className="text-right">
+                  {t('speechSynthesis')}
+                </Label>
+                <Select value={ttsLang} onValueChange={handleTTSChange}>
+                  <SelectTrigger id="tts" className="col-span-3">
+                    <SelectValue placeholder={t('followTheSystem')} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <LangOptions />
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="ttsVoice" className="text-right">
+                  {t('soundSource')}
+                </Label>
+                <Select value={ttsVoice} onValueChange={setTtsVoice}>
+                  <SelectTrigger id="ttsVoice" className="col-span-3">
+                    <SelectValue placeholder={t('followTheSystem')} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {values(voiceOptions).map((option) => {
+                      return (
+                        <SelectItem key={option.value} value={option.value as string}>
+                          {option.label}
+                        </SelectItem>
+                      )
+                    })}
+                  </SelectContent>
+                </Select>
+              </div>
+            </>
+          ) : null}
           <hr />
           <div className="grid grid-cols-4 items-center gap-4">
             <Label htmlFor="stt" className="text-right">

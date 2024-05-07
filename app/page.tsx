@@ -33,6 +33,7 @@ import PromiseQueue from '@/utils/PromiseQueue'
 import textStream, { streamToText } from '@/utils/textStream'
 import { generateSignature, generateUTCTimestamp } from '@/utils/signature'
 import { shuffleArray, formatTime } from '@/utils/common'
+import { cn } from '@/utils'
 import topics from '@/constant/topics'
 import { customAlphabet } from 'nanoid'
 import { findLast, isFunction, groupBy, pick } from 'lodash-es'
@@ -63,6 +64,7 @@ export default function Home() {
   const [settingOpen, setSetingOpen] = useState<boolean>(false)
   const [topicOpen, setTopicOpen] = useState<boolean>(false)
   const [speechSilence, setSpeechSilence] = useState<boolean>(false)
+  const [disableSpeechRecognition, setDisableSpeechRecognition] = useState<boolean>(true)
   const [status, setStatus] = useState<'thinkng' | 'silence' | 'talking'>('silence')
   const statusText = useMemo(() => {
     switch (status) {
@@ -421,12 +423,17 @@ export default function Home() {
   }, [messagesRef.current.length, scrollToBottom])
 
   useEffect(() => {
-    speechRecognitionRef.current = new SpeechRecognition({
-      locale: settingStore.sttLang,
-      onUpdate: (text) => {
-        setContent(text)
-      },
-    })
+    try {
+      speechRecognitionRef.current = new SpeechRecognition({
+        locale: settingStore.sttLang,
+        onUpdate: (text) => {
+          setContent(text)
+        },
+      })
+    } catch (err) {
+      console.error(err)
+      setDisableSpeechRecognition(true)
+    }
   }, [settingStore.sttLang])
 
   useEffect(() => {
@@ -545,12 +552,17 @@ export default function Home() {
       )}
       <div ref={scrollAreaBottomRef}></div>
       <div className="fixed bottom-0 flex w-full max-w-screen-md items-end gap-2 bg-[hsl(var(--background))] p-4 pb-8 max-sm:p-2 max-sm:pb-3 landscape:max-md:pb-4">
-        <Button title={t('voiceMode')} variant="secondary" size="icon" onClick={() => updateTalkMode('voice')}>
-          <AudioLines />
-        </Button>
+        {!disableSpeechRecognition ? (
+          <Button title={t('voiceMode')} variant="secondary" size="icon" onClick={() => updateTalkMode('voice')}>
+            <AudioLines />
+          </Button>
+        ) : null}
         <div className="relative w-full">
           <Textarea
-            className="max-h-[120px] min-h-10 px-2 pr-16 transition-[height]"
+            className={cn(
+              'max-h-[120px] min-h-10 px-2 transition-[height]',
+              disableSpeechRecognition ? 'pr-9' : 'pr-[72px]',
+            )}
             style={{ height: `${textareaHeight}px` }}
             value={content}
             placeholder={t('askAQuestion')}
@@ -560,16 +572,18 @@ export default function Home() {
             }}
             onKeyDown={handleKeyDown}
           />
-          <div className="absolute bottom-1 right-1 flex">
+          <div className="absolute bottom-1 right-1.5 flex">
             <div className="box-border flex h-8 w-8 cursor-pointer items-center justify-center text-slate-800 dark:text-slate-600">
               <ImageUploader onChange={handleImageUpload} />
             </div>
-            <div
-              className="box-border flex h-8 w-8 cursor-pointer items-center justify-center text-slate-800 dark:text-slate-600"
-              onClick={() => handleRecorder()}
-            >
-              <Mic className={isRecording ? `animate-pulse` : ''} />
-            </div>
+            {!disableSpeechRecognition ? (
+              <div
+                className="box-border flex h-8 w-8 cursor-pointer items-center justify-center text-slate-800 dark:text-slate-600"
+                onClick={() => handleRecorder()}
+              >
+                <Mic className={isRecording ? 'animate-pulse' : ''} />
+              </div>
+            ) : null}
           </div>
         </div>
         <Button
@@ -639,7 +653,7 @@ export default function Home() {
           </div>
         </div>
       </div>
-      <Setting open={settingOpen} onClose={() => setSetingOpen(false)} />
+      <Setting open={settingOpen} hiddenTalkPanel={disableSpeechRecognition} onClose={() => setSetingOpen(false)} />
       <Topic open={topicOpen} onClose={() => setTopicOpen(false)} onSelect={initTopic} />
     </main>
   )

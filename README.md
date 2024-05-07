@@ -25,6 +25,12 @@ Deploy your private Gemini application for free with one click, supporting Gemin
 > You can refer to the following two Gemini Api proxy projects [gemini-proxy](https://github.com/Jazee6/gemini-proxy) and [**palm-netlify-proxy**](https://github.com/antergone/palm-netlify-proxy) deployment method.
 >
 > **Note that Vercel and Netlify prohibit users from deploying proxy services. This solution may result in account suspension, so use with caution**
+>
+> #### About the problem of not being able to use the talk mode
+>
+> Currently, speech recognition uses the browser's SpeechRecognition api. The system will **hide the talk mode** in [some browsers that do not support the SpeechRecognition api](https://caniuse.com/?search=SpeechRecognition).
+>
+> Since most browsers based on the Chrome kernel use Google's speech recognition service in the implementation of the SpeechRecognition api, they require ability to access international networks normally.
 
 > [!注意]
 >
@@ -33,6 +39,12 @@ Deploy your private Gemini application for free with one click, supporting Gemin
 > 可以参考以下两个 Gemini Api 代理项目 [gemini-proxy](https://github.com/Jazee6/gemini-proxy) 和 [**palm-netlify-proxy**](https://github.com/antergone/palm-netlify-proxy) 的部署方式。
 >
 > **注意 Vercel 和 Netlify 禁止用户部署代理服务，该解决方案可能会导致封号，需谨慎使用**
+>
+> #### 关于无法使用语音对话功能的问题须知
+>
+> 目前语音识别使用的是浏览器的 SpeechRecognition 接口，系统会在[部分不支持 SpeechRecognition 接口的浏览器](https://caniuse.com/?search=SpeechRecognition)中**隐藏语音对话功能**。
+>
+> 由于大部分基于 Chrome 内核的浏览器在 SpeechRecognition 接口的实现上使用了 Google 的语音识别服务，因此需要能够正常访问国际网络的情况下使用。
 
 ## Features
 
