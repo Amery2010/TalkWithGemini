@@ -1,24 +1,22 @@
 'use client'
 import { memo } from 'react'
-import { User, Bot } from 'lucide-react'
+import { Bot } from 'lucide-react'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 
-function ErrorMessageItem({ role, content }: Message) {
+type Props = {
+  content: string
+}
+
+function ErrorMessageItem({ content }: Props) {
   return (
     <>
       <Avatar className="h-8 w-8">
-        {role === 'user' ? (
-          <AvatarFallback className="bg-green-300 text-white">
-            <User />
-          </AvatarFallback>
-        ) : (
-          <AvatarFallback className="bg-red-300 text-white">
-            <Bot />
-          </AvatarFallback>
-        )}
+        <AvatarFallback className="bg-red-300 text-white">
+          <Bot />
+        </AvatarFallback>
       </Avatar>
       <div className="prose overflow-hidden break-words text-base leading-8">
-        <div className="text-red-500">{content}</div>
+        <div className="font-semibold text-red-500">{content}</div>
       </div>
     </>
   )

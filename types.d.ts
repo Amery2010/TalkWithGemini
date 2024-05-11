@@ -1,27 +1,27 @@
-declare interface Message {
-  id: string
-  role: 'user' | 'model'
-  content: string
-  type?: 'text' | 'image'
-  error?: boolean
-}
+import type { Content } from '@google/generative-ai'
 
-declare interface Setting {
-  password: string
-  apiKey: string
-  apiProxy: string
-  lang: string
-  sttLang: string
-  ttsLang: string
-  ttsVoice: string
-  isProtected: boolean
-  talkMode: 'chat' | 'voice'
-  maxHistoryLength: number
-}
+declare global {
+  interface Message extends Content {
+    id: string
+  }
 
-declare interface Topic {
-  id: number
-  title: string
-  description: string
-  parts: Omit<Message, 'id'>[]
+  interface Setting {
+    password: string
+    apiKey: string
+    apiProxy: string
+    lang: string
+    sttLang: string
+    ttsLang: string
+    ttsVoice: string
+    isProtected: boolean
+    talkMode: 'chat' | 'voice'
+    maxHistoryLength: number
+  }
+
+  interface Topic {
+    id: number
+    title: string
+    description: string
+    parts: Omit<Message, 'id'>[]
+  }
 }

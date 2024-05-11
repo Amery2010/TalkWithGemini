@@ -1,10 +1,18 @@
 import { create } from 'zustand'
+import type { Part } from '@google/generative-ai'
 import storage from '@/utils/Storage'
-import { findIndex } from 'lodash-es'
+import { findIndex, isUndefined } from 'lodash-es'
 
 type Summary = {
   ids: string[]
   content: string
+}
+
+type OldMessage = {
+  id: string
+  role: string
+  content: string
+  parts: never
 }
 
 type MessageStore = {
@@ -12,7 +20,7 @@ type MessageStore = {
   summary: Summary
   init: () => Message[]
   add: (message: Message) => void
-  update: (id: string, content: string) => void
+  update: (id: string, message: Message) => void
   replace: (id: string, message: Message) => void
   clear: () => void
   save: () => void
@@ -27,12 +35,41 @@ export const useMessageStore = create<MessageStore>((set, get) => ({
     content: '',
   },
   init: () => {
-    const messages = storage.get<Message[]>('messages') || []
+    const messages = storage.get<Message[] | OldMessage[]>('messages') || []
     const summary = storage.get<Summary>('summary') || {
       ids: [],
       content: '',
     }
-    set(() => ({ messages, summary }))
+    // Convert old data format to new data format
+    if (messages.length > 0 && isUndefined(messages[0].parts)) {
+      const newMessages: Message[] = (messages as OldMessage[]).map((item) => {
+        if (item.content.startsWith('data:image/')) {
+          const dataArr = item.content.split(';base64,')
+          return {
+            id: item.id,
+            role: item.role,
+            parts: [
+              {
+                inlineData: { data: dataArr[1], mimeType: dataArr[0].substring(5) },
+              },
+            ],
+          }
+        } else {
+          return {
+            id: item.id,
+            role: item.role,
+            parts: [
+              {
+                text: item.content,
+              },
+            ],
+          }
+        }
+      })
+      set(() => ({ messages: newMessages, summary }))
+    } else {
+      set(() => ({ messages, summary }))
+    }
     return messages
   },
   add: (message) => {
@@ -40,10 +77,10 @@ export const useMessageStore = create<MessageStore>((set, get) => ({
       messages: [...state.messages, message],
     }))
   },
-  update: (id, content) => {
+  update: (id, message) => {
     set((state) => {
       const index = findIndex(state.messages, { id })
-      state.messages[index].content += content
+      state.messages[index] = message
       return {
         messages: state.messages,
       }

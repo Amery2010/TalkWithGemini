@@ -1,6 +1,7 @@
 'use client'
 import { useRef, useState, useMemo, KeyboardEvent, useEffect, useCallback, useLayoutEffect } from 'react'
 import { EdgeSpeech, SpeechRecognition } from '@xiangfa/polly'
+import type { InlineDataPart } from '@google/generative-ai'
 import { useAutoAnimate } from '@formkit/auto-animate/react'
 import SiriWave from 'siriwave'
 import {
@@ -35,8 +36,16 @@ import { generateSignature, generateUTCTimestamp } from '@/utils/signature'
 import { shuffleArray, formatTime } from '@/utils/common'
 import { cn } from '@/utils'
 import topics from '@/constant/topics'
+import { Model } from '@/constant/model'
 import { customAlphabet } from 'nanoid'
-import { findLast, isFunction, groupBy, pick } from 'lodash-es'
+import { isFunction } from 'lodash-es'
+
+interface AnswerParams {
+  messages: Message[]
+  model: string
+  onResponse: (readableStream: ReadableStream) => void
+  onError?: (error: string, code?: number) => void
+}
 
 const buildMode = process.env.NEXT_PUBLIC_BUILD_MODE as string
 const nanoid = customAlphabet('1234567890abcdefghijklmnopqrstuvwxyz', 8)
@@ -58,13 +67,14 @@ export default function Home() {
   const [siriWave, setSiriWave] = useState<SiriWave>()
   const [content, setContent] = useState<string>('')
   const [subtitle, setSubtitle] = useState<string>('')
+  const [errorMessage, setErrorMessage] = useState<string>('')
   const [isRecording, setIsRecording] = useState<boolean>(false)
   const [recordTimer, setRecordTimer] = useState<NodeJS.Timeout>()
   const [recordTime, setRecordTime] = useState<number>(0)
   const [settingOpen, setSetingOpen] = useState<boolean>(false)
   const [topicOpen, setTopicOpen] = useState<boolean>(false)
   const [speechSilence, setSpeechSilence] = useState<boolean>(false)
-  const [disableSpeechRecognition, setDisableSpeechRecognition] = useState<boolean>(true)
+  const [disableSpeechRecognition, setDisableSpeechRecognition] = useState<boolean>(false)
   const [status, setStatus] = useState<'thinkng' | 'silence' | 'talking'>('silence')
   const statusText = useMemo(() => {
     switch (status) {
@@ -121,91 +131,76 @@ export default function Home() {
     scrollAreaBottomRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [])
 
-  const fetchAnswer = useCallback(
-    async ({
-      messages,
-      model,
-      onResponse,
-      onError,
-    }: {
-      messages: Message[]
-      model: 'gemini-pro' | 'gemini-pro-vision'
-      onResponse: (readableStream: ReadableStream) => void
-      onError?: (error: string, code?: number) => void
-    }) => {
-      const { apiKey, apiProxy, password } = useSettingStore.getState()
-      const messageList = [...messages].map((item) => {
-        return pick(item, ['role', 'content', 'type'])
-      })
-      if (apiKey !== '') {
-        const config: RequestProps = {
-          messages: messageList,
-          apiKey: apiKey,
-          model,
-        }
-        if (apiProxy) config.baseUrl = apiProxy
-        try {
-          const result = await chat(config)
-          const encoder = new TextEncoder()
-          const readableStream = new ReadableStream({
-            async start(controller) {
-              try {
-                for await (const chunk of result.stream) {
-                  const chunkText = chunk.text()
-                  controller.enqueue(encoder.encode(chunkText))
-                }
-              } catch (error) {
-                if (error instanceof Error && isFunction(onError)) {
-                  onError(error.message)
-                }
+  const fetchAnswer = useCallback(async ({ messages, model, onResponse, onError }: AnswerParams) => {
+    const { apiKey, apiProxy, password } = useSettingStore.getState()
+    setErrorMessage('')
+    if (apiKey !== '') {
+      const config: RequestProps = {
+        messages,
+        apiKey: apiKey,
+        model,
+      }
+      if (apiProxy) config.baseUrl = apiProxy
+      try {
+        const result = await chat(config)
+        const encoder = new TextEncoder()
+        const readableStream = new ReadableStream({
+          async start(controller) {
+            try {
+              for await (const chunk of result.stream) {
+                const chunkText = chunk.text()
+                controller.enqueue(encoder.encode(chunkText))
               }
-              controller.close()
-            },
-          })
-          onResponse(readableStream)
-        } catch (error) {
-          if (error instanceof Error && isFunction(onError)) {
-            onError(error.message)
-          }
-        }
-      } else {
-        const utcTimestamp = generateUTCTimestamp()
-        const response = await fetch('/api/chat', {
-          method: 'POST',
-          body: JSON.stringify({
-            messages: messageList,
-            model,
-            ts: utcTimestamp,
-            sign: generateSignature(password, utcTimestamp),
-          }),
+            } catch (error) {
+              if (error instanceof Error && isFunction(onError)) {
+                onError(error.message)
+              }
+            }
+            controller.close()
+          },
         })
-        if (response.status < 400 && response.body) {
-          onResponse(response.body)
+        onResponse(readableStream)
+      } catch (error) {
+        if (error instanceof Error && isFunction(onError)) {
+          onError(error.message)
+        }
+      }
+    } else {
+      const utcTimestamp = generateUTCTimestamp()
+      const response = await fetch('/api/chat', {
+        method: 'POST',
+        body: JSON.stringify({
+          messages,
+          model,
+          ts: utcTimestamp,
+          sign: generateSignature(password, utcTimestamp),
+        }),
+      })
+      if (response.status < 400 && response.body) {
+        onResponse(response.body)
+      } else {
+        if (response.headers.get('Content-Type') === 'text/html') {
+          setSetingOpen(true)
         } else {
-          if (response.headers.get('Content-Type') === 'text/html') {
+          const { message, code } = await response.json()
+          if (isFunction(onError)) {
+            onError(message, code)
+          }
+          if (code === 40302 || code === 50002) {
             setSetingOpen(true)
-          } else {
-            const { message, code } = await response.json()
-            if (isFunction(onError)) {
-              onError(message, code)
-            }
-            if (code === 40302 || code === 50002) {
-              setSetingOpen(true)
-            }
           }
         }
       }
-    },
-    [],
-  )
+    }
+  }, [])
 
   const summarize = useCallback(
     async (messages: Message[]) => {
       const { summary, summarize: summarizeChat } = useMessageStore.getState()
       const { ids, prompt } = summarizePrompt(messages, summary.ids, summary.content)
       await fetchAnswer({
-        messages: [{ id: 'summary', role: 'user', type: 'text', content: prompt }],
-        model: 'gemini-pro',
+        messages: [{ id: 'summary', role: 'user', parts: [{ text: prompt }] }],
+        model: Model.GeminiPro,
         onResponse: async (readableStream) => {
           const text = await streamToText(readableStream)
           summarizeChat(ids, text.trim())
@@ -215,17 +210,15 @@ export default function Home() {
     [fetchAnswer],
   )
 
-  const handleError = useCallback(async (id: string, message: string, code?: number) => {
-    const { replace: replaceMessage } = useMessageStore.getState()
-    const newModelMessage: Message = {
-      id: nanoid(),
-      role: 'model',
-      content: code ? `${code}: ${message}` : message,
-      error: true,
+  const handleError = useCallback(async (message: string, code?: number) => {
+    const messages = [...messagesRef.current]
+    const lastMessage = messages.pop()
+    if (lastMessage?.role === 'model') {
+      const { revoke } = useMessageStore.getState()
+      revoke(lastMessage.id)
+      setStatus('silence')
+      setErrorMessage(`${code ?? '400'}: ${message}`)
     }
-    setStatus('silence')
-    replaceMessage(id, newModelMessage)
-    setSubtitle(message)
   }, [])
 
   const handleResponse = useCallback(
@@ -234,11 +227,17 @@ export default function Home() {
       const { summary, update: updateMesssage, save: saveMessage } = useMessageStore.getState()
       speechQueue.current = new PromiseQueue()
       setSpeechSilence(false)
+      let text = ''
       await textStream({
         readable: data,
         locale: lang,
         onMessage: (content) => {
-          updateMesssage(currentMessage.id, content)
+          text += content
+          updateMesssage(currentMessage.id, {
+            id: currentMessage.id,
+            role: 'model',
+            parts: [{ text }],
+          })
           scrollToBottom()
         },
         onStatement: (statement) => {
@@ -252,10 +251,15 @@ export default function Home() {
           scrollToBottom()
           saveMessage()
           if (maxHistoryLength > 0) {
-            const messageGroup = groupBy(messagesRef.current, 'type')
-            const messageList = messageGroup.text.filter((item) => !summary.ids.includes(item.id))
+            const textMessages: Message[] = []
+            for (const item of messagesRef.current) {
+              for (const part of item.parts) {
+                if (part.text) textMessages.push(item)
+              }
+            }
+            const messageList = textMessages.filter((item) => !summary.ids.includes(item.id))
             if (messageList.length > maxHistoryLength) {
-              await summarize(messageGroup.text)
+              await summarize(textMessages)
             }
           }
         },
@@ -264,6 +268,18 @@ export default function Home() {
     [scrollToBottom, speech, summarize],
   )
 
+  const findModelType = useCallback((messages: Message[]) => {
+    let model: string = Model.GeminiPro
+    for (const item of messages) {
+      for (const part of item.parts) {
+        if (part.inlineData?.mimeType.startsWith('image/')) {
+          model = Model.GeminiProVision
+        }
+      }
+    }
+    return model
+  }, [])
+
   const handleSubmit = useCallback(
     async (text: string): Promise<void> => {
       if (content === '') return Promise.reject(false)
@@ -271,22 +287,15 @@ export default function Home() {
       const { summary, add: addMessage } = useMessageStore.getState()
       setContent('')
       setTextareaHeight(40)
-      const newUserMessage: Message = { id: nanoid(), role: 'user', type: 'text', content: text }
+      const newUserMessage: Message = { id: nanoid(), role: 'user', parts: [{ text }] }
       addMessage(newUserMessage)
-      const newModelMessage: Message = { id: nanoid(), role: 'model', type: 'text', content: '' }
+      const newModelMessage: Message = { id: nanoid(), role: 'model', parts: [{ text: '' }] }
       addMessage(newModelMessage)
-      let model: 'gemini-pro' | 'gemini-pro-vision' = 'gemini-pro'
-      let messages: Message[] = []
-      const messageGroup = groupBy(messagesRef.current.slice(0, -1), 'type')
-      if (messageGroup.image && messageGroup.image.length > 0) {
-        model = 'gemini-pro-vision'
-        messages = [...messageGroup.image]
-      }
-      if (summary.content === '') {
-        messages = [...messages, ...messageGroup.text]
-      } else {
-        const newMessages = messageGroup.text.filter((item) => !summary.ids.includes(item.id))
-        messages = [...messages, ...getSummaryPrompt(summary.content), ...newMessages]
+      let messages: Message[] = [...messagesRef.current.slice(0, -1)]
+      const model = findModelType(messages)
+      if (summary.content !== '') {
+        const newMessages = messages.filter((item) => !summary.ids.includes(item.id))
+        messages = [...getSummaryPrompt(summary.content), ...newMessages]
       }
       if (talkMode === 'voice') {
         messages = getVoiceModelPrompt(messages)
@@ -300,22 +309,29 @@ export default function Home() {
           handleResponse(stream, newModelMessage)
         },
         onError: (message, code) => {
-          handleError(newModelMessage.id, message, code)
+          handleError(message, code)
         },
       })
     },
-    [content, fetchAnswer, handleResponse, handleError],
+    [content, findModelType, fetchAnswer, handleResponse, handleError],
   )
 
   const handleResubmit = useCallback(async () => {
-    const { revoke: revokeMessage } = useMessageStore.getState()
-    const lastQuestion = findLast(messagesRef.current, { role: 'user' })
-    if (lastQuestion) {
-      const { id, content } = lastQuestion
-      revokeMessage(id)
-      await handleSubmit(content)
+    const messages = [...messagesRef.current]
+    const lastMessage = messages.pop()
+    if (lastMessage?.role === 'model') {
+      await fetchAnswer({
+        messages: messagesRef.current,
+        model: findModelType(messages),
+        onResponse: (stream) => {
+          handleResponse(stream, lastMessage)
+        },
+        onError: (message, code) => {
+          handleError(message, code)
+        },
+      })
     }
-  }, [handleSubmit])
+  }, [fetchAnswer, findModelType, handleResponse, handleError])
 
   const handleCleanMessage = useCallback(() => {
     const { clear: clearMessage } = useMessageStore.getState()
@@ -397,7 +413,12 @@ export default function Home() {
   const handleImageUpload = useCallback((imageDataList: string[]) => {
     const { add: addMessage } = useMessageStore.getState()
     imageDataList.forEach((imageData) => {
-      addMessage({ id: nanoid(), role: 'user', type: 'image', content: imageData })
+      const dataArr = imageData.split(';base64,')
+      addMessage({
+        id: nanoid(),
+        role: 'user',
+        parts: [{ inlineData: { data: dataArr[1], mimeType: dataArr[0].substring(5) } }],
+      })
     })
   }, [])
 
@@ -522,7 +543,7 @@ export default function Home() {
               key={msg.id}
             >
               <div className="flex gap-3 p-4 hover:bg-gray-50/80 dark:hover:bg-gray-900/80">
-                {!msg.error ? <MessageItem {...msg} isLoading={msg.content === ''} /> : <ErrorMessageItem {...msg} />}
+                <MessageItem {...msg} />
               </div>
               {msg.role === 'model' && idx === messageStore.messages.length - 1 ? (
                 <div className="my-2 flex h-4 justify-center text-xs text-slate-400 duration-300 dark:text-slate-600">
@@ -541,10 +562,17 @@ export default function Home() {
               ) : null}
             </div>
           ))}
+          {errorMessage !== '' ? (
+            <div className="group text-slate-500 transition-colors last:text-slate-800 hover:text-slate-800 max-sm:hover:bg-transparent dark:last:text-slate-400 dark:hover:text-slate-400">
+              <div className="flex gap-3 p-4 hover:bg-gray-50/80 dark:hover:bg-gray-900/80">
+                <ErrorMessageItem content={errorMessage} />
+              </div>
+            </div>
+          ) : null}
           {content !== '' ? (
             <div className="group text-slate-500 transition-colors last:text-slate-800 hover:text-slate-800 max-sm:hover:bg-transparent dark:last:text-slate-400 dark:hover:text-slate-400">
               <div className="flex gap-3 p-4 hover:bg-gray-50/80 dark:hover:bg-gray-900/80">
-                <MessageItem id="tmp" role="user" content={content} />
+                <MessageItem id="tmp" role="user" parts={[{ text: content }]} />
               </div>
             </div>
           ) : null}
@@ -602,7 +630,9 @@ export default function Home() {
           <div className="absolute bottom-0 flex h-2/5 w-2/3 flex-col justify-between pb-12 text-center">
             <div className="text-sm leading-6">
               <div className="animate-pulse text-lg text-white">{statusText}</div>
-              {status === 'talking' ? (
+              {errorMessage !== '' ? (
+                <div className="whitespace-pre-wrap text-center font-semibold text-red-500">{errorMessage}</div>
+              ) : status === 'talking' ? (
                 <div className="whitespace-pre-wrap text-center text-red-300">{subtitle}</div>
               ) : (
                 <div className="whitespace-pre-wrap text-center text-green-300">{content}</div>

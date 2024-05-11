@@ -1,5 +1,5 @@
 'use client'
-import { memo, useEffect, useState, useCallback } from 'react'
+import { memo, useEffect, useState, useCallback, useMemo } from 'react'
 import MarkdownIt from 'markdown-it'
 import markdownHighlight from 'markdown-it-highlightjs'
 import highlight from 'highlight.js'
@@ -11,10 +11,6 @@ import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import BubblesLoading from '@/components/BubblesLoading'
 import { upperFirst } from 'lodash-es'
 
-interface MessageItemProps extends Message {
-  isLoading?: boolean
-}
-
 const registerCopy = (className: string) => {
   const clipboard = new Clipboard(className, {
     text: function (trigger) {
@@ -24,7 +20,7 @@ const registerCopy = (className: string) => {
   return clipboard
 }
 
-function MessageItem({ role, type, content, isLoading }: MessageItemProps) {
+function MessageItem({ role, parts }: Message) {
   const { t } = useTranslation()
   const [html, setHtml] = useState<string>('')
 
@@ -86,24 +82,26 @@ function MessageItem({ role, type, content, isLoading }: MessageItemProps) {
   )
 
   useEffect(() => {
-    if (type === 'image') {
-      setHtml(`<img class="inline-image" src=${content} />`)
-      return () => {
-        setHtml('')
+    const messageParts = parts.map((part) => {
+      if (part.text) {
+        return render(part.text)
+      } else if (part.inlineData?.mimeType.startsWith('image/')) {
+        return `<img class="inline-image" alt="inline-image" src="data:${part.inlineData.mimeType};base64,${part.inlineData.data}" />`
+      } else if (part.fileData?.fileUri) {
+        return `<div>${part.fileData.fileUri}</div>`
       }
-    } else {
-      setHtml(render(content))
-      const copyKatexInline = registerCopy('.copy-katex-inline')
-      const copyKatexBlock = registerCopy('.copy-katex-block')
-      const copyCode = registerCopy('.copy-code')
-      return () => {
-        setHtml('')
-        copyKatexInline.destroy()
-        copyKatexBlock.destroy()
-        copyCode.destroy()
-      }
+    })
+    setHtml(messageParts.join('<hr />'))
+    const copyKatexInline = registerCopy('.copy-katex-inline')
+    const copyKatexBlock = registerCopy('.copy-katex-block')
+    const copyCode = registerCopy('.copy-code')
+    return () => {
+      setHtml('')
+      copyKatexInline.destroy()
+      copyKatexBlock.destroy()
+      copyCode.destroy()
     }
-  }, [content, type, render])
+  }, [parts, render])
 
   return (
     <>
@@ -118,7 +116,7 @@ function MessageItem({ role, type, content, isLoading }: MessageItemProps) {
           </AvatarFallback>
         )}
       </Avatar>
-      {isLoading ? (
+      {role === 'model' && parts[0].text === '' ? (
         <BubblesLoading />
       ) : (
         <div

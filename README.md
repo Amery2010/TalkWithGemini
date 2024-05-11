@@ -134,7 +134,7 @@ Your Gemini Pro api key. If you need to `enable` the server api, this is require
 
 > Default: `https://generativelanguage.googleapis.com`
 
-> Examples: `http://your-openai-proxy.com`
+> Examples: `http://your-gemini-proxy.com`
 
 Override Gemini Pro api request base url.
 
@@ -162,7 +162,7 @@ Injected script code can be used for statistics or error tracking.
 
 > 默认值：`https://generativelanguage.googleapis.com`
 
-> 示例：`http://your-openai-proxy.com`
+> 示例：`http://your-gemini-proxy.com`
 
 覆盖 Gemini Pro api 请求基本 url。
 
