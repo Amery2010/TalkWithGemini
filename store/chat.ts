@@ -18,6 +18,7 @@ type OldMessage = {
 type MessageStore = {
   messages: Message[]
   summary: Summary
+  systemInstruction: string
   init: () => Message[]
   add: (message: Message) => void
   update: (id: string, message: Message) => void
@@ -25,6 +26,7 @@ type MessageStore = {
   clear: () => void
   save: () => void
   revoke: (id: string) => void
+  instruction: (prompt: string) => void
   summarize: (ids: string[], content: string) => void
 }
 
@@ -34,8 +36,10 @@ export const useMessageStore = create<MessageStore>((set, get) => ({
     ids: [],
     content: '',
   },
+  systemInstruction: '',
   init: () => {
     const messages = storage.get<Message[] | OldMessage[]>('messages') || []
+    const systemInstruction = storage.get<string>('systemInstruction') || ''
     const summary = storage.get<Summary>('summary') || {
       ids: [],
       content: '',
@@ -68,7 +72,7 @@ export const useMessageStore = create<MessageStore>((set, get) => ({
       })
       set(() => ({ messages: newMessages, summary }))
     } else {
-      set(() => ({ messages, summary }))
+      set(() => ({ messages, systemInstruction, summary }))
     }
     return messages
   },
@@ -117,6 +121,10 @@ export const useMessageStore = create<MessageStore>((set, get) => ({
       const index = findIndex(state.messages, { id })
       return { messages: state.messages.slice(0, index) }
     })
+  },
+  instruction: (prompt) => {
+    set(() => ({ systemInstruction: prompt }))
+    storage.set<string>('systemInstruction', prompt)
   },
   summarize: (ids, content) => {
     set(() => ({

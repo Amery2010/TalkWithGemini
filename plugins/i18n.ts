@@ -22,7 +22,7 @@ i18n
   .use(initReactI18next)
   .use(
     resourcesToBackend(async (lng: string) => {
-      return import(`@/locales/${normalizeLocale(lng)}.json`)
+      return await import(`@/locales/${normalizeLocale(lng)}.json`)
     }),
   )
   .init({

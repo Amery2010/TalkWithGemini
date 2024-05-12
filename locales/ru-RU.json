@@ -35,5 +35,6 @@
   "github": "Github",
   "send": "Отправить",
   "maxHistoryLength": "Максимальная историческая длина",
-  "unlimited": "Без ограничений"
+  "unlimited": "Без ограничений",
+  "searchPlaceholder": "Пожалуйста, введите ключевое слово"
 }

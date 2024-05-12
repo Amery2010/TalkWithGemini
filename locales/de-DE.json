@@ -35,5 +35,6 @@
   "github": "Github",
   "send": "Senden",
   "maxHistoryLength": "Maximale historische Länge",
-  "unlimited": "Keine Einschränkung"
+  "unlimited": "Keine Einschränkung",
+  "searchPlaceholder": "Bitte geben Sie das Schlüsselwort ein"
 }

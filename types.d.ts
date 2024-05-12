@@ -18,10 +18,23 @@ declare global {
     maxHistoryLength: number
   }
 
-  interface Topic {
-    id: number
-    title: string
-    description: string
-    parts: Omit<Message, 'id'>[]
+  interface Agent {
+    author: string
+    createAt: string
+    homepage: string
+    identifier: string
+    meta: {
+      avatar: string
+      tags: string[]
+      title: string
+      description: string
+    }
+    schemaVersion: number
+  }
+
+  interface AgentDetail extends Agent {
+    config: {
+      systemRole: string
+    }
   }
 }

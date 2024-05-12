@@ -51,6 +51,7 @@ Deploy your private Gemini application for free with one click, supporting Gemin
 - **Deploy for free with one-click** on Vercel in under 1 minute
 - Talk mode: Let you talk directly to Gemini
 - Visual recognition allows Gemini to understand the content of the picture
+- Topic square with hundreds of selected system instruction
 - Full Markdown support: LaTex formulas, code highlighting, and more
 - Automatically compress contextual chat records to save Tokens while supporting very long conversations
 - Privacy and security, all data is saved locally in the user's browser
@@ -64,6 +65,7 @@ Deploy your private Gemini application for free with one click, supporting Gemin
 - 在 1 分钟内使用 Vercel **免费一键部署**
 - 语音模式：让您直接与 Gemini 对话
 - 视觉识别，让 Gemini 可以看懂图片内容
+- 话题广场，拥有数百精选的系统指令
 - 完整的 Markdown 支持：LaTex 公式、代码高亮等等
 - 自动压缩上下文聊天记录，在节省 Token 的同时支持超长对话
 - 隐私安全，所有数据保存在用户浏览器本地
@@ -74,14 +76,14 @@ Deploy your private Gemini application for free with one click, supporting Gemin
 
 ## Roadmap
 
-- [ ] Reconstruct the topic square and introduce Prompt list
+- [x] Reconstruct the topic square and introduce Prompt list
 - [ ] Add conversation list
 - [ ] Use tauri to package desktop applications
 - [ ] Share as image, share to ShareGPT link
 
 ## 开发计划
 
-- [ ] 重构话题广场，引入 Prompt 列表
+- [x] 重构话题广场，引入 Prompt 列表
 - [ ] 增加对话列表
 - [ ] 使用 tauri 打包桌面应用
 - [ ] 分享为图片，分享到 ShareGPT 链接

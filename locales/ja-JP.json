@@ -35,5 +35,6 @@
   "github": "Github",
   "send": "送信",
   "maxHistoryLength": "最大歴史長",
-  "unlimited": "制限なし"
+  "unlimited": "制限なし",
+  "searchPlaceholder": "キーワードを入力してください"
 }

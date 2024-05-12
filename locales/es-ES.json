@@ -35,5 +35,6 @@
   "github": "Github",
   "send": "Enviar",
   "maxHistoryLength": "Longitud máxima histórica",
-  "unlimited": "Sin límite"
+  "unlimited": "Sin límite",
+  "searchPlaceholder": "Por favor, introduzca la palabra clave"
 }

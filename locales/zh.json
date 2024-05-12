@@ -35,5 +35,6 @@
   "github": "Github",
   "send": "发送",
   "maxHistoryLength": "最大历史长度",
-  "unlimited": "无限制"
+  "unlimited": "无限制",
+  "searchPlaceholder": "请输入关键词"
 }

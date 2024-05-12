@@ -1,8 +1,7 @@
 'use client'
+import dynamic from 'next/dynamic'
 import { useRef, useState, useMemo, KeyboardEvent, useEffect, useCallback, useLayoutEffect } from 'react'
 import { EdgeSpeech, SpeechRecognition } from '@xiangfa/polly'
-import type { InlineDataPart } from '@google/generative-ai'
-import { useAutoAnimate } from '@formkit/auto-animate/react'
 import SiriWave from 'siriwave'
 import {
   MessageCircleHeart,
@@ -21,10 +20,8 @@ import { Textarea } from '@/components/ui/textarea'
 import { Separator } from '@/components/ui/separator'
 import MessageItem from '@/components/MessageItem'
 import ErrorMessageItem from '@/components/ErrorMessageItem'
-import Setting from '@/components/Setting'
-import Topic from '@/components/Topic'
+import SystemInstruction from '@/components/SystemInstruction'
 import Button from '@/components/Button'
-import ImageUploader from '@/components/ImageUploader'
 import { useMessageStore } from '@/store/chat'
 import { useSettingStore } from '@/store/setting'
 import chat, { type RequestProps } from '@/utils/chat'
@@ -34,8 +31,8 @@ import PromiseQueue from '@/utils/PromiseQueue'
 import textStream, { streamToText } from '@/utils/textStream'
 import { generateSignature, generateUTCTimestamp } from '@/utils/signature'
 import { shuffleArray, formatTime } from '@/utils/common'
+import { agentMarket } from '@/utils/AgentMarket'
 import { cn } from '@/utils'
-import topics from '@/constant/topics'
 import { Model } from '@/constant/model'
 import { customAlphabet } from 'nanoid'
 import { isFunction } from 'lodash-es'
@@ -50,6 +47,10 @@ interface AnswerParams {
 const buildMode = process.env.NEXT_PUBLIC_BUILD_MODE as string
 const nanoid = customAlphabet('1234567890abcdefghijklmnopqrstuvwxyz', 8)
 
+const AgentMarket = dynamic(() => import('@/components/AgentMarket'))
+const Setting = dynamic(() => import('@/components/Setting'))
+const ImageUploader = dynamic(() => import('@/components/ImageUploader'))
+
 export default function Home() {
   const { t } = useTranslation()
   const siriWaveRef = useRef<HTMLDivElement>(null)
@@ -61,9 +62,8 @@ export default function Home() {
   const messagesRef = useRef(useMessageStore.getState().messages)
   const messageStore = useMessageStore()
   const settingStore = useSettingStore()
-  const [messageAutoAnimate] = useAutoAnimate()
   const [textareaHeight, setTextareaHeight] = useState<number>(40)
-  const [randomTopic, setRandomTopic] = useState<Topic[]>([])
+  const [randomAgent, setRandomAgent] = useState<Agent[]>([])
   const [siriWave, setSiriWave] = useState<SiriWave>()
   const [content, setContent] = useState<string>('')
   const [subtitle, setSubtitle] = useState<string>('')
@@ -72,7 +72,7 @@ export default function Home() {
   const [recordTimer, setRecordTimer] = useState<NodeJS.Timeout>()
   const [recordTime, setRecordTime] = useState<number>(0)
   const [settingOpen, setSetingOpen] = useState<boolean>(false)
-  const [topicOpen, setTopicOpen] = useState<boolean>(false)
+  const [agentMarketOpen, setAgentMarketOpen] = useState<boolean>(false)
   const [speechSilence, setSpeechSilence] = useState<boolean>(false)
   const [disableSpeechRecognition, setDisableSpeechRecognition] = useState<boolean>(false)
   const [status, setStatus] = useState<'thinkng' | 'silence' | 'talking'>('silence')
@@ -132,6 +132,7 @@ export default function Home() {
   }, [])
 
   const fetchAnswer = useCallback(async ({ messages, model, onResponse, onError }: AnswerParams) => {
+    const { systemInstruction } = useMessageStore.getState()
     const { apiKey, apiProxy, password } = useSettingStore.getState()
     setErrorMessage('')
     if (apiKey !== '') {
@@ -141,6 +142,7 @@ export default function Home() {
         model,
       }
       if (apiProxy) config.baseUrl = apiProxy
+      if (systemInstruction) config.systemInstruction = systemInstruction
       try {
         const result = await chat(config)
         const encoder = new TextEncoder()
@@ -167,14 +169,22 @@ export default function Home() {
       }
     } else {
       const utcTimestamp = generateUTCTimestamp()
+      const config: {
+        messages: Message[]
+        model: string
+        systemInstruction?: string
+        ts: number
+        sign: string
+      } = {
+        messages,
+        model,
+        ts: utcTimestamp,
+        sign: generateSignature(password, utcTimestamp),
+      }
+      if (systemInstruction) config.systemInstruction = systemInstruction
       const response = await fetch('/api/chat', {
         method: 'POST',
-        body: JSON.stringify({
-          messages,
-          model,
-          ts: utcTimestamp,
-          sign: generateSignature(password, utcTimestamp),
-        }),
+        body: JSON.stringify(config),
       })
       if (response.status < 400 && response.body) {
         onResponse(response.body)
@@ -422,22 +432,26 @@ export default function Home() {
     })
   }, [])
 
-  const initTopic = useCallback((topic: Topic) => {
-    const { add: addMessage, clear: clearMessage } = useMessageStore.getState()
+  const initAgent = useCallback((prompt: string) => {
+    const { instruction, clear: clearMessage } = useMessageStore.getState()
     clearMessage()
-    topic.parts.forEach((part) => {
-      addMessage({ id: nanoid(), ...part })
-    })
+    instruction(prompt)
   }, [])
 
-  useEffect(() => useMessageStore.subscribe((state) => (messagesRef.current = state.messages)), [])
+  const initAgentMarket = useCallback((agentList: Agent[]) => {
+    setRandomAgent(shuffleArray<Agent>(agentList).slice(0, 3))
+  }, [])
 
-  useEffect(() => {
-    if (messagesRef.current.length === 0) {
-      const langType = settingStore.lang.split('-')[0] === 'zh' ? 'zh' : 'en'
-      setRandomTopic(shuffleArray<Topic>(topics[langType]).slice(0, 3))
-    }
-  }, [settingStore.lang])
+  const handleSelectAgent = useCallback(
+    async (identifier: string) => {
+      const response = await fetch(agentMarket.getAgentUrl(identifier, settingStore.lang))
+      const data: AgentDetail = await response.json()
+      initAgent(data.config.systemRole)
+    },
+    [settingStore.lang, initAgent],
+  )
+
+  useEffect(() => useMessageStore.subscribe((state) => (messagesRef.current = state.messages)), [])
 
   useEffect(() => {
     requestAnimationFrame(scrollToBottom)
@@ -505,7 +519,7 @@ export default function Home() {
           </Button>
         </div>
       </div>
-      {messageStore.messages.length === 0 && content === '' ? (
+      {messageStore.messages.length === 0 && content === '' && messageStore.systemInstruction === '' ? (
         <div className="relative flex min-h-full grow items-center justify-center text-sm">
           <div className="relative -top-8 text-center text-sm">
             <PackageOpen
@@ -515,28 +529,33 @@ export default function Home() {
             <p className="my-2 text-gray-300 dark:text-gray-700">{t('chatEmpty')}</p>
             <p className="text-gray-600">{t('selectTopicTip')}</p>
           </div>
-          <div className="absolute bottom-2 flex text-gray-600">
-            {randomTopic.map((topic) => {
+          <div className="absolute bottom-2 flex gap-1 text-gray-600">
+            {randomAgent.map((agent) => {
               return (
                 <div
-                  key={topic.id}
-                  className="mx-1 cursor-pointer overflow-hidden text-ellipsis text-nowrap rounded-md border px-2 py-1 hover:bg-slate-100 dark:hover:bg-slate-900"
-                  onClick={() => initTopic(topic)}
+                  key={agent.identifier}
+                  className="cursor-pointer rounded-md border px-2 py-1 hover:bg-slate-100 max-sm:first:hidden dark:hover:bg-slate-900"
+                  onClick={() => handleSelectAgent(agent.identifier)}
                 >
-                  {topic.title}
+                  {agent.meta.title}
                 </div>
               )
             })}
             <div
-              className="mx-1 cursor-pointer rounded-md p-1 text-center underline underline-offset-4"
-              onClick={() => setTopicOpen(true)}
+              className="cursor-pointer rounded-md p-1 text-center underline underline-offset-4"
+              onClick={() => setAgentMarketOpen(true)}
             >
               {t('more')}
             </div>
           </div>
         </div>
       ) : (
-        <div ref={messageAutoAnimate} className="flex min-h-full flex-1 grow flex-col justify-start">
+        <div className="flex min-h-full flex-1 grow flex-col justify-start">
+          {messageStore.systemInstruction !== '' ? (
+            <div className="p-4 pt-0">
+              <SystemInstruction prompt={messageStore.systemInstruction} onClear={() => initAgent('')} />
+            </div>
+          ) : null}
           {messageStore.messages.map((msg, idx) => (
             <div
               className="group text-slate-500 transition-colors last:text-slate-800 hover:text-slate-800 max-sm:hover:bg-transparent dark:last:text-slate-400 dark:hover:text-slate-400"
@@ -551,7 +570,7 @@ export default function Home() {
                     {t('regenerateAnswer')}
                   </span>
                   <Separator orientation="vertical" />
-                  <span className="mx-2 cursor-pointer hover:text-slate-500" onClick={() => setTopicOpen(true)}>
+                  <span className="mx-2 cursor-pointer hover:text-slate-500" onClick={() => setAgentMarketOpen(true)}>
                     {t('changeTopic')}
                   </span>
                   <Separator orientation="vertical" />
@@ -684,7 +703,12 @@ export default function Home() {
         </div>
       </div>
       <Setting open={settingOpen} hiddenTalkPanel={disableSpeechRecognition} onClose={() => setSetingOpen(false)} />
-      <Topic open={topicOpen} onClose={() => setTopicOpen(false)} onSelect={initTopic} />
+      <AgentMarket
+        open={agentMarketOpen}
+        onClose={() => setAgentMarketOpen(false)}
+        onSelect={initAgent}
+        onLoaded={initAgentMarket}
+      />
     </main>
   )
 }

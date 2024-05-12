@@ -35,5 +35,6 @@
   "github": "Github",
   "send": "보내기",
   "maxHistoryLength": "최대 역사적 길이",
-  "unlimited": "제한 없음"
+  "unlimited": "제한 없음",
+  "searchPlaceholder": "키워드를 입력하십시오"
 }

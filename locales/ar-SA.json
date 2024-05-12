@@ -35,5 +35,6 @@
   "github": "Github",
   "send": "إرسال",
   "maxHistoryLength": "أقصى طول تاريخي",
-  "unlimited": "بدون قيود"
+  "unlimited": "بدون قيود",
+  "searchPlaceholder": "الرجاء إدخال الكلمة الرئيسية"
 }
