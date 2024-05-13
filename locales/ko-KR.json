@@ -36,5 +36,11 @@
   "send": "보내기",
   "maxHistoryLength": "최대 역사적 길이",
   "unlimited": "제한 없음",
-  "searchPlaceholder": "키워드를 입력하십시오"
+  "searchPlaceholder": "키워드를 입력하십시오",
+  "cancel": "취소",
+  "assistantSetting": "어시스턴트 설정",
+  "assistantMarketUrl": "보조 마케팅 링크",
+  "generalSetting": "일반 설정",
+  "llmModel": "LLM 모델",
+  "voiceServer": "음성 서비스"
 }

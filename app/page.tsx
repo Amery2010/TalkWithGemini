@@ -31,7 +31,7 @@ import PromiseQueue from '@/utils/PromiseQueue'
 import textStream, { streamToText } from '@/utils/textStream'
 import { generateSignature, generateUTCTimestamp } from '@/utils/signature'
 import { shuffleArray, formatTime } from '@/utils/common'
-import { agentMarket } from '@/utils/AgentMarket'
+import AssistantMarketUrl from '@/utils/AssistantMarketUrl'
 import { cn } from '@/utils'
 import { Model } from '@/constant/model'
 import { customAlphabet } from 'nanoid'
@@ -47,7 +47,7 @@ interface AnswerParams {
 const buildMode = process.env.NEXT_PUBLIC_BUILD_MODE as string
 const nanoid = customAlphabet('1234567890abcdefghijklmnopqrstuvwxyz', 8)
 
-const AgentMarket = dynamic(() => import('@/components/AgentMarket'))
+const AssistantMarket = dynamic(() => import('@/components/AssistantMarket'))
 const Setting = dynamic(() => import('@/components/Setting'))
 const ImageUploader = dynamic(() => import('@/components/ImageUploader'))
 
@@ -63,7 +63,7 @@ export default function Home() {
   const messageStore = useMessageStore()
   const settingStore = useSettingStore()
   const [textareaHeight, setTextareaHeight] = useState<number>(40)
-  const [randomAgent, setRandomAgent] = useState<Agent[]>([])
+  const [randomAssistant, setRandomAssistant] = useState<Assistant[]>([])
   const [siriWave, setSiriWave] = useState<SiriWave>()
   const [content, setContent] = useState<string>('')
   const [subtitle, setSubtitle] = useState<string>('')
@@ -72,7 +72,7 @@ export default function Home() {
   const [recordTimer, setRecordTimer] = useState<NodeJS.Timeout>()
   const [recordTime, setRecordTime] = useState<number>(0)
   const [settingOpen, setSetingOpen] = useState<boolean>(false)
-  const [agentMarketOpen, setAgentMarketOpen] = useState<boolean>(false)
+  const [assistantMarketOpen, setAssistantMarketOpen] = useState<boolean>(false)
   const [speechSilence, setSpeechSilence] = useState<boolean>(false)
   const [disableSpeechRecognition, setDisableSpeechRecognition] = useState<boolean>(false)
   const [status, setStatus] = useState<'thinkng' | 'silence' | 'talking'>('silence')
@@ -432,23 +432,29 @@ export default function Home() {
     })
   }, [])
 
-  const initAgent = useCallback((prompt: string) => {
+  const initAssistant = useCallback((prompt: string) => {
     const { instruction, clear: clearMessage } = useMessageStore.getState()
     clearMessage()
     instruction(prompt)
   }, [])
 
-  const initAgentMarket = useCallback((agentList: Agent[]) => {
-    setRandomAgent(shuffleArray<Agent>(agentList).slice(0, 3))
-  }, [])
-
-  const handleSelectAgent = useCallback(
-    async (identifier: string) => {
-      const response = await fetch(agentMarket.getAgentUrl(identifier, settingStore.lang))
-      const data: AgentDetail = await response.json()
-      initAgent(data.config.systemRole)
+  const initAssistantMarket = useCallback(
+    (assistantList: Assistant[]) => {
+      if (settingStore.assistantIndexUrl !== '') {
+        setRandomAssistant(shuffleArray<Assistant>(assistantList).slice(0, 3))
+      }
     },
-    [settingStore.lang, initAgent],
+    [settingStore.assistantIndexUrl],
+  )
+
+  const handleSelectAssistant = useCallback(
+    async (identifier: string) => {
+      const assistantMarketUrl = new AssistantMarketUrl(settingStore.assistantIndexUrl)
+      const response = await fetch(assistantMarketUrl.getAssistantUrl(identifier, settingStore.lang))
+      const data: AssistantDetail = await response.json()
+      initAssistant(data.config.systemRole)
+    },
+    [settingStore.lang, settingStore.assistantIndexUrl, initAssistant],
   )
 
   useEffect(() => useMessageStore.subscribe((state) => (messagesRef.current = state.messages)), [])
@@ -530,20 +536,20 @@ export default function Home() {
             <p className="text-gray-600">{t('selectTopicTip')}</p>
           </div>
           <div className="absolute bottom-2 flex gap-1 text-gray-600">
-            {randomAgent.map((agent) => {
+            {randomAssistant.map((assistant) => {
               return (
                 <div
-                  key={agent.identifier}
+                  key={assistant.identifier}
                   className="cursor-pointer rounded-md border px-2 py-1 hover:bg-slate-100 max-sm:first:hidden dark:hover:bg-slate-900"
-                  onClick={() => handleSelectAgent(agent.identifier)}
+                  onClick={() => handleSelectAssistant(assistant.identifier)}
                 >
-                  {agent.meta.title}
+                  {assistant.meta.title}
                 </div>
               )
             })}
             <div
               className="cursor-pointer rounded-md p-1 text-center underline underline-offset-4"
-              onClick={() => setAgentMarketOpen(true)}
+              onClick={() => setAssistantMarketOpen(true)}
             >
               {t('more')}
             </div>
@@ -553,7 +559,7 @@ export default function Home() {
         <div className="flex min-h-full flex-1 grow flex-col justify-start">
           {messageStore.systemInstruction !== '' ? (
             <div className="p-4 pt-0">
-              <SystemInstruction prompt={messageStore.systemInstruction} onClear={() => initAgent('')} />
+              <SystemInstruction prompt={messageStore.systemInstruction} onClear={() => initAssistant('')} />
             </div>
           ) : null}
           {messageStore.messages.map((msg, idx) => (
@@ -570,7 +576,10 @@ export default function Home() {
                     {t('regenerateAnswer')}
                   </span>
                   <Separator orientation="vertical" />
-                  <span className="mx-2 cursor-pointer hover:text-slate-500" onClick={() => setAgentMarketOpen(true)}>
+                  <span
+                    className="mx-2 cursor-pointer hover:text-slate-500"
+                    onClick={() => setAssistantMarketOpen(true)}
+                  >
                     {t('changeTopic')}
                   </span>
                   <Separator orientation="vertical" />
@@ -703,11 +712,11 @@ export default function Home() {
         </div>
       </div>
       <Setting open={settingOpen} hiddenTalkPanel={disableSpeechRecognition} onClose={() => setSetingOpen(false)} />
-      <AgentMarket
-        open={agentMarketOpen}
-        onClose={() => setAgentMarketOpen(false)}
-        onSelect={initAgent}
-        onLoaded={initAgentMarket}
+      <AssistantMarket
+        open={assistantMarketOpen}
+        onClose={() => setAssistantMarketOpen(false)}
+        onSelect={initAssistant}
+        onLoaded={initAssistantMarket}
       />
     </main>
   )

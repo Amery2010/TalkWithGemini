@@ -1,6 +1,6 @@
 {
   "name": "talk-with-gemini",
-  "version": "0.9.1",
+  "version": "0.9.2",
   "private": true,
   "author": "Amery2010 <amery@xiangfa.org>",
   "license": "GPL-3.0-only",
@@ -23,6 +23,7 @@
     "@radix-ui/react-separator": "^1.0.3",
     "@radix-ui/react-slider": "^1.1.2",
     "@radix-ui/react-slot": "^1.0.2",
+    "@radix-ui/react-tabs": "^1.0.4",
     "@radix-ui/react-tooltip": "^1.0.7",
     "@traptitech/markdown-it-katex": "^3.6.0",
     "@xiangfa/polly": "^0.3.3",
@@ -50,6 +51,7 @@
     "siriwave": "^2.4.0",
     "tailwind-merge": "^2.2.0",
     "tailwindcss-animate": "^1.0.7",
+    "vaul": "^0.9.1",
     "zustand": "^4.5.2"
   },
   "devDependencies": {

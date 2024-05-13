@@ -16,9 +16,10 @@ declare global {
     isProtected: boolean
     talkMode: 'chat' | 'voice'
     maxHistoryLength: number
+    assistantIndexUrl: string
   }
 
-  interface Agent {
+  interface Assistant {
     author: string
     createAt: string
     homepage: string
@@ -32,7 +33,7 @@ declare global {
     schemaVersion: number
   }
 
-  interface AgentDetail extends Agent {
+  interface AssistantDetail extends Assistant {
     config: {
       systemRole: string
     }

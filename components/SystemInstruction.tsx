@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, memo } from 'react'
+import { useTranslation } from 'react-i18next'
 import MarkdownIt from 'markdown-it'
 import markdownHighlight from 'markdown-it-highlightjs'
 import highlight from 'highlight.js'
@@ -14,6 +15,7 @@ type Props = {
 }
 
 function SystemInstruction({ prompt, onClear }: Props) {
+  const { t } = useTranslation()
   const [html, setHtml] = useState<string>('')
 
   const render = useCallback((content: string) => {
@@ -67,7 +69,7 @@ function SystemInstruction({ prompt, onClear }: Props) {
   return (
     <Card className="w-full">
       <CardHeader className="relative px-4 pb-2 pt-4">
-        <CardTitle className="text-lg">助手设定</CardTitle>
+        <CardTitle className="text-lg">{t('assistantSetting')}</CardTitle>
         <X
           className="absolute right-4 top-3 h-6 w-6 cursor-pointer rounded-full p-1 text-muted-foreground hover:bg-white/10"
           onClick={() => onClear()}

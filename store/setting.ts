@@ -13,7 +13,10 @@ interface SettingStore extends Setting {
   setTTSVoice: (voice: string) => void
   setTalkMode: (mode: 'chat' | 'voice') => void
   setMaxHistoryLength: (length: number) => void
+  setAssistantIndexUrl: (url: string) => void
 }
+
+const ASSISTANT_INDEX_URL = process.env.ASSISTANT_INDEX_URL
 
 export const useSettingStore = create<SettingStore>((set) => ({
   password: '',
@@ -26,6 +29,7 @@ export const useSettingStore = create<SettingStore>((set) => ({
   isProtected: false,
   talkMode: 'chat',
   maxHistoryLength: 0,
+  assistantIndexUrl: '',
   init: (isProtected) => {
     const sttLang = storage.get<string>('sttLang')
     const ttsLang = storage.get<string>('ttsLang')
@@ -42,6 +46,8 @@ export const useSettingStore = create<SettingStore>((set) => ({
       isProtected: !!isProtected,
       talkMode: (storage.get<string>('talkMode') as Setting['talkMode']) || 'chat',
       maxHistoryLength: Number(storage.get<string>('maxHistoryLength') || '0'),
+      assistantIndexUrl:
+        storage.get<string>('assistantIndexUrl') || ASSISTANT_INDEX_URL || 'https://chat-agents.lobehub.com',
     }
     set(() => state)
     return state
@@ -81,5 +87,9 @@ export const useSettingStore = create<SettingStore>((set) => ({
   setMaxHistoryLength: (length) => {
     set(() => ({ maxHistoryLength: length }))
     storage.set<string>('maxHistoryLength', length.toString())
+  },
+  setAssistantIndexUrl: (url) => {
+    set(() => ({ assistantIndexUrl: url }))
+    storage.set<string>('assistantIndexUrl', url)
   },
 }))

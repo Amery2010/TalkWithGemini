@@ -140,6 +140,14 @@ Your Gemini Pro api key. If you need to `enable` the server api, this is require
 
 Override Gemini Pro api request base url.
 
+### `ASSISTANT_INDEX_URL` (optional)
+
+> Default: `https://chat-agents.lobehub.com`
+
+> Examples: `http://your-assistant-market-proxy.com`
+
+Override assistant market api request base url.
+
 ### `ACCESS_PASSWORD` (optional)
 
 Access password, needs to be used in conjunction with `NEXT_PUBLIC_ENABLE_PROTECT`, that is, NEXT_PUBLIC_ENABLE_PROTECT=1.
@@ -167,6 +175,14 @@ Injected script code can be used for statistics or error tracking.
 > 示例：`http://your-gemini-proxy.com`
 
 覆盖 Gemini Pro api 请求基本 url。
+
+### `ASSISTANT_INDEX_URL`（可选）
+
+> 默认值：`https://chat-agents.lobehub.com`
+
+> 示例：`http://your-assistant-market-proxy.com`
+
+覆盖 assistant market api 请求基本 url。
 
 ### `ACCESS_PASSWORD`（可选）
 

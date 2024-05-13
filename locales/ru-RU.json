@@ -36,5 +36,11 @@
   "send": "Отправить",
   "maxHistoryLength": "Максимальная историческая длина",
   "unlimited": "Без ограничений",
-  "searchPlaceholder": "Пожалуйста, введите ключевое слово"
+  "searchPlaceholder": "Пожалуйста, введите ключевое слово",
+  "cancel": "Отмена",
+  "assistantSetting": "Настройки ассистента",
+  "assistantMarketUrl": "Ссылка на помощника по маркетингу",
+  "generalSetting": "Общие настройки",
+  "llmModel": "LLM Модель",
+  "voiceServer": "Голосовое обслуживание"
 }

@@ -1,19 +1,13 @@
 import { memo, useEffect, useMemo, useState } from 'react'
 import { EdgeSpeech } from '@xiangfa/polly'
 import { useTranslation } from 'react-i18next'
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-} from '@/components/ui/dialog'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Button } from '@/components/ui/button'
 import { Slider } from '@/components/ui/slider'
+import ResponsiveDialog from '@/components/ResponsiveDialog'
 import i18n from '@/plugins/i18n'
 import locales from '@/constant/locales'
 import { useSettingStore } from '@/store/setting'
@@ -36,6 +30,7 @@ function Setting({ open, hiddenTalkPanel, onClose }: SettingProps) {
   const [sttLang, setSttLang] = useState<string>('')
   const [ttsLang, setTtsLang] = useState<string>('')
   const [ttsVoice, setTtsVoice] = useState<string>('')
+  const [assistantIndexUrl, setAssistantIndexUrl] = useState<string>('')
   const isProtected = useMemo(() => {
     return settingStore.isProtected
   }, [settingStore.isProtected])
@@ -45,6 +40,7 @@ function Setting({ open, hiddenTalkPanel, onClose }: SettingProps) {
 
   const handleSubmit = () => {
     if (password !== settingStore.password) settingStore.setPassword(password)
+    if (assistantIndexUrl !== settingStore.assistantIndexUrl) settingStore.setAssistantIndexUrl(assistantIndexUrl)
     if (apiKey !== settingStore.apiKey) settingStore.setApiKey(apiKey)
     if (apiProxy !== settingStore.apiProxy) settingStore.setApiProxy(apiProxy)
     if (maxHistoryLength !== settingStore.maxHistoryLength) settingStore.setMaxHistoryLength(maxHistoryLength)
@@ -53,9 +49,6 @@ function Setting({ open, hiddenTalkPanel, onClose }: SettingProps) {
     if (ttsLang !== settingStore.ttsLang) settingStore.setTTSLang(ttsLang)
     if (ttsVoice !== settingStore.ttsVoice) settingStore.setTTSVoice(ttsVoice)
     onClose()
-  }
-  const handleClose = (open: boolean) => {
-    if (!open) onClose()
   }
 
   const handleTTSChange = (value: string) => {
@@ -93,152 +86,172 @@ function Setting({ open, hiddenTalkPanel, onClose }: SettingProps) {
     setTtsLang(settingStore.ttsLang)
     setTtsVoice(settingStore.ttsVoice)
     setMaxHistoryLength(settingStore.maxHistoryLength)
+    setAssistantIndexUrl(settingStore.assistantIndexUrl)
   }, [settingStore])
 
   return (
-    <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="overflow-y-auto max-sm:h-full landscape:max-md:h-full">
-        <DialogHeader>
-          <DialogTitle>{t('setting')}</DialogTitle>
-          <DialogDescription>{t('settingDescription')}</DialogDescription>
-        </DialogHeader>
-        <div className="grid justify-center gap-4 py-4">
-          {isProtected ? (
-            <>
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="password" className="text-right">
-                  <span className="leading-12 mr-1 text-red-500">*</span>
-                  {t('accessPassword')}
-                </Label>
-                <Input
-                  id="password"
-                  type="password"
-                  placeholder={t('accessPasswordPlaceholder')}
-                  className="col-span-3"
-                  defaultValue={password}
-                  onChange={(ev) => setPassword(ev.target.value)}
-                />
-              </div>
-              <hr />
-            </>
-          ) : null}
-          <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="key" className="text-right">
-              <span className="leading-12 mr-1 text-red-500">*</span>
-              {t('geminiKey')}
-            </Label>
-            <Input
-              id="key"
-              type="password"
-              placeholder={t('geminiKeyPlaceholder')}
-              className="col-span-3"
-              defaultValue={apiKey}
-              onChange={(ev) => setApiKey(ev.target.value)}
-            />
-          </div>
-          <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="proxy" className="text-right">
-              {t('apiProxyUrl')}
-            </Label>
-            <Input
-              id="proxy"
-              placeholder={t('apiProxyUrlPlaceholder')}
-              className="col-span-3"
-              defaultValue={apiProxy}
-              onChange={(ev) => setApiProxy(ev.target.value)}
-            />
-          </div>
-          <hr />
-          <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="maxHistoryLength" className="text-right">
-              {t('maxHistoryLength')}
-            </Label>
-            <div className="col-span-3 flex">
-              <Slider
-                id="maxHistoryLength"
-                className="flex-1"
-                defaultValue={[maxHistoryLength]}
-                max={50}
-                step={1}
-                onValueChange={(values) => setMaxHistoryLength(values[0])}
+    <ResponsiveDialog
+      open={open}
+      onClose={onClose}
+      title={t('setting')}
+      description={t('settingDescription')}
+      footer={
+        <Button className="flex-1" type="submit" onClick={handleSubmit}>
+          {t('save')}
+        </Button>
+      }
+    >
+      <Tabs className="max-sm:px-4" defaultValue="general">
+        <TabsList className="mx-auto grid w-full grid-cols-3">
+          <TabsTrigger value="general">{t('generalSetting')}</TabsTrigger>
+          <TabsTrigger value="model">{t('llmModel')}</TabsTrigger>
+          <TabsTrigger disabled={hiddenTalkPanel} value="voice">
+            {t('voiceServer')}
+          </TabsTrigger>
+        </TabsList>
+        <TabsContent value="general">
+          <div className="grid w-full gap-4 px-4 py-4">
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="password" className="text-right">
+                {isProtected ? <span className="leading-12 mr-1 text-red-500">*</span> : null}
+                {t('accessPassword')}
+              </Label>
+              <Input
+                id="password"
+                type="password"
+                disabled={!isProtected}
+                placeholder={t('accessPasswordPlaceholder')}
+                className="col-span-3"
+                defaultValue={password}
+                onChange={(ev) => setPassword(ev.target.value)}
               />
-              <span className="w-1/4 text-center text-sm">
-                {maxHistoryLength === 0 ? t('unlimited') : maxHistoryLength}
-              </span>
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="assistantIndexUrl" className="text-right">
+                {t('assistantMarketUrl')}
+              </Label>
+              <Input
+                id="assistantIndexUrl"
+                placeholder={t('accessPasswordPlaceholder')}
+                className="col-span-3"
+                defaultValue={assistantIndexUrl}
+                onChange={(ev) => setAssistantIndexUrl(ev.target.value)}
+              />
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="stt" className="text-right">
+                {t('language')}
+              </Label>
+              <Select value={lang} onValueChange={handleLangChange}>
+                <SelectTrigger id="stt" className="col-span-3">
+                  <SelectValue placeholder={t('followTheSystem')} />
+                </SelectTrigger>
+                <SelectContent>
+                  <LangOptions />
+                </SelectContent>
+              </Select>
             </div>
           </div>
-          {!hiddenTalkPanel ? (
-            <>
-              <hr />
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="stt" className="text-right">
-                  {t('speechRecognition')}
-                </Label>
-                <Select value={sttLang} onValueChange={setSttLang}>
-                  <SelectTrigger id="stt" className="col-span-3">
-                    <SelectValue placeholder={t('followTheSystem')} />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <LangOptions />
-                  </SelectContent>
-                </Select>
+        </TabsContent>
+        <TabsContent value="model">
+          <div className="grid w-full gap-4 px-4 py-4">
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="key" className="text-right">
+                {!isProtected ? <span className="leading-12 mr-1 text-red-500">*</span> : null}
+                {t('geminiKey')}
+              </Label>
+              <Input
+                id="key"
+                type="password"
+                placeholder={t('geminiKeyPlaceholder')}
+                className="col-span-3"
+                defaultValue={apiKey}
+                onChange={(ev) => setApiKey(ev.target.value)}
+              />
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="proxy" className="text-right">
+                {t('apiProxyUrl')}
+              </Label>
+              <Input
+                id="proxy"
+                placeholder={t('apiProxyUrlPlaceholder')}
+                className="col-span-3"
+                defaultValue={apiProxy}
+                onChange={(ev) => setApiProxy(ev.target.value)}
+              />
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="maxHistoryLength" className="text-right">
+                {t('maxHistoryLength')}
+              </Label>
+              <div className="col-span-3 flex h-10">
+                <Slider
+                  id="maxHistoryLength"
+                  className="flex-1"
+                  defaultValue={[maxHistoryLength]}
+                  max={50}
+                  step={1}
+                  onValueChange={(values) => setMaxHistoryLength(values[0])}
+                />
+                <span className="w-1/5 text-center text-sm leading-10">
+                  {maxHistoryLength === 0 ? t('unlimited') : maxHistoryLength}
+                </span>
               </div>
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="tts" className="text-right">
-                  {t('speechSynthesis')}
-                </Label>
-                <Select value={ttsLang} onValueChange={handleTTSChange}>
-                  <SelectTrigger id="tts" className="col-span-3">
-                    <SelectValue placeholder={t('followTheSystem')} />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <LangOptions />
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="ttsVoice" className="text-right">
-                  {t('soundSource')}
-                </Label>
-                <Select value={ttsVoice} onValueChange={setTtsVoice}>
-                  <SelectTrigger id="ttsVoice" className="col-span-3">
-                    <SelectValue placeholder={t('followTheSystem')} />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {values(voiceOptions).map((option) => {
-                      return (
-                        <SelectItem key={option.value} value={option.value as string}>
-                          {option.label}
-                        </SelectItem>
-                      )
-                    })}
-                  </SelectContent>
-                </Select>
-              </div>
-            </>
-          ) : null}
-          <hr />
-          <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="stt" className="text-right">
-              {t('language')}
-            </Label>
-            <Select value={lang} onValueChange={handleLangChange}>
-              <SelectTrigger id="stt" className="col-span-3">
-                <SelectValue placeholder={t('followTheSystem')} />
-              </SelectTrigger>
-              <SelectContent>
-                <LangOptions />
-              </SelectContent>
-            </Select>
+            </div>
           </div>
-        </div>
-        <DialogFooter>
-          <Button type="submit" onClick={handleSubmit}>
-            {t('save')}
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+        </TabsContent>
+        <TabsContent value="voice">
+          <div className="grid w-full gap-4 px-4 py-4">
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="stt" className="text-right">
+                {t('speechRecognition')}
+              </Label>
+              <Select value={sttLang} onValueChange={setSttLang}>
+                <SelectTrigger id="stt" className="col-span-3">
+                  <SelectValue placeholder={t('followTheSystem')} />
+                </SelectTrigger>
+                <SelectContent>
+                  <LangOptions />
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="tts" className="text-right">
+                {t('speechSynthesis')}
+              </Label>
+              <Select value={ttsLang} onValueChange={handleTTSChange}>
+                <SelectTrigger id="tts" className="col-span-3">
+                  <SelectValue placeholder={t('followTheSystem')} />
+                </SelectTrigger>
+                <SelectContent>
+                  <LangOptions />
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="ttsVoice" className="text-right">
+                {t('soundSource')}
+              </Label>
+              <Select value={ttsVoice} onValueChange={setTtsVoice}>
+                <SelectTrigger id="ttsVoice" className="col-span-3">
+                  <SelectValue placeholder={t('followTheSystem')} />
+                </SelectTrigger>
+                <SelectContent>
+                  {values(voiceOptions).map((option) => {
+                    return (
+                      <SelectItem key={option.value} value={option.value as string}>
+                        {option.label}
+                      </SelectItem>
+                    )
+                  })}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+        </TabsContent>
+      </Tabs>
+    </ResponsiveDialog>
   )
 }
 

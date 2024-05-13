@@ -36,5 +36,11 @@
   "send": "Senden",
   "maxHistoryLength": "Maximale historische Länge",
   "unlimited": "Keine Einschränkung",
-  "searchPlaceholder": "Bitte geben Sie das Schlüsselwort ein"
+  "searchPlaceholder": "Bitte geben Sie das Schlüsselwort ein",
+  "cancel": "Stornieren",
+  "assistantSetting": "Assistenteneinstellung",
+  "assistantMarketUrl": "Assistent Marketing-Link",
+  "generalSetting": "Allgemeine Einstellungen",
+  "llmModel": "LLM Modell",
+  "voiceServer": "Sprachdienst"
 }

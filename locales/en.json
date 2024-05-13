@@ -36,5 +36,11 @@
   "send": "Send",
   "maxHistoryLength": "Max history length",
   "unlimited": "Unlimited",
-  "searchPlaceholder": "Please enter the keyword"
+  "searchPlaceholder": "Please enter the keyword",
+  "cancel": "Cancel",
+  "assistantSetting": "Assistant Setting",
+  "assistantMarketUrl": "Assistant Market Url",
+  "generalSetting": "General Settings",
+  "llmModel": "LLM Model",
+  "voiceServer": "Voice Server"
 }

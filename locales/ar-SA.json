@@ -36,5 +36,11 @@
   "send": "إرسال",
   "maxHistoryLength": "أقصى طول تاريخي",
   "unlimited": "بدون قيود",
-  "searchPlaceholder": "الرجاء إدخال الكلمة الرئيسية"
+  "searchPlaceholder": "الرجاء إدخال الكلمة الرئيسية",
+  "cancel": "إلغاء",
+  "assistantSetting": "إعداد المساعد",
+  "assistantMarketUrl": "رابط التسويق المساعد",
+  "generalSetting": "الإعدادات العامة",
+  "llmModel": "نموذج LLM",
+  "voiceServer": "خدمة الصوت"
 }

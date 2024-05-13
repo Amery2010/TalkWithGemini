@@ -36,5 +36,11 @@
   "send": "Envoyer",
   "maxHistoryLength": "Longueur historique maximale",
   "unlimited": "Illimité",
-  "searchPlaceholder": "Veuillez entrer le mot-clé"
+  "searchPlaceholder": "Veuillez entrer le mot-clé",
+  "cancel": "Annuler",
+  "assistantSetting": "Paramètres d'assistant",
+  "assistantMarketUrl": "Lien marketing assistant",
+  "generalSetting": "Paramètres Généraux",
+  "llmModel": "LLM Modèle",
+  "voiceServer": "Service vocal"
 }

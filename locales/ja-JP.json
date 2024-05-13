@@ -36,5 +36,11 @@
   "send": "送信",
   "maxHistoryLength": "最大歴史長",
   "unlimited": "制限なし",
-  "searchPlaceholder": "キーワードを入力してください"
+  "searchPlaceholder": "キーワードを入力してください",
+  "cancel": "キャンセル",
+  "assistantSetting": "アシスタント設定",
+  "assistantMarketUrl": "アシスタントマーケティングリンク",
+  "generalSetting": "一般設定",
+  "llmModel": "LLM モデル",
+  "voiceServer": "音声サービス"
 }

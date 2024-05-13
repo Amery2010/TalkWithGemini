@@ -36,5 +36,11 @@
   "send": "Enviar",
   "maxHistoryLength": "Longitud máxima histórica",
   "unlimited": "Sin límite",
-  "searchPlaceholder": "Por favor, introduzca la palabra clave"
+  "searchPlaceholder": "Por favor, introduzca la palabra clave",
+  "cancel": "Cancelar",
+  "assistantSetting": "Configuración de asistente",
+  "assistantMarketUrl": "Enlace de marketing asistente",
+  "generalSetting": "Configuración General",
+  "llmModel": "LLM Modelo",
+  "voiceServer": "Servicio de voz"
 }

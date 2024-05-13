@@ -36,5 +36,11 @@
   "send": "发送",
   "maxHistoryLength": "最大历史长度",
   "unlimited": "无限制",
-  "searchPlaceholder": "请输入关键词"
+  "searchPlaceholder": "请输入关键词",
+  "cancel": "取消",
+  "assistantSetting": "助理设定",
+  "assistantMarketUrl": "助理市场链接",
+  "generalSetting": "通用设置",
+  "llmModel": "语言模型",
+  "voiceServer": "语音服务"
 }
