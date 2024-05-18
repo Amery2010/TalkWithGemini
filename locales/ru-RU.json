@@ -25,12 +25,12 @@
   "language": "Язык",
   "save": "Сохранить",
   "changeTheme": "Сменить тему",
-  "more": "больше",
-  "chatEmpty": "История чата пуста",
-  "selectTopicTip": "Выберите тему или задайте вопрос прямо",
-  "changeTopic": "Сменить тему",
-  "topicSquare": "Площадь тем",
-  "selectTopic": "Пожалуйста, выберите тему, которая вас интересует.",
+  "assistantRecommend": "Рекомендация ассистента:",
+  "refresh": "Обновить",
+  "moreAssistants": "Больше помощников...",
+  "assistantMarket": "Рынок ассистентов",
+  "assistantMarketDescription": "Исследуйте и найдите персонального помощника, который подходит вам лучше всего.",
+  "totalAssistant": "(Всего {{total}})",
   "copy": "Копировать",
   "github": "Github",
   "send": "Отправить",
@@ -42,5 +42,6 @@
   "assistantMarketUrl": "Ссылка на помощника по маркетингу",
   "generalSetting": "Общие настройки",
   "llmModel": "LLM Модель",
-  "voiceServer": "Голосовое обслуживание"
+  "voiceServer": "Голосовое обслуживание",
+  "uploadTooltip": "Загрузить файл, поддерживает изображения, видео и обычные документы"
 }

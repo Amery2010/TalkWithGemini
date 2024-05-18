@@ -25,12 +25,12 @@
   "language": "Language",
   "save": "Save",
   "changeTheme": "Change theme",
-  "more": "More",
-  "chatEmpty": "Chat history is empty",
-  "selectTopicTip": "Please select a topic or ask directly",
-  "changeTopic": "Change the topic",
-  "topicSquare": "Topic Square",
-  "selectTopic": "Please choose a topic that interests you.",
+  "assistantRecommend": "Assistant recommendation:",
+  "refresh": "Refresh",
+  "moreAssistants": "More assistants...",
+  "assistantMarket": "Assistant market",
+  "assistantMarketDescription": "Explore and discover the personal assistant that suits you best.",
+  "totalAssistant": "(Total {{total}})",
   "copy": "Copy",
   "github": "Github",
   "send": "Send",
@@ -42,5 +42,8 @@
   "assistantMarketUrl": "Assistant Market Url",
   "generalSetting": "General Settings",
   "llmModel": "LLM Model",
-  "voiceServer": "Voice Server"
+  "voiceServer": "Voice Server",
+  "defaultModel": "Default Model",
+  "selectDefaultModel": "Please select default model",
+  "uploadTooltip": "Upload file, supports images, videos and common documents"
 }

@@ -25,12 +25,12 @@
   "language": "언어",
   "save": "저장",
   "changeTheme": "테마 변경",
-  "more": "더",
-  "chatEmpty": "채팅 기록이 비어 있습니다",
-  "selectTopicTip": "주제를 선택하거나 직접 질문하세요",
-  "changeTopic": "다른 주제로 바꾸다",
-  "topicSquare": "주제 광장",
-  "selectTopic": "관심 있는 주제를 선택하세요.",
+  "assistantRecommend": "어시스턴트 추천:",
+  "refresh": "새로고침",
+  "moreAssistants": "더 많은 어시스턴트...",
+  "assistantMarket": "어시스턴트 시장",
+  "assistantMarketDescription": "당신에게 가장 적합한 개인 비서를 탐색하고 발견하세요.",
+  "totalAssistant": "(총 {{total}} 개)",
   "copy": "복사",
   "github": "Github",
   "send": "보내기",
@@ -42,5 +42,6 @@
   "assistantMarketUrl": "보조 마케팅 링크",
   "generalSetting": "일반 설정",
   "llmModel": "LLM 모델",
-  "voiceServer": "음성 서비스"
+  "voiceServer": "음성 서비스",
+  "uploadTooltip": "파일 업로드, 이미지, 비디오 및 일반 문서 지원"
 }

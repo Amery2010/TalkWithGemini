@@ -69,13 +69,13 @@ function SystemInstruction({ prompt, onClear }: Props) {
   return (
     <Card className="w-full">
       <CardHeader className="relative px-4 pb-2 pt-4">
-        <CardTitle className="text-lg">{t('assistantSetting')}</CardTitle>
+        <CardTitle className="text-lg font-medium">{t('assistantSetting')}</CardTitle>
         <X
-          className="absolute right-4 top-3 h-6 w-6 cursor-pointer rounded-full p-1 text-muted-foreground hover:bg-white/10"
+          className="absolute right-4 top-3 h-6 w-6 cursor-pointer rounded-full p-1 text-muted-foreground hover:bg-secondary/80"
           onClick={() => onClear()}
         />
       </CardHeader>
-      <ScrollArea className="max-h-[184px]">
+      <ScrollArea className="max-h-[130px] overflow-y-auto">
         <CardContent className="p-4 pt-0">
           <div
             className="prose w-full overflow-hidden break-words text-sm leading-6"

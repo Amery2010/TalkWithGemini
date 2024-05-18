@@ -1,4 +1,3 @@
-'use client'
 import { memo } from 'react'
 import { Bot } from 'lucide-react'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'

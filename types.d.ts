@@ -9,6 +9,7 @@ declare global {
     password: string
     apiKey: string
     apiProxy: string
+    model: string
     lang: string
     sttLang: string
     ttsLang: string
@@ -37,5 +38,18 @@ declare global {
     config: {
       systemRole: string
     }
+  }
+
+  interface FileMetadata {
+    name: string
+    displayName?: string
+    mimeType: string
+    sizeBytes: string
+    createTime: string
+    updateTime: string
+    expirationTime: string
+    sha256Hash: string
+    uri: string
+    state: 'STATE_UNSPECIFIED' | 'PROCESSING' | 'ACTIVE' | 'FAILED'
   }
 }

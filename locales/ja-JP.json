@@ -25,12 +25,12 @@
   "language": "言語",
   "save": "保存",
   "changeTheme": "テーマを変更する",
-  "more": "もっと",
-  "chatEmpty": "チャット記録は空です",
-  "selectTopicTip": "トピックを選択するか、直接質問する",
-  "changeTopic": "トピックを変える",
-  "topicSquare": "トピックスクエア",
-  "selectTopic": "興味のあるトピックを選択してください。",
+  "assistantRecommend": "アシスタントの推薦:",
+  "refresh": "リフレッシュ",
+  "moreAssistants": "より多くのアシスタント...",
+  "assistantMarket": "アシスタント市場",
+  "assistantMarketDescription": "あなたに最適な個人アシスタントを探索し、発見する。",
+  "totalAssistant": "（合計{{total}}）",
   "copy": "コピー",
   "github": "Github",
   "send": "送信",
@@ -42,5 +42,6 @@
   "assistantMarketUrl": "アシスタントマーケティングリンク",
   "generalSetting": "一般設定",
   "llmModel": "LLM モデル",
-  "voiceServer": "音声サービス"
+  "voiceServer": "音声サービス",
+  "uploadTooltip": "ファイルをアップロード、画像、ビデオ、一般的なドキュメントに対応"
 }

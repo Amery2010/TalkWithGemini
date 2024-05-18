@@ -1,0 +1,5 @@
+export enum ErrorType {
+  InValidToken = 'Token is invalid',
+  NoGeminiKey = 'The server Gemini key is missing',
+  ServerError = 'Server Error',
+}

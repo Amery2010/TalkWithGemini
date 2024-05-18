@@ -1,25 +1,17 @@
 import { create } from 'zustand'
-import type { Part } from '@google/generative-ai'
 import storage from '@/utils/Storage'
-import { findIndex, isUndefined } from 'lodash-es'
+import { findIndex } from 'lodash-es'
 
 type Summary = {
   ids: string[]
   content: string
 }
 
-type OldMessage = {
-  id: string
-  role: string
-  content: string
-  parts: never
-}
-
 type MessageStore = {
   messages: Message[]
   summary: Summary
   systemInstruction: string
-  init: () => Message[]
+  init: () => Promise<Message[]>
   add: (message: Message) => void
   update: (id: string, message: Message) => void
   replace: (id: string, message: Message) => void
@@ -37,43 +29,14 @@ export const useMessageStore = create<MessageStore>((set, get) => ({
     content: '',
   },
   systemInstruction: '',
-  init: () => {
-    const messages = storage.get<Message[] | OldMessage[]>('messages') || []
-    const systemInstruction = storage.get<string>('systemInstruction') || ''
-    const summary = storage.get<Summary>('summary') || {
+  init: async () => {
+    const messages = (await storage.getItem<Message[]>('messages')) || []
+    const systemInstruction = (await storage.getItem<string>('systemInstruction')) || ''
+    const summary = (await storage.getItem<Summary>('summary')) || {
       ids: [],
       content: '',
     }
-    // Convert old data format to new data format
-    if (messages.length > 0 && isUndefined(messages[0].parts)) {
-      const newMessages: Message[] = (messages as OldMessage[]).map((item) => {
-        if (item.content.startsWith('data:image/')) {
-          const dataArr = item.content.split(';base64,')
-          return {
-            id: item.id,
-            role: item.role,
-            parts: [
-              {
-                inlineData: { data: dataArr[1], mimeType: dataArr[0].substring(5) },
-              },
-            ],
-          }
-        } else {
-          return {
-            id: item.id,
-            role: item.role,
-            parts: [
-              {
-                text: item.content,
-              },
-            ],
-          }
-        }
-      })
-      set(() => ({ messages: newMessages, summary }))
-    } else {
-      set(() => ({ messages, systemInstruction, summary }))
-    }
+    set(() => ({ messages, systemInstruction, summary }))
     return messages
   },
   add: (message) => {
@@ -107,14 +70,14 @@ export const useMessageStore = create<MessageStore>((set, get) => ({
         content: '',
       },
     }))
-    storage.set<Message[]>('messages', [])
-    storage.set<Summary>('summary', {
+    storage.setItem<Message[]>('messages', [])
+    storage.setItem<Summary>('summary', {
       ids: [],
       content: '',
     })
   },
   save: () => {
-    storage.set<Message[]>('messages', get().messages)
+    storage.setItem<Message[]>('messages', get().messages)
   },
   revoke: (id) => {
     set((state) => {
@@ -124,7 +87,7 @@ export const useMessageStore = create<MessageStore>((set, get) => ({
   },
   instruction: (prompt) => {
     set(() => ({ systemInstruction: prompt }))
-    storage.set<string>('systemInstruction', prompt)
+    storage.setItem<string>('systemInstruction', prompt)
   },
   summarize: (ids, content) => {
     set(() => ({
@@ -133,6 +96,6 @@ export const useMessageStore = create<MessageStore>((set, get) => ({
         content,
       },
     }))
-    storage.set<Summary>('summary', get().summary)
+    storage.setItem<Summary>('summary', get().summary)
   },
 }))

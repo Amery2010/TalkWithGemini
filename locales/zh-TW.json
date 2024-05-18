@@ -25,12 +25,12 @@
   "language": "系統語言",
   "save": "保存",
   "changeTheme": "切換主題",
-  "more": "更多",
-  "chatEmpty": "聊天記錄為空",
-  "selectTopicTip": "選擇一個主題，或直接提問",
-  "changeTopic": "換個話題",
-  "topicSquare": "話題廣場",
-  "selectTopic": "請選擇您感興趣的話題。",
+  "assistantRecommend": "助理推薦：",
+  "refresh": "換一批",
+  "moreAssistants": "更多助理...",
+  "assistantMarket": "助理市場",
+  "assistantMarketDescription": "探索和發現最適合您的私人助理。",
+  "totalAssistant": "（共 {{total}} 個）",
   "copy": "複製",
   "github": "Github",
   "send": "發送",
@@ -42,5 +42,6 @@
   "assistantMarketUrl": "助理市場連結",
   "generalSetting": "通用設置",
   "llmModel": "LLM 模型",
-  "voiceServer": "語音服務"
+  "voiceServer": "語音服務",
+  "uploadTooltip": "上傳文件，支持圖片、視頻以及常見文檔"
 }

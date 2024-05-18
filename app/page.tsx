@@ -10,14 +10,13 @@ import {
   MessageSquareText,
   Settings,
   Pause,
-  PackageOpen,
   SendHorizontal,
   Github,
 } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import ThemeToggle from '@/components/ThemeToggle'
-import { Textarea } from '@/components/ui/textarea'
 import { Separator } from '@/components/ui/separator'
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
 import MessageItem from '@/components/MessageItem'
 import ErrorMessageItem from '@/components/ErrorMessageItem'
 import SystemInstruction from '@/components/SystemInstruction'
@@ -29,9 +28,8 @@ import { summarizePrompt, getVoiceModelPrompt, getSummaryPrompt } from '@/utils/
 import AudioStream from '@/utils/AudioStream'
 import PromiseQueue from '@/utils/PromiseQueue'
 import textStream, { streamToText } from '@/utils/textStream'
-import { generateSignature, generateUTCTimestamp } from '@/utils/signature'
-import { shuffleArray, formatTime } from '@/utils/common'
-import AssistantMarketUrl from '@/utils/AssistantMarketUrl'
+import { encodeToken } from '@/utils/signature'
+import { formatTime } from '@/utils/common'
 import { cn } from '@/utils'
 import { Model } from '@/constant/model'
 import { customAlphabet } from 'nanoid'
@@ -47,9 +45,10 @@ interface AnswerParams {
 const buildMode = process.env.NEXT_PUBLIC_BUILD_MODE as string
 const nanoid = customAlphabet('1234567890abcdefghijklmnopqrstuvwxyz', 8)
 
-const AssistantMarket = dynamic(() => import('@/components/AssistantMarket'))
+const AssistantRecommend = dynamic(() => import('@/components/AssistantRecommend'))
 const Setting = dynamic(() => import('@/components/Setting'))
-const ImageUploader = dynamic(() => import('@/components/ImageUploader'))
+const FileUploader = dynamic(() => import('@/components/FileUploader'))
+// const ImageUploader = dynamic(() => import('@/components/ImageUploader'))
 
 export default function Home() {
   const { t } = useTranslation()
@@ -62,8 +61,7 @@ export default function Home() {
   const messagesRef = useRef(useMessageStore.getState().messages)
   const messageStore = useMessageStore()
   const settingStore = useSettingStore()
-  const [textareaHeight, setTextareaHeight] = useState<number>(40)
-  const [randomAssistant, setRandomAssistant] = useState<Assistant[]>([])
+  const [textareaHeight, setTextareaHeight] = useState<number>(24)
   const [siriWave, setSiriWave] = useState<SiriWave>()
   const [content, setContent] = useState<string>('')
   const [subtitle, setSubtitle] = useState<string>('')
@@ -72,7 +70,6 @@ export default function Home() {
   const [recordTimer, setRecordTimer] = useState<NodeJS.Timeout>()
   const [recordTime, setRecordTime] = useState<number>(0)
   const [settingOpen, setSetingOpen] = useState<boolean>(false)
-  const [assistantMarketOpen, setAssistantMarketOpen] = useState<boolean>(false)
   const [speechSilence, setSpeechSilence] = useState<boolean>(false)
   const [disableSpeechRecognition, setDisableSpeechRecognition] = useState<boolean>(false)
   const [status, setStatus] = useState<'thinkng' | 'silence' | 'talking'>('silence')
@@ -168,21 +165,17 @@ export default function Home() {
         }
       }
     } else {
-      const utcTimestamp = generateUTCTimestamp()
+      const token = encodeToken(password)
       const config: {
         messages: Message[]
         model: string
         systemInstruction?: string
-        ts: number
-        sign: string
       } = {
         messages,
         model,
-        ts: utcTimestamp,
-        sign: generateSignature(password, utcTimestamp),
       }
       if (systemInstruction) config.systemInstruction = systemInstruction
-      const response = await fetch('/api/chat', {
+      const response = await fetch(`/api/chat?token=${token}`, {
         method: 'POST',
         body: JSON.stringify(config),
       })
@@ -210,7 +203,7 @@ export default function Home() {
       const { ids, prompt } = summarizePrompt(messages, summary.ids, summary.content)
       await fetchAnswer({
         messages: [{ id: 'summary', role: 'user', parts: [{ text: prompt }] }],
-        model: Model.GeminiPro,
+        model: Model['Gemini Pro'],
         onResponse: async (readableStream) => {
           const text = await streamToText(readableStream)
           summarizeChat(ids, text.trim())
@@ -278,31 +271,18 @@ export default function Home() {
     [scrollToBottom, speech, summarize],
   )
 
-  const findModelType = useCallback((messages: Message[]) => {
-    let model: string = Model.GeminiPro
-    for (const item of messages) {
-      for (const part of item.parts) {
-        if (part.inlineData?.mimeType.startsWith('image/')) {
-          model = Model.GeminiProVision
-        }
-      }
-    }
-    return model
-  }, [])
-
   const handleSubmit = useCallback(
     async (text: string): Promise<void> => {
       if (content === '') return Promise.reject(false)
-      const { talkMode } = useSettingStore.getState()
+      const { talkMode, model } = useSettingStore.getState()
       const { summary, add: addMessage } = useMessageStore.getState()
       setContent('')
-      setTextareaHeight(40)
+      setTextareaHeight(24)
       const newUserMessage: Message = { id: nanoid(), role: 'user', parts: [{ text }] }
       addMessage(newUserMessage)
       const newModelMessage: Message = { id: nanoid(), role: 'model', parts: [{ text: '' }] }
       addMessage(newModelMessage)
       let messages: Message[] = [...messagesRef.current.slice(0, -1)]
-      const model = findModelType(messages)
       if (summary.content !== '') {
         const newMessages = messages.filter((item) => !summary.ids.includes(item.id))
         messages = [...getSummaryPrompt(summary.content), ...newMessages]
@@ -323,16 +303,17 @@ export default function Home() {
         },
       })
     },
-    [content, findModelType, fetchAnswer, handleResponse, handleError],
+    [content, fetchAnswer, handleResponse, handleError],
   )
 
   const handleResubmit = useCallback(async () => {
     const messages = [...messagesRef.current]
     const lastMessage = messages.pop()
     if (lastMessage?.role === 'model') {
+      const { model } = useSettingStore.getState()
       await fetchAnswer({
         messages: messagesRef.current,
-        model: findModelType(messages),
+        model,
         onResponse: (stream) => {
           handleResponse(stream, lastMessage)
         },
@@ -341,7 +322,7 @@ export default function Home() {
         },
       })
     }
-  }, [fetchAnswer, findModelType, handleResponse, handleError])
+  }, [fetchAnswer, handleResponse, handleError])
 
   const handleCleanMessage = useCallback(() => {
     const { clear: clearMessage } = useMessageStore.getState()
@@ -385,18 +366,16 @@ export default function Home() {
       const { talkMode } = useSettingStore.getState()
       if (isRecording) {
         speechRecognitionRef.current.stop()
+        endRecordTimer()
+        setRecordTime(0)
         if (talkMode === 'voice') {
           handleSubmit(speechRecognitionRef.current.text)
-          endRecordTimer()
-          setRecordTime(0)
         }
         setIsRecording(false)
       } else {
         speechRecognitionRef.current.start()
         setIsRecording(true)
-        if (talkMode === 'voice') {
-          startRecordTime()
-        }
+        startRecordTime()
       }
     }
   }, [checkAccessStatus, handleSubmit, startRecordTime, endRecordTimer, isRecording])
@@ -410,7 +389,7 @@ export default function Home() {
 
   const handleKeyDown = useCallback(
     (ev: KeyboardEvent<HTMLTextAreaElement>) => {
-      if (ev.key === 'Enter' && !ev.shiftKey && !isRecording) {
+      if (ev.key === 'Enter' && ev.shiftKey && !isRecording) {
         if (!checkAccessStatus()) return false
         // Prevent the default carriage return and line feed behavior
         ev.preventDefault()
@@ -420,16 +399,16 @@ export default function Home() {
     [content, isRecording, handleSubmit, checkAccessStatus],
   )
 
-  const handleImageUpload = useCallback((imageDataList: string[]) => {
-    const { add: addMessage } = useMessageStore.getState()
-    imageDataList.forEach((imageData) => {
-      const dataArr = imageData.split(';base64,')
-      addMessage({
-        id: nanoid(),
-        role: 'user',
-        parts: [{ inlineData: { data: dataArr[1], mimeType: dataArr[0].substring(5) } }],
-      })
-    })
+  const handleFileUpload = useCallback((FileList: Promise<FileMetadata>[]) => {
+    // const { add: addMessage } = useMessageStore.getState()
+    // imageDataList.forEach((imageData) => {
+    //   const dataArr = imageData.split(';base64,')
+    //   addMessage({
+    //     id: nanoid(),
+    //     role: 'user',
+    //     parts: [{ inlineData: { data: dataArr[1], mimeType: dataArr[0].substring(5) } }],
+    //   })
+    // })
   }, [])
 
   const initAssistant = useCallback((prompt: string) => {
@@ -437,25 +416,6 @@ export default function Home() {
     clearMessage()
     instruction(prompt)
   }, [])
-
-  const initAssistantMarket = useCallback(
-    (assistantList: Assistant[]) => {
-      if (settingStore.assistantIndexUrl !== '') {
-        setRandomAssistant(shuffleArray<Assistant>(assistantList).slice(0, 3))
-      }
-    },
-    [settingStore.assistantIndexUrl],
-  )
-
-  const handleSelectAssistant = useCallback(
-    async (identifier: string) => {
-      const assistantMarketUrl = new AssistantMarketUrl(settingStore.assistantIndexUrl)
-      const response = await fetch(assistantMarketUrl.getAssistantUrl(identifier, settingStore.lang))
-      const data: AssistantDetail = await response.json()
-      initAssistant(data.config.systemRole)
-    },
-    [settingStore.lang, settingStore.assistantIndexUrl, initAssistant],
-  )
 
   useEffect(() => useMessageStore.subscribe((state) => (messagesRef.current = state.messages)), [])
 
@@ -526,35 +486,7 @@ export default function Home() {
         </div>
       </div>
       {messageStore.messages.length === 0 && content === '' && messageStore.systemInstruction === '' ? (
-        <div className="relative flex min-h-full grow items-center justify-center text-sm">
-          <div className="relative -top-8 text-center text-sm">
-            <PackageOpen
-              className="mx-auto h-32 w-32 text-gray-300 landscape:max-md:h-16 landscape:max-md:w-16 dark:text-gray-700"
-              strokeWidth="1"
-            />
-            <p className="my-2 text-gray-300 dark:text-gray-700">{t('chatEmpty')}</p>
-            <p className="text-gray-600">{t('selectTopicTip')}</p>
-          </div>
-          <div className="absolute bottom-2 flex gap-1 text-gray-600">
-            {randomAssistant.map((assistant) => {
-              return (
-                <div
-                  key={assistant.identifier}
-                  className="cursor-pointer rounded-md border px-2 py-1 hover:bg-slate-100 max-sm:first:hidden dark:hover:bg-slate-900"
-                  onClick={() => handleSelectAssistant(assistant.identifier)}
-                >
-                  {assistant.meta.title}
-                </div>
-              )
-            })}
-            <div
-              className="cursor-pointer rounded-md p-1 text-center underline underline-offset-4"
-              onClick={() => setAssistantMarketOpen(true)}
-            >
-              {t('more')}
-            </div>
-          </div>
-        </div>
+        <AssistantRecommend initAssistant={initAssistant} />
       ) : (
         <div className="flex min-h-full flex-1 grow flex-col justify-start">
           {messageStore.systemInstruction !== '' ? (
@@ -570,24 +502,6 @@ export default function Home() {
               <div className="flex gap-3 p-4 hover:bg-gray-50/80 dark:hover:bg-gray-900/80">
                 <MessageItem {...msg} />
               </div>
-              {msg.role === 'model' && idx === messageStore.messages.length - 1 ? (
-                <div className="my-2 flex h-4 justify-center text-xs text-slate-400 duration-300 dark:text-slate-600">
-                  <span className="mx-2 cursor-pointer hover:text-slate-500" onClick={() => handleResubmit()}>
-                    {t('regenerateAnswer')}
-                  </span>
-                  <Separator orientation="vertical" />
-                  <span
-                    className="mx-2 cursor-pointer hover:text-slate-500"
-                    onClick={() => setAssistantMarketOpen(true)}
-                  >
-                    {t('changeTopic')}
-                  </span>
-                  <Separator orientation="vertical" />
-                  <span className="mx-2 cursor-pointer hover:text-slate-500" onClick={() => handleCleanMessage()}>
-                    {t('clearChatContent')}
-                  </span>
-                </div>
-              ) : null}
             </div>
           ))}
           {errorMessage !== '' ? (
@@ -604,6 +518,17 @@ export default function Home() {
               </div>
             </div>
           ) : null}
+          {messageStore.messages.length > 0 ? (
+            <div className="my-2 flex h-4 justify-center text-xs text-slate-400 duration-300 dark:text-slate-600">
+              <span className="mx-2 cursor-pointer hover:text-slate-500" onClick={() => handleResubmit()}>
+                {t('regenerateAnswer')}
+              </span>
+              <Separator orientation="vertical" />
+              <span className="mx-2 cursor-pointer hover:text-slate-500" onClick={() => handleCleanMessage()}>
+                {t('clearChatContent')}
+              </span>
+            </div>
+          ) : null}
         </div>
       )}
       <div ref={scrollAreaBottomRef}></div>
@@ -613,32 +538,49 @@ export default function Home() {
             <AudioLines />
           </Button>
         ) : null}
-        <div className="relative w-full">
-          <Textarea
+        <div className="relative w-full rounded-md border border-input bg-background pt-2">
+          <textarea
             className={cn(
-              'max-h-[120px] min-h-10 px-2 transition-[height]',
+              'h-auto max-h-[120px] w-full resize-none border-none bg-transparent px-2 text-sm leading-6 transition-[height] focus-visible:outline-none',
               disableSpeechRecognition ? 'pr-9' : 'pr-[72px]',
             )}
-            style={{ height: `${textareaHeight}px` }}
+            style={{ height: textareaHeight > 24 ? `${textareaHeight}px` : 'auto' }}
             value={content}
             placeholder={t('askAQuestion')}
+            rows={1}
             onChange={(ev) => {
               setContent(ev.target.value)
-              setTextareaHeight(ev.target.scrollHeight)
+              setTextareaHeight(ev.target.value === '' ? 24 : ev.target.scrollHeight)
             }}
             onKeyDown={handleKeyDown}
           />
-          <div className="absolute bottom-1 right-1.5 flex">
-            <div className="box-border flex h-8 w-8 cursor-pointer items-center justify-center text-slate-800 dark:text-slate-600">
-              <ImageUploader onChange={handleImageUpload} />
-            </div>
+          <div className="absolute bottom-0.5 right-1 flex">
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <div className="box-border flex h-8 w-8 cursor-pointer items-center justify-center rounded-full p-1.5 text-slate-800 hover:bg-secondary/80 dark:text-slate-600">
+                    <FileUploader onChange={handleFileUpload} />
+                  </div>
+                </TooltipTrigger>
+                <TooltipContent className="mb-1 max-w-36">{t('uploadTooltip')}</TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
             {!disableSpeechRecognition ? (
-              <div
-                className="box-border flex h-8 w-8 cursor-pointer items-center justify-center text-slate-800 dark:text-slate-600"
-                onClick={() => handleRecorder()}
-              >
-                <Mic className={isRecording ? 'animate-pulse' : ''} />
-              </div>
+              <TooltipProvider>
+                <Tooltip open={isRecording}>
+                  <TooltipTrigger asChild>
+                    <div
+                      className="box-border flex h-8 w-8 cursor-pointer items-center justify-center rounded-full p-1.5 text-slate-800 hover:bg-secondary/80 dark:text-slate-600"
+                      onClick={() => handleRecorder()}
+                    >
+                      <Mic className={isRecording ? 'animate-pulse' : ''} />
+                    </div>
+                  </TooltipTrigger>
+                  <TooltipContent className="mb-1 px-2 py-1 text-center font-mono text-red-500">
+                    {formatTime(recordTime)}
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
             ) : null}
           </div>
         </div>
@@ -712,12 +654,6 @@ export default function Home() {
         </div>
       </div>
       <Setting open={settingOpen} hiddenTalkPanel={disableSpeechRecognition} onClose={() => setSetingOpen(false)} />
-      <AssistantMarket
-        open={assistantMarketOpen}
-        onClose={() => setAssistantMarketOpen(false)}
-        onSelect={initAssistant}
-        onLoaded={initAssistantMarket}
-      />
     </main>
   )
 }

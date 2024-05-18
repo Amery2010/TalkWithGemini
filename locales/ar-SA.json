@@ -25,12 +25,12 @@
   "language": "اللغة",
   "save": "حفظ",
   "changeTheme": "تغيير الموضوع",
-  "more": "أكثر",
-  "chatEmpty": "سجل المحادثة فارغ",
-  "selectTopicTip": "اختر موضوعًا أو اسأل مباشرة",
-  "changeTopic": "غيِّر موضوعاً",
-  "topicSquare": "ساحة الموضوعات",
-  "selectTopic": "يرجى اختيار موضوع يثير اهتمامك",
+  "assistantRecommend": "توصية المساعد:",
+  "refresh": "تحديث",
+  "moreAssistants": "المزيد من المساعدين...",
+  "assistantMarket": "سوق المساعدين",
+  "assistantMarketDescription": "استكشاف واكتشاف المساعد الشخصي الذي يناسبك",
+  "totalAssistant": "(الإجمالي {{total}})",
   "copy": "نسخ",
   "github": "Github",
   "send": "إرسال",
@@ -42,5 +42,6 @@
   "assistantMarketUrl": "رابط التسويق المساعد",
   "generalSetting": "الإعدادات العامة",
   "llmModel": "نموذج LLM",
-  "voiceServer": "خدمة الصوت"
+  "voiceServer": "خدمة الصوت",
+  "uploadTooltip": "قم بتحميل الملف، يدعم الصور ومقاطع الفيديو والمستندات الشائعة"
 }

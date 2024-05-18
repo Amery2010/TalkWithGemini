@@ -19,3 +19,13 @@ export function generateUTCTimestamp(): number {
   const utcTimestamp = new Date(timestamp * 1000).toISOString()
   return new Date(utcTimestamp).getTime()
 }
+
+export function encodeToken(password: string): string {
+  const utcTimestamp = generateUTCTimestamp()
+  return btoa(`${generateSignature(password, utcTimestamp)}@${utcTimestamp}`)
+}
+
+export function decodeToken(token: string) {
+  const [sign, ts] = atob(token).split('@')
+  return { sign, ts: Number(ts) }
+}

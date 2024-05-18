@@ -1,9 +1,11 @@
-import { useState, useCallback, useEffect, memo } from 'react'
+import { useState, useCallback, useLayoutEffect, memo } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Card, CardDescription, CardHeader, CardFooter, CardTitle } from '@/components/ui/card'
+import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import SearchBar from '@/components/SearchBar'
+import { useAssistantStore } from '@/store/assistant'
 import { useSettingStore } from '@/store/setting'
 import AssistantMarketUrl from '@/utils/AssistantMarketUrl'
 
@@ -11,7 +13,7 @@ type AssistantProps = {
   open: boolean
   onClose: () => void
   onSelect: (prompt: string) => void
-  onLoaded: (assistantList: Assistant[]) => void
+  onLoaded: () => void
 }
 
 function search(keyword: string, data: Assistant[]): Assistant[] {
@@ -28,15 +30,18 @@ function search(keyword: string, data: Assistant[]): Assistant[] {
 
 function Assistant({ open, onClose, onSelect, onLoaded }: AssistantProps) {
   const { t } = useTranslation()
+  const { assistants, update: updateAssistants } = useAssistantStore()
   const { lang, assistantIndexUrl } = useSettingStore()
-  const [reources, setResources] = useState<Assistant[]>([])
   const [assistantList, setAssistantList] = useState<Assistant[]>([])
 
   const handleClose = useCallback(
     (open: boolean) => {
-      if (!open) onClose()
+      if (!open) {
+        onClose()
+        setAssistantList(assistants)
+      }
     },
-    [onClose],
+    [assistants, onClose],
   )
 
   const handleSelect = useCallback(
@@ -52,35 +57,41 @@ function Assistant({ open, onClose, onSelect, onLoaded }: AssistantProps) {
 
   const handleSearch = useCallback(
     (keyword: string) => {
-      const result = search(keyword, reources)
+      const result = search(keyword, assistants)
       setAssistantList(result)
     },
-    [reources],
+    [assistants],
   )
+
+  const handleClear = useCallback(() => {
+    setAssistantList(assistants)
+  }, [assistants])
 
   const fetchAssistantMarketIndex = useCallback(async () => {
     const assistantMarketUrl = new AssistantMarketUrl(assistantIndexUrl)
     const response = await fetch(assistantMarketUrl.getIndexUrl(lang))
     const assistantMarketIndex = await response.json()
-    const assistants = assistantMarketIndex.agents
-    setResources(assistants)
-    setAssistantList(assistants)
-    onLoaded(assistants)
-  }, [lang, assistantIndexUrl, onLoaded])
+    updateAssistants(assistantMarketIndex.agents)
+    setAssistantList(assistantMarketIndex.agents)
+    onLoaded()
+  }, [lang, assistantIndexUrl, updateAssistants, onLoaded])
 
-  useEffect(() => {
-    if (assistantIndexUrl !== '') {
+  useLayoutEffect(() => {
+    if (assistantIndexUrl !== '' && assistants.length === 0) {
       fetchAssistantMarketIndex()
     }
-  }, [assistantIndexUrl, fetchAssistantMarketIndex])
+  }, [assistantIndexUrl, assistants, fetchAssistantMarketIndex])
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
       <DialogContent className="max-w-screen-md p-0 max-sm:h-full landscape:max-md:h-full">
         <DialogHeader className="p-6 pb-0 max-sm:p-4 max-sm:pb-0">
-          <DialogTitle>{t('topicSquare')}</DialogTitle>
-          <DialogDescription className="pb-2">{t('selectTopic')}</DialogDescription>
-          <SearchBar onSearch={handleSearch} onClear={() => setAssistantList(reources)} />
+          <DialogTitle>
+            {t('assistantMarket')}
+            <small>{t('totalAssistant', { total: assistants.length })}</small>
+          </DialogTitle>
+          <DialogDescription className="pb-2">{t('assistantMarketDescription')}</DialogDescription>
+          <SearchBar onSearch={handleSearch} onClear={() => handleClear()} />
         </DialogHeader>
         <ScrollArea className="h-[400px] w-full scroll-smooth max-sm:h-full">
           <div className="grid grid-cols-2 gap-2 p-6 pt-0 max-sm:grid-cols-1 max-sm:p-4 max-sm:pt-0">
@@ -92,10 +103,18 @@ function Assistant({ open, onClose, onSelect, onLoaded }: AssistantProps) {
                   onClick={() => handleSelect(assistant)}
                 >
                   <CardHeader className="p-4 pb-2">
-                    <CardTitle className="truncate text-lg">{assistant.meta.title}</CardTitle>
+                    <CardTitle className="flex text-lg">
+                      <Avatar className="mr-1 h-7 w-7">
+                        {assistant.meta.avatar.startsWith('http') ? (
+                          <AvatarImage className="m-1 h-5 w-5 rounded-full" src={assistant.meta.avatar} />
+                        ) : null}
+                        <AvatarFallback className="bg-transparent">{assistant.meta.avatar}</AvatarFallback>
+                      </Avatar>
+                      <span className="truncate font-medium">{assistant.meta.title}</span>
+                    </CardTitle>
                     <CardDescription className="text-line-clamp-2 h-10">{assistant.meta.description}</CardDescription>
                   </CardHeader>
-                  <CardFooter className="flex justify-between p-4 pt-0">
+                  <CardFooter className="flex justify-between p-4 pt-0 text-sm">
                     <span>{assistant.createAt}</span>
                     <a
                       className="underline-offset-4 hover:underline"

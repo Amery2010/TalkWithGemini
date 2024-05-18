@@ -25,12 +25,12 @@
   "language": "Idioma",
   "save": "Salvar",
   "changeTheme": "Mudar o tema",
-  "more": "mais",
-  "chatEmpty": "O histórico de bate-papo está vazio",
-  "selectTopicTip": "Escolha um tópico ou faça uma pergunta diretamente",
-  "changeTopic": "Mudar de assunto",
-  "topicSquare": "Praça de tópicos",
-  "selectTopic": "Por favor, escolha um tópico que lhe interesse.",
+  "assistantRecommend": "Recomendação do assistente:",
+  "refresh": "Atualizar",
+  "moreAssistants": "Mais assistentes...",
+  "assistantMarket": "Mercado de assistentes",
+  "assistantMarketDescription": "Explore e descubra o assistente pessoal que mais se adequa a você.",
+  "totalAssistant": "(Total de {{total}})",
   "copy": "Copiar",
   "github": "Github",
   "send": "Enviar",
@@ -42,5 +42,6 @@
   "assistantMarketUrl": "Link de marketing assistente",
   "generalSetting": "Configurações Gerais",
   "llmModel": "LLM Modelo",
-  "voiceServer": "Serviço de voz"
+  "voiceServer": "Serviço de voz",
+  "uploadTooltip": "Carregar arquivo, suporta imagens, vídeos e documentos comuns"
 }

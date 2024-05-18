@@ -10,8 +10,9 @@ import { Slider } from '@/components/ui/slider'
 import ResponsiveDialog from '@/components/ResponsiveDialog'
 import i18n from '@/plugins/i18n'
 import locales from '@/constant/locales'
+import { Model } from '@/constant/model'
 import { useSettingStore } from '@/store/setting'
-import { toPairs, values } from 'lodash-es'
+import { toPairs, values, entries } from 'lodash-es'
 
 type SettingProps = {
   open: boolean
@@ -25,6 +26,7 @@ function Setting({ open, hiddenTalkPanel, onClose }: SettingProps) {
   const [password, setPassword] = useState<string>('')
   const [apiKey, setApiKey] = useState<string>('')
   const [apiProxy, setApiProxy] = useState<string>('')
+  const [model, setModel] = useState<string>('')
   const [maxHistoryLength, setMaxHistoryLength] = useState<number>(0)
   const [lang, setLang] = useState<string>('')
   const [sttLang, setSttLang] = useState<string>('')
@@ -43,6 +45,7 @@ function Setting({ open, hiddenTalkPanel, onClose }: SettingProps) {
     if (assistantIndexUrl !== settingStore.assistantIndexUrl) settingStore.setAssistantIndexUrl(assistantIndexUrl)
     if (apiKey !== settingStore.apiKey) settingStore.setApiKey(apiKey)
     if (apiProxy !== settingStore.apiProxy) settingStore.setApiProxy(apiProxy)
+    if (model !== settingStore.model) settingStore.setModel(model)
     if (maxHistoryLength !== settingStore.maxHistoryLength) settingStore.setMaxHistoryLength(maxHistoryLength)
     if (lang !== settingStore.lang) settingStore.setLang(lang)
     if (sttLang !== settingStore.sttLang) settingStore.setSTTLang(sttLang)
@@ -81,6 +84,7 @@ function Setting({ open, hiddenTalkPanel, onClose }: SettingProps) {
     setPassword(settingStore.password)
     setApiKey(settingStore.apiKey)
     setApiProxy(settingStore.apiProxy)
+    setModel(settingStore.model)
     setLang(settingStore.lang)
     setSttLang(settingStore.sttLang)
     setTtsLang(settingStore.ttsLang)
@@ -180,6 +184,25 @@ function Setting({ open, hiddenTalkPanel, onClose }: SettingProps) {
                 defaultValue={apiProxy}
                 onChange={(ev) => setApiProxy(ev.target.value)}
               />
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="model" className="text-right">
+                {t('defaultModel')}
+              </Label>
+              <Select value={model} onValueChange={setModel}>
+                <SelectTrigger id="model" className="col-span-3">
+                  <SelectValue placeholder={t('selectDefaultModel')} />
+                </SelectTrigger>
+                <SelectContent>
+                  {entries(Model).map(([key, value]) => {
+                    return (
+                      <SelectItem key={value} value={value as string}>
+                        {key}
+                      </SelectItem>
+                    )
+                  })}
+                </SelectContent>
+              </Select>
             </div>
             <div className="grid grid-cols-4 items-center gap-4">
               <Label htmlFor="maxHistoryLength" className="text-right">

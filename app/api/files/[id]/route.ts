@@ -1,23 +1,13 @@
 import { NextResponse } from 'next/server'
-import { GoogleGenerativeAIStream, StreamingTextResponse } from 'ai'
-import { checkToken, handleError } from '../utils'
-import chat from '@/utils/chat'
+import { checkToken, handleError } from '../../utils'
+import FileManager from '@/utils/FileManager'
 import { ErrorType } from '@/constant/errors'
 import { isNull } from 'lodash-es'
-
-type GeminiRequest = {
-  model: string
-  messages: Message[]
-  ts: number
-  sign: string
-}
-
-export const runtime = 'edge'
 
 const geminiApiKey = process.env.GEMINI_API_KEY as string
 const geminiApiBaseUrl = process.env.GEMINI_API_BASE_URL as string
 
-export async function POST(req: Request) {
+export async function GET(req: Request, { params }: { params: { id: string } }) {
   const { searchParams } = new URL(req.url)
   const token = searchParams.get('token')
 
@@ -29,15 +19,9 @@ export async function POST(req: Request) {
   }
 
   try {
-    const { messages = [], model } = (await req.json()) as GeminiRequest
-    const result = await chat({
-      messages,
-      model,
-      apiKey: geminiApiKey,
-      baseUrl: geminiApiBaseUrl,
-    })
-    const stream = GoogleGenerativeAIStream(result)
-    return new StreamingTextResponse(stream)
+    const fileManager = new FileManager({ apiKey: geminiApiKey, baseUrl: geminiApiBaseUrl })
+    const result = await fileManager.getFileMetadata(params.id)
+    return NextResponse.json(result)
   } catch (error) {
     if (error instanceof Error) {
       return handleError(error.message)

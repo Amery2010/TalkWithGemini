@@ -1,4 +1,6 @@
-const BubblesLoading = () => {
+import { memo } from 'react'
+
+function BubblesLoading() {
   return (
     <div className="relative -top-[6px] h-8 w-14 fill-red-300">
       <svg viewBox="0 0 32 24" xmlns="http://www.w3.org/2000/svg">
@@ -43,4 +45,4 @@ const BubblesLoading = () => {
   )
 }
 
-export default BubblesLoading
+export default memo(BubblesLoading)

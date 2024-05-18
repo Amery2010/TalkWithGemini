@@ -25,12 +25,12 @@
   "language": "系统语言",
   "save": "保存",
   "changeTheme": "切换主题",
-  "more": "更多",
-  "chatEmpty": "聊天记录为空",
-  "selectTopicTip": "请选择一个话题，或直接提问",
-  "changeTopic": "换一个话题",
-  "topicSquare": "话题广场",
-  "selectTopic": "请选择一个你感兴趣的话题。",
+  "assistantRecommend": "助理推荐：",
+  "refresh": "换一批",
+  "moreAssistants": "更多助理...",
+  "assistantMarket": "助理市场",
+  "assistantMarketDescription": "探索和发现最适合您的私人助理。",
+  "totalAssistant": "（共 {{total}} 个）",
   "copy": "复制",
   "github": "Github",
   "send": "发送",
@@ -42,5 +42,8 @@
   "assistantMarketUrl": "助理市场链接",
   "generalSetting": "通用设置",
   "llmModel": "语言模型",
-  "voiceServer": "语音服务"
+  "voiceServer": "语音服务",
+  "defaultModel": "默认模型",
+  "selectDefaultModel": "请选择默认模型",
+  "uploadTooltip": "上传文件，支持图片、视频以及常见文档"
 }

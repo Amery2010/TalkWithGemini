@@ -1,5 +1,4 @@
-'use client'
-import { memo, useEffect, useState, useCallback, useMemo } from 'react'
+import { memo, useEffect, useState, useCallback } from 'react'
 import MarkdownIt from 'markdown-it'
 import markdownHighlight from 'markdown-it-highlightjs'
 import highlight from 'highlight.js'

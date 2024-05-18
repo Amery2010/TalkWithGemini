@@ -25,12 +25,12 @@
   "language": "Idioma",
   "save": "Guardar",
   "changeTheme": "Cambiar tema",
-  "more": "más",
-  "chatEmpty": "El historial de chat está vacío",
-  "selectTopicTip": "Elige un tema o haz una pregunta directa",
-  "changeTopic": "Cambiar de tema",
-  "topicSquare": "Plaza de temas",
-  "selectTopic": "Por favor, elija un tema que le interese.",
+  "assistantRecommend": "Recomendación del asistente:",
+  "refresh": "Actualizar",
+  "moreAssistants": "Más asistentes...",
+  "assistantMarket": "Mercado de asistentes",
+  "assistantMarketDescription": "Explora y descubre el asistente personal que mejor se adapte a ti.",
+  "totalAssistant": "(Total {{total}})",
   "copy": "Copiar",
   "github": "Github",
   "send": "Enviar",
@@ -42,5 +42,6 @@
   "assistantMarketUrl": "Enlace de marketing asistente",
   "generalSetting": "Configuración General",
   "llmModel": "LLM Modelo",
-  "voiceServer": "Servicio de voz"
+  "voiceServer": "Servicio de voz",
+  "uploadTooltip": "Subir archivo, compatible con imágenes, videos y documentos comunes"
 }

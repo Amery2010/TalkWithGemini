@@ -42,7 +42,7 @@ export type RequestProps = {
 export default function chat({
   messages = [],
   systemInstruction,
-  model = Model.GeminiPro,
+  model = Model['Gemini Pro'],
   apiKey,
   baseUrl,
 }: RequestProps) {
@@ -55,7 +55,7 @@ export default function chat({
   if (isUndefined(message)) {
     throw new Error('Request parameter error')
   }
-  if (model === Model.GeminiProVision) {
+  if (model === Model['Gemini Pro Vision']) {
     const textMessages: Message[] = []
     const imageMessages: InlineDataPart[] = []
     for (const item of messages) {
@@ -68,7 +68,7 @@ export default function chat({
       }
     }
     const prompt = getVisionPrompt(message, textMessages)
-    if (imageMessages.length > 10) {
+    if (imageMessages.length > 16) {
       throw new Error('Limited to 10 pictures')
     }
     return geminiModel.generateContentStream([prompt, ...imageMessages.reverse()])

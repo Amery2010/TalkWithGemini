@@ -25,12 +25,12 @@
   "language": "Sprache",
   "save": "Speichern",
   "changeTheme": "Thema wechseln",
-  "more": "mehr",
-  "chatEmpty": "Der Chatverlauf ist leer",
-  "selectTopicTip": "Wähle ein Thema aus oder stelle direkt eine Frage",
-  "changeTopic": "Wechsel das Thema",
-  "topicSquare": "Themenplatz",
-  "selectTopic": "Bitte wählen Sie ein Thema, das Sie interessiert.",
+  "assistantRecommend": "Empfehlung des Assistenten:",
+  "refresh": "Aktualisieren",
+  "moreAssistants": "Mehr Assistenten...",
+  "assistantMarket": "Assistentenmarkt",
+  "assistantMarketDescription": "Entdecken und finden Sie den persönlichen Assistenten, der am besten zu Ihnen passt.",
+  "totalAssistant": "(Insgesamt {{total}})",
   "copy": "Kopieren",
   "github": "Github",
   "send": "Senden",
@@ -42,5 +42,6 @@
   "assistantMarketUrl": "Assistent Marketing-Link",
   "generalSetting": "Allgemeine Einstellungen",
   "llmModel": "LLM Modell",
-  "voiceServer": "Sprachdienst"
+  "voiceServer": "Sprachdienst",
+  "uploadTooltip": "Datei hochladen, unterstützt Bilder, Videos und gängige Dokumente"
 }

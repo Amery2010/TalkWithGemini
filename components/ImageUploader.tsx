@@ -45,7 +45,7 @@ function ImageUploader(props: Props) {
       <input
         ref={inputRef}
         type="file"
-        accept="image/*"
+        accept="image/png,image/jpeg,image/webp,image/heic,image/heif"
         multiple
         hidden
         onChange={(ev) => handleFileUpload(ev.target.files)}
