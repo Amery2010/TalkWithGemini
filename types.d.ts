@@ -3,6 +3,7 @@ import type { Content } from '@google/generative-ai'
 declare global {
   interface Message extends Content {
     id: string
+    attachments?: FileInfor[]
   }
 
   interface Setting {
@@ -51,5 +52,15 @@ declare global {
     sha256Hash: string
     uri: string
     state: 'STATE_UNSPECIFIED' | 'PROCESSING' | 'ACTIVE' | 'FAILED'
+  }
+
+  interface FileInfor {
+    id: string
+    name: string
+    mimeType: string
+    size: number
+    preview?: string
+    metadata?: FileMetadata
+    status: 'STATE_UNSPECIFIED' | 'PROCESSING' | 'ACTIVE' | 'FAILED'
   }
 }

@@ -1,4 +1,4 @@
-import { NextResponse } from 'next/server'
+import { NextResponse, type NextRequest } from 'next/server'
 import { GoogleGenerativeAIStream, StreamingTextResponse } from 'ai'
 import { checkToken, handleError } from '../utils'
 import chat from '@/utils/chat'
@@ -8,8 +8,7 @@ import { isNull } from 'lodash-es'
 type GeminiRequest = {
   model: string
   messages: Message[]
-  ts: number
-  sign: string
+  systemInstruction?: string
 }
 
 export const runtime = 'edge'
@@ -17,8 +16,8 @@ export const runtime = 'edge'
 const geminiApiKey = process.env.GEMINI_API_KEY as string
 const geminiApiBaseUrl = process.env.GEMINI_API_BASE_URL as string
 
-export async function POST(req: Request) {
-  const { searchParams } = new URL(req.url)
+export async function POST(req: NextRequest) {
+  const searchParams = req.nextUrl.searchParams
   const token = searchParams.get('token')
 
   if (isNull(token) || !checkToken(token)) {
@@ -29,10 +28,11 @@ export async function POST(req: Request) {
   }
 
   try {
-    const { messages = [], model } = (await req.json()) as GeminiRequest
+    const { messages = [], model, systemInstruction } = (await req.json()) as GeminiRequest
     const result = await chat({
       messages,
       model,
+      systemInstruction,
       apiKey: geminiApiKey,
       baseUrl: geminiApiBaseUrl,
     })

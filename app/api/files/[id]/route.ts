@@ -1,4 +1,4 @@
-import { NextResponse } from 'next/server'
+import { NextResponse, type NextRequest } from 'next/server'
 import { checkToken, handleError } from '../../utils'
 import FileManager from '@/utils/FileManager'
 import { ErrorType } from '@/constant/errors'
@@ -7,8 +7,8 @@ import { isNull } from 'lodash-es'
 const geminiApiKey = process.env.GEMINI_API_KEY as string
 const geminiApiBaseUrl = process.env.GEMINI_API_BASE_URL as string
 
-export async function GET(req: Request, { params }: { params: { id: string } }) {
-  const { searchParams } = new URL(req.url)
+export async function GET(req: NextRequest, { params }: { params: { id: string } }) {
+  const searchParams = req.nextUrl.searchParams
   const token = searchParams.get('token')
 
   if (isNull(token) || !checkToken(token)) {

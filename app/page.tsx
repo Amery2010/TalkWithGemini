@@ -20,8 +20,10 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/comp
 import MessageItem from '@/components/MessageItem'
 import ErrorMessageItem from '@/components/ErrorMessageItem'
 import SystemInstruction from '@/components/SystemInstruction'
+import AttachmentArea from '@/components/AttachmentArea'
 import Button from '@/components/Button'
 import { useMessageStore } from '@/store/chat'
+import { useAttachmentStore } from '@/store/attachment'
 import { useSettingStore } from '@/store/setting'
 import chat, { type RequestProps } from '@/utils/chat'
 import { summarizePrompt, getVoiceModelPrompt, getSummaryPrompt } from '@/utils/prompt'
@@ -275,10 +277,23 @@ export default function Home() {
     async (text: string): Promise<void> => {
       if (content === '') return Promise.reject(false)
       const { talkMode, model } = useSettingStore.getState()
+      const { files, clear: clearAttachment } = useAttachmentStore.getState()
       const { summary, add: addMessage } = useMessageStore.getState()
-      setContent('')
-      setTextareaHeight(24)
-      const newUserMessage: Message = { id: nanoid(), role: 'user', parts: [{ text }] }
+      const messagePart: Message['parts'] = []
+      if (files.length > 0) {
+        for (const file of files) {
+          if (file.metadata) {
+            messagePart.push({
+              fileData: {
+                mimeType: file.metadata.mimeType,
+                fileUri: file.metadata.uri,
+              },
+            })
+          }
+        }
+      }
+      messagePart.push({ text })
+      const newUserMessage: Message = { id: nanoid(), role: 'user', parts: messagePart, attachments: files }
       addMessage(newUserMessage)
       const newModelMessage: Message = { id: nanoid(), role: 'model', parts: [{ text: '' }] }
       addMessage(newModelMessage)
@@ -292,6 +307,9 @@ export default function Home() {
         setStatus('thinkng')
         setSubtitle('')
       }
+      setContent('')
+      clearAttachment()
+      setTextareaHeight(24)
       await fetchAnswer({
         messages,
         model,
@@ -309,13 +327,27 @@ export default function Home() {
   const handleResubmit = useCallback(async () => {
     const messages = [...messagesRef.current]
     const lastMessage = messages.pop()
+    const { model } = useSettingStore.getState()
     if (lastMessage?.role === 'model') {
-      const { model } = useSettingStore.getState()
       await fetchAnswer({
         messages: messagesRef.current,
         model,
         onResponse: (stream) => {
           handleResponse(stream, lastMessage)
+        },
+        onError: (message, code) => {
+          handleError(message, code)
+        },
+      })
+    } else {
+      const { add: addMessage } = useMessageStore.getState()
+      const newModelMessage: Message = { id: nanoid(), role: 'model', parts: [{ text: '' }] }
+      addMessage(newModelMessage)
+      await fetchAnswer({
+        messages: messagesRef.current.slice(0, -1),
+        model,
+        onResponse: (stream) => {
+          handleResponse(stream, newModelMessage)
         },
         onError: (message, code) => {
           handleError(message, code)
@@ -327,6 +359,7 @@ export default function Home() {
   const handleCleanMessage = useCallback(() => {
     const { clear: clearMessage } = useMessageStore.getState()
     clearMessage()
+    setErrorMessage('')
   }, [])
 
   const updateTalkMode = useCallback((type: 'chat' | 'voice') => {
@@ -389,7 +422,7 @@ export default function Home() {
 
   const handleKeyDown = useCallback(
     (ev: KeyboardEvent<HTMLTextAreaElement>) => {
-      if (ev.key === 'Enter' && ev.shiftKey && !isRecording) {
+      if (ev.key === 'Enter' && !ev.shiftKey && !isRecording) {
         if (!checkAccessStatus()) return false
         // Prevent the default carriage return and line feed behavior
         ev.preventDefault()
@@ -398,18 +431,6 @@ export default function Home() {
     },
     [content, isRecording, handleSubmit, checkAccessStatus],
   )
-
-  const handleFileUpload = useCallback((FileList: Promise<FileMetadata>[]) => {
-    // const { add: addMessage } = useMessageStore.getState()
-    // imageDataList.forEach((imageData) => {
-    //   const dataArr = imageData.split(';base64,')
-    //   addMessage({
-    //     id: nanoid(),
-    //     role: 'user',
-    //     parts: [{ inlineData: { data: dataArr[1], mimeType: dataArr[0].substring(5) } }],
-    //   })
-    // })
-  }, [])
 
   const initAssistant = useCallback((prompt: string) => {
     const { instruction, clear: clearMessage } = useMessageStore.getState()
@@ -532,13 +553,14 @@ export default function Home() {
         </div>
       )}
       <div ref={scrollAreaBottomRef}></div>
-      <div className="fixed bottom-0 flex w-full max-w-screen-md items-end gap-2 bg-[hsl(var(--background))] p-4 pb-8 max-sm:p-2 max-sm:pb-3 landscape:max-md:pb-4">
+      <div className="fixed bottom-0 flex w-full max-w-screen-md items-end gap-2 p-4 pb-8 max-sm:p-2 max-sm:pb-3 landscape:max-md:pb-4">
         {!disableSpeechRecognition ? (
           <Button title={t('voiceMode')} variant="secondary" size="icon" onClick={() => updateTalkMode('voice')}>
             <AudioLines />
           </Button>
         ) : null}
-        <div className="relative w-full rounded-md border border-input bg-background pt-2">
+        <div className="relative w-full rounded-md border border-input bg-[hsl(var(--background))] pt-2">
+          <AttachmentArea className="m-2 mt-0 max-h-32 overflow-y-auto border-b border-dashed pb-2" />
           <textarea
             className={cn(
               'h-auto max-h-[120px] w-full resize-none border-none bg-transparent px-2 text-sm leading-6 transition-[height] focus-visible:outline-none',
@@ -559,7 +581,7 @@ export default function Home() {
               <Tooltip>
                 <TooltipTrigger asChild>
                   <div className="box-border flex h-8 w-8 cursor-pointer items-center justify-center rounded-full p-1.5 text-slate-800 hover:bg-secondary/80 dark:text-slate-600">
-                    <FileUploader onChange={handleFileUpload} />
+                    <FileUploader />
                   </div>
                 </TooltipTrigger>
                 <TooltipContent className="mb-1 max-w-36">{t('uploadTooltip')}</TooltipContent>

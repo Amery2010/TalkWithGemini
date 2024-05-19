@@ -43,3 +43,20 @@ export function formatTime(seconds: number): string {
 
   return `${minutesStr}:${secondsStr}`
 }
+
+export async function readFileAsDataURL(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader()
+    reader.readAsDataURL(file)
+    reader.addEventListener('load', () => resolve(reader.result as string))
+    reader.addEventListener('error', reject)
+  })
+}
+
+export function formatSize(size: number, pointLength = 2, units?: string[]): string {
+  if (typeof size === 'undefined') return '0'
+  if (typeof units === 'undefined') units = ['Bytes', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB']
+  let unit
+  while ((unit = units.shift() as string) && size >= 1024) size = size / 1024
+  return (unit === units[0] ? size : size.toFixed(pointLength === undefined ? 2 : pointLength)) + unit
+}

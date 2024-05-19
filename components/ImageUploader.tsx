@@ -1,19 +1,11 @@
 import { useRef, memo, useState } from 'react'
 import imageCompression from 'browser-image-compression'
 import { ImagePlus, Loader2 } from 'lucide-react'
+import { readFileAsDataURL } from '@/utils/common'
 import { isNull } from 'lodash-es'
 
 interface Props {
   onChange: (imageDataList: string[]) => void
-}
-
-async function readFile(file: File): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader()
-    reader.readAsDataURL(file)
-    reader.addEventListener('load', () => resolve(reader.result as string))
-    reader.addEventListener('error', reject)
-  })
 }
 
 const options = {
@@ -33,7 +25,7 @@ function ImageUploader(props: Props) {
     const imageDataList: string[] = []
     for await (const file of files) {
       const compressedFile = await imageCompression(file, options)
-      const imageData = await readFile(compressedFile)
+      const imageData = await readFileAsDataURL(compressedFile)
       imageDataList.push(imageData)
     }
     props.onChange(imageDataList)

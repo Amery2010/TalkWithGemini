@@ -1,4 +1,4 @@
-import { NextResponse } from 'next/server'
+import { NextResponse, type NextRequest } from 'next/server'
 import { checkToken, handleError } from '../utils'
 import FileManager from '@/utils/FileManager'
 import { ErrorType } from '@/constant/errors'
@@ -7,10 +7,10 @@ import { isNull } from 'lodash-es'
 export const runtime = 'edge'
 
 const geminiApiKey = process.env.GEMINI_API_KEY as string
-const geminiApiBaseUrl = process.env.GEMINI_API_BASE_URL as string
+const geminiApiBaseUrl = process.env.GEMINI_API_BASE_URL || 'https://generativelanguage.googleapis.com'
 
-export async function POST(req: Request) {
-  const { searchParams } = new URL(req.url)
+export async function POST(req: NextRequest) {
+  const searchParams = req.nextUrl.searchParams
   const token = searchParams.get('token')
 
   if (isNull(token) || !checkToken(token)) {

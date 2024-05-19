@@ -1,4 +1,4 @@
-import { memo, useEffect, useState, useCallback } from 'react'
+import { memo, useEffect, useState, useCallback, useMemo } from 'react'
 import MarkdownIt from 'markdown-it'
 import markdownHighlight from 'markdown-it-highlightjs'
 import highlight from 'highlight.js'
@@ -8,7 +8,8 @@ import { useTranslation } from 'react-i18next'
 import { User, Bot } from 'lucide-react'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import BubblesLoading from '@/components/BubblesLoading'
-import { upperFirst } from 'lodash-es'
+import FileList from '@/components/FileList'
+import { upperFirst, find } from 'lodash-es'
 
 const registerCopy = (className: string) => {
   const clipboard = new Clipboard(className, {
@@ -19,9 +20,12 @@ const registerCopy = (className: string) => {
   return clipboard
 }
 
-function MessageItem({ role, parts }: Message) {
+function MessageItem({ role, parts, attachments }: Message) {
   const { t } = useTranslation()
   const [html, setHtml] = useState<string>('')
+  const fileList = useMemo(() => {
+    return attachments ? attachments.filter((item) => !item.metadata?.mimeType.startsWith('image/')) : []
+  }, [attachments])
 
   const render = useCallback(
     (content: string) => {
@@ -81,16 +85,25 @@ function MessageItem({ role, parts }: Message) {
   )
 
   useEffect(() => {
-    const messageParts = parts.map((part) => {
+    const messageParts: string[] = []
+    parts.forEach(async (part) => {
       if (part.text) {
-        return render(part.text)
+        messageParts.push(render(part.text))
       } else if (part.inlineData?.mimeType.startsWith('image/')) {
-        return `<img class="inline-image" alt="inline-image" src="data:${part.inlineData.mimeType};base64,${part.inlineData.data}" />`
-      } else if (part.fileData?.fileUri) {
-        return `<div>${part.fileData.fileUri}</div>`
+        messageParts.push(
+          `<img class="inline-image" alt="inline-image" src="data:${part.inlineData.mimeType};base64,${part.inlineData.data}" />`,
+        )
+      } else if (part.fileData && attachments) {
+        for (const attachment of attachments) {
+          if (attachment.metadata?.uri === part.fileData.fileUri) {
+            if (part.fileData?.mimeType.startsWith('image/')) {
+              messageParts.push(`<img class="inline-image" alt="inline-image" src="${attachment.preview}" />`)
+            }
+          }
+        }
       }
     })
-    setHtml(messageParts.join('<hr />'))
+    setHtml(messageParts.join(''))
     const copyKatexInline = registerCopy('.copy-katex-inline')
     const copyKatexBlock = registerCopy('.copy-katex-block')
     const copyCode = registerCopy('.copy-code')
@@ -100,7 +113,7 @@ function MessageItem({ role, parts }: Message) {
       copyKatexBlock.destroy()
       copyCode.destroy()
     }
-  }, [parts, render])
+  }, [parts, attachments, render])
 
   return (
     <>
@@ -118,10 +131,17 @@ function MessageItem({ role, parts }: Message) {
       {role === 'model' && parts[0].text === '' ? (
         <BubblesLoading />
       ) : (
-        <div
-          className="prose w-full overflow-hidden break-words text-base leading-8"
-          dangerouslySetInnerHTML={{ __html: html }}
-        ></div>
+        <div>
+          {fileList.length > 0 ? (
+            <div className="m-2 mt-0 w-full border-b border-dashed pb-2">
+              <FileList fileList={fileList} />
+            </div>
+          ) : null}
+          <div
+            className="prose w-full overflow-hidden break-words text-base leading-8"
+            dangerouslySetInnerHTML={{ __html: html }}
+          ></div>
+        </div>
       )}
     </>
   )

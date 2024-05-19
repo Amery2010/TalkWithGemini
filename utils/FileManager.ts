@@ -14,7 +14,7 @@ class FileManager {
     }
     this.options = options
   }
-  async uploadFile(formData: FormData): Promise<FileMetadata> {
+  async uploadFile(formData: FormData): Promise<{ file: FileMetadata }> {
     if (this.options.token) {
       const response = await fetch(`/api/upload?token=${this.options.token}`, {
         method: 'POST',
@@ -34,7 +34,7 @@ class FileManager {
   }
   async getFileMetadata(fileID: string) {
     if (this.options.token) {
-      const response = await fetch(`/api/files/${fileID}?token=${this.options.token}`)
+      const response = await fetch(`/api/files?token=${this.options.token}&id=${fileID}`)
       return await response.json()
     } else {
       const response = await fetch(new URL(`/${API_VERSION}/files/${fileID}`, this.options.baseUrl), {

@@ -20,12 +20,20 @@ export function generateUTCTimestamp(): number {
   return new Date(utcTimestamp).getTime()
 }
 
+export function encodeBase64(text: string): string {
+  return Buffer.from(text, 'utf-8').toString('base64')
+}
+
+export function decodeBase64(base64: string): string {
+  return Buffer.from(base64, 'base64').toString('utf-8')
+}
+
 export function encodeToken(password: string): string {
   const utcTimestamp = generateUTCTimestamp()
-  return btoa(`${generateSignature(password, utcTimestamp)}@${utcTimestamp}`)
+  return encodeBase64(`${generateSignature(password, utcTimestamp)}@${utcTimestamp}`)
 }
 
 export function decodeToken(token: string) {
-  const [sign, ts] = atob(token).split('@')
+  const [sign, ts] = decodeBase64(token).split('@')
   return { sign, ts: Number(ts) }
 }
