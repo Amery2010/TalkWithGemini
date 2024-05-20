@@ -128,7 +128,7 @@ function MessageItem({ role, parts, attachments }: Message) {
           </AvatarFallback>
         )}
       </Avatar>
-      {role === 'model' && parts[0].text === '' ? (
+      {role === 'model' && parts && parts[0].text === '' ? (
         <BubblesLoading />
       ) : (
         <div className="flex-auto">

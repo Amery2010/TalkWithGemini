@@ -495,11 +495,13 @@ export default function Home() {
 
   useEffect(() => {
     const setting = useSettingStore.getState()
-    const edgeSpeech = new EdgeSpeech({ locale: setting.ttsLang })
-    edgeSpeechRef.current = edgeSpeech
-    const voiceOptions = edgeSpeech.voiceOptions
-    if (setting.ttsVoice === '') {
-      setting.setTTSVoice(voiceOptions ? (voiceOptions[0].value as string) : 'en-US-JennyNeural')
+    if (setting.ttsLang !== '') {
+      const edgeSpeech = new EdgeSpeech({ locale: setting.ttsLang })
+      edgeSpeechRef.current = edgeSpeech
+      if (setting.ttsVoice === '') {
+        const voiceOptions = edgeSpeech.voiceOptions
+        setting.setTTSVoice(voiceOptions ? (voiceOptions[0].value as string) : 'en-US-JennyNeural')
+      }
     }
   }, [settingStore.ttsLang])
 

@@ -17,19 +17,22 @@ export async function dataMigration() {
     if (name?.startsWith('TWG::')) {
       const data = JSON.parse(localStorage.getItem(name) || '')
       if (name === 'TWG::messages') {
-        data.map((item: OldMessage) => {
+        const messageList: Message[] = []
+        data.forEach((item: OldMessage) => {
           if (item.content.startsWith('data:image/')) {
             const imageDataInfor = item.content.split(';base64,')
-            return {
+            messageList.push({
               id: item.id,
               role: item.role,
               parts: [{ inlineData: { mimeType: imageDataInfor[0].substring(5), data: imageDataInfor[1] } }],
-            } as Message
+            } as Message)
           }
-          return { id: item.id, role: item.role, parts: [{ text: item.content }] } as Message
+          messageList.push({ id: item.id, role: item.role, parts: [{ text: item.content }] } as Message)
         })
+        await storage.setItem(name.substring(5), messageList)
+      } else {
+        await storage.setItem(name.substring(5), data)
       }
-      await storage.setItem(name.substring(5), data)
       localStorage.removeItem(name)
     }
   }
