@@ -43,5 +43,6 @@
   "generalSetting": "Allgemeine Einstellungen",
   "llmModel": "LLM Modell",
   "voiceServer": "Sprachdienst",
-  "uploadTooltip": "Datei hochladen, unterstützt Bilder, Videos und gängige Dokumente"
+  "uploadTooltip": "Datei hochladen, unterstützt Bilder, Audio, Videos und Textdokumente",
+  "imageUploadTooltip": "Unterstützung beim Hochladen von Bildern"
 }

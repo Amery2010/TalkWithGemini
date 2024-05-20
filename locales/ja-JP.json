@@ -43,5 +43,6 @@
   "generalSetting": "一般設定",
   "llmModel": "LLM モデル",
   "voiceServer": "音声サービス",
-  "uploadTooltip": "ファイルをアップロード、画像、ビデオ、一般的なドキュメントに対応"
+  "uploadTooltip": "ファイルをアップロードし、画像、オーディオ、ビデオ、テキストドキュメントをサポートしています",
+  "imageUploadTooltip": "画像のアップロードをサポート"
 }

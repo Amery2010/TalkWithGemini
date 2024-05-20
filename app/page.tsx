@@ -50,7 +50,6 @@ const nanoid = customAlphabet('1234567890abcdefghijklmnopqrstuvwxyz', 8)
 const AssistantRecommend = dynamic(() => import('@/components/AssistantRecommend'))
 const Setting = dynamic(() => import('@/components/Setting'))
 const FileUploader = dynamic(() => import('@/components/FileUploader'))
-// const ImageUploader = dynamic(() => import('@/components/ImageUploader'))
 
 export default function Home() {
   const { t } = useTranslation()
@@ -62,6 +61,7 @@ export default function Home() {
   const speechQueue = useRef<PromiseQueue>()
   const messagesRef = useRef(useMessageStore.getState().messages)
   const messageStore = useMessageStore()
+  const attachmentStore = useAttachmentStore()
   const settingStore = useSettingStore()
   const [textareaHeight, setTextareaHeight] = useState<number>(24)
   const [siriWave, setSiriWave] = useState<SiriWave>()
@@ -85,6 +85,23 @@ export default function Home() {
         return t('status.thinking')
     }
   }, [status, t])
+  const isVisionModel = useMemo(() => {
+    return [Model['Gemini Pro Vision'], Model['Gemini 1.0 Pro Vision']].includes(settingStore.model as Model)
+  }, [settingStore.model])
+  const supportAttachment = useMemo(() => {
+    return [
+      Model['Gemini 1.5 Pro'],
+      Model['Gemini 1.5 Flash'],
+      Model['Gemini Pro Vision'],
+      Model['Gemini 1.0 Pro Vision'],
+    ].includes(settingStore.model as Model)
+  }, [settingStore.model])
+  const isUploading = useMemo(() => {
+    for (const file of attachmentStore.files) {
+      if (file.status === 'PROCESSING') return true
+    }
+    return false
+  }, [attachmentStore.files])
 
   const speech = useCallback(
     (content: string) => {
@@ -282,18 +299,34 @@ export default function Home() {
       const messagePart: Message['parts'] = []
       if (files.length > 0) {
         for (const file of files) {
-          if (file.metadata) {
-            messagePart.push({
-              fileData: {
-                mimeType: file.metadata.mimeType,
-                fileUri: file.metadata.uri,
-              },
-            })
+          if (isVisionModel) {
+            if (file.preview) {
+              messagePart.push({
+                inlineData: {
+                  mimeType: file.mimeType,
+                  data: file.preview.split(';base64,')[1],
+                },
+              })
+            }
+          } else {
+            if (file.metadata) {
+              messagePart.push({
+                fileData: {
+                  mimeType: file.metadata.mimeType,
+                  fileUri: file.metadata.uri,
+                },
+              })
+            }
           }
         }
       }
       messagePart.push({ text })
-      const newUserMessage: Message = { id: nanoid(), role: 'user', parts: messagePart, attachments: files }
+      const newUserMessage: Message = {
+        id: nanoid(),
+        role: 'user',
+        parts: messagePart,
+        attachments: isVisionModel ? [] : files,
+      }
       addMessage(newUserMessage)
       const newModelMessage: Message = { id: nanoid(), role: 'model', parts: [{ text: '' }] }
       addMessage(newModelMessage)
@@ -321,14 +354,17 @@ export default function Home() {
         },
       })
     },
-    [content, fetchAnswer, handleResponse, handleError],
+    [content, isVisionModel, fetchAnswer, handleResponse, handleError],
   )
 
   const handleResubmit = useCallback(async () => {
     const messages = [...messagesRef.current]
     const lastMessage = messages.pop()
     const { model } = useSettingStore.getState()
+    const { add: addMessage, update: updateMessage } = useMessageStore.getState()
     if (lastMessage?.role === 'model') {
+      lastMessage.parts = [{ text: '' }]
+      updateMessage(lastMessage.id, lastMessage)
       await fetchAnswer({
         messages: messagesRef.current,
         model,
@@ -340,7 +376,6 @@ export default function Home() {
         },
       })
     } else {
-      const { add: addMessage } = useMessageStore.getState()
       const newModelMessage: Message = { id: nanoid(), role: 'model', parts: [{ text: '' }] }
       addMessage(newModelMessage)
       await fetchAnswer({
@@ -577,16 +612,20 @@ export default function Home() {
             onKeyDown={handleKeyDown}
           />
           <div className="absolute bottom-0.5 right-1 flex">
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <div className="box-border flex h-8 w-8 cursor-pointer items-center justify-center rounded-full p-1.5 text-slate-800 hover:bg-secondary/80 dark:text-slate-600">
-                    <FileUploader />
-                  </div>
-                </TooltipTrigger>
-                <TooltipContent className="mb-1 max-w-36">{t('uploadTooltip')}</TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
+            {supportAttachment ? (
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <div className="box-border flex h-8 w-8 cursor-pointer items-center justify-center rounded-full p-1.5 text-slate-800 hover:bg-secondary/80 dark:text-slate-600">
+                      <FileUploader />
+                    </div>
+                  </TooltipTrigger>
+                  <TooltipContent className="mb-1 max-w-36">
+                    {isVisionModel ? t('imageUploadTooltip') : t('uploadTooltip')}
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            ) : null}
             {!disableSpeechRecognition ? (
               <TooltipProvider>
                 <Tooltip open={isRecording}>
@@ -610,7 +649,7 @@ export default function Home() {
           title={t('send')}
           variant="secondary"
           size="icon"
-          disabled={isRecording}
+          disabled={isRecording || isUploading}
           onClick={() => handleSubmit(content)}
         >
           <SendHorizontal />

@@ -1,5 +1,6 @@
 import { create } from 'zustand'
 import storage from '@/utils/Storage'
+import { dataMigration } from '@/utils/migration'
 import { findIndex } from 'lodash-es'
 
 type Summary = {
@@ -14,7 +15,6 @@ type MessageStore = {
   init: () => Promise<Message[]>
   add: (message: Message) => void
   update: (id: string, message: Message) => void
-  replace: (id: string, message: Message) => void
   clear: () => void
   save: () => void
   revoke: (id: string) => void
@@ -30,6 +30,7 @@ export const useMessageStore = create<MessageStore>((set, get) => ({
   },
   systemInstruction: '',
   init: async () => {
+    await dataMigration()
     const messages = (await storage.getItem<Message[]>('messages')) || []
     const systemInstruction = (await storage.getItem<string>('systemInstruction')) || ''
     const summary = (await storage.getItem<Summary>('summary')) || {
@@ -45,15 +46,6 @@ export const useMessageStore = create<MessageStore>((set, get) => ({
     }))
   },
   update: (id, message) => {
-    set((state) => {
-      const index = findIndex(state.messages, { id })
-      state.messages[index] = message
-      return {
-        messages: state.messages,
-      }
-    })
-  },
-  replace: (id, message) => {
     set((state) => {
       const index = findIndex(state.messages, { id })
       state.messages[index] = message

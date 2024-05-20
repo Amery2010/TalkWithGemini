@@ -16,42 +16,31 @@ Deploy your private Gemini application for free with one click, supporting Gemin
 
 [![Open in Gitpod](https://gitpod.io/button/open-in-gitpod.svg)](https://gitpod.io/#https://github.com/Amery2010/TalkWithGemini)
 
+Simple interface, supports image recognition and voice conversation
+
+简洁的界面，支持图片识别和语音对话
+
 ![cover](./docs/images/screenshot.jpg)
 
-> [!NOTE]
->
-> #### Solution for "User location is not supported for the API use"
->
-> You can refer to the following two Gemini Api proxy projects [gemini-proxy](https://github.com/Jazee6/gemini-proxy) and [**palm-netlify-proxy**](https://github.com/antergone/palm-netlify-proxy) deployment method.
->
-> **Note that Vercel and Netlify prohibit users from deploying proxy services. This solution may result in account suspension, so use with caution**
->
-> #### About the problem of not being able to use the talk mode
->
-> Currently, speech recognition uses the browser's SpeechRecognition api. The system will **hide the talk mode** in [some browsers that do not support the SpeechRecognition api](https://caniuse.com/?search=SpeechRecognition).
->
-> Since most browsers based on the Chrome kernel use Google's speech recognition service in the implementation of the SpeechRecognition api, they require ability to access international networks normally.
+Supports Gemini 1.5 and Gemini 1.5 Flash multimodal models
 
-> [!注意]
->
-> #### “User location is not supported for the API use” 的解决方案
->
-> 可以参考以下两个 Gemini Api 代理项目 [gemini-proxy](https://github.com/Jazee6/gemini-proxy) 和 [**palm-netlify-proxy**](https://github.com/antergone/palm-netlify-proxy) 的部署方式。
->
-> **注意 Vercel 和 Netlify 禁止用户部署代理服务，该解决方案可能会导致封号，需谨慎使用**
->
-> #### 关于无法使用语音对话功能的问题须知
->
-> 目前语音识别使用的是浏览器的 SpeechRecognition 接口，系统会在[部分不支持 SpeechRecognition 接口的浏览器](https://caniuse.com/?search=SpeechRecognition)中**隐藏语音对话功能**。
->
-> 由于大部分基于 Chrome 内核的浏览器在 SpeechRecognition 接口的实现上使用了 Google 的语音识别服务，因此需要能够正常访问国际网络的情况下使用。
+支持 Gemini 1.5 和 Gemini 1.5 Flash 多模态模型
+
+![Gemini 1.5 Flash](./docs/images/Gemini-1.5-Flash.jpg)
+
+A new assistant market with hundreds of hand-picked system commands
+
+全新的助理市场，拥有数百精选的系统指令
+
+![Assistant Market](./docs/images/AssistantMarket.jpg)
 
 ## Features
 
 - **Deploy for free with one-click** on Vercel in under 1 minute
+- Supports multi-modal models and can understand images, videos, audios and some text documents
 - Talk mode: Let you talk directly to Gemini
 - Visual recognition allows Gemini to understand the content of the picture
-- Topic square with hundreds of selected system instruction
+- Assistant market with hundreds of selected system instruction
 - Full Markdown support: LaTex formulas, code highlighting, and more
 - Automatically compress contextual chat records to save Tokens while supporting very long conversations
 - Privacy and security, all data is saved locally in the user's browser
@@ -63,9 +52,10 @@ Deploy your private Gemini application for free with one click, supporting Gemin
 ## 主要功能
 
 - 在 1 分钟内使用 Vercel **免费一键部署**
+- 支持多模态模型，可以理解图片、视频、音频和部分文本文档
 - 语音模式：让您直接与 Gemini 对话
 - 视觉识别，让 Gemini 可以看懂图片内容
-- 话题广场，拥有数百精选的系统指令
+- 助理市场，拥有数百精选的系统指令
 - 完整的 Markdown 支持：LaTex 公式、代码高亮等等
 - 自动压缩上下文聊天记录，在节省 Token 的同时支持超长对话
 - 隐私安全，所有数据保存在用户浏览器本地
@@ -150,13 +140,7 @@ Override assistant market api request base url.
 
 ### `ACCESS_PASSWORD` (optional)
 
-Access password, needs to be used in conjunction with `NEXT_PUBLIC_ENABLE_PROTECT`, that is, NEXT_PUBLIC_ENABLE_PROTECT=1.
-
-### `NEXT_PUBLIC_ENABLE_PROTECT` (optional)
-
-> Default: 0
-
-If you don't want visitors to use your server API directly, set this value to 1.
+Access password.
 
 ### `HEAD_SCRIPTS` (optional)
 
@@ -186,13 +170,7 @@ Injected script code can be used for statistics or error tracking.
 
 ### `ACCESS_PASSWORD`（可选）
 
-访问密码，需要和 `NEXT_PUBLIC_ENABLE_PROTECT` 配合使用，即 NEXT_PUBLIC_ENABLE_PROTECT=1。
-
-### `NEXT_PUBLIC_ENABLE_PROTECT`（可选）
-
-> 默认：0
-
-如果您不希望访客直接使用您的服务器 api，请将此值设置为 1。
+访问密码。
 
 ### `HEAD_SCRIPTS` （可选）
 
@@ -313,6 +291,50 @@ pnpm build:export
 如果您将项目部署在子目录下，在访问时会遇到资源加载失败的情况，请修改 `next.config.js` 文件中 `nextConfig.basePath` 为您子目录的具体目录 `nextConfig.basePath = '/路径/项目名称'`。
 
 **静态部署不支持设置环境变量**
+
+## Q&A
+
+#### Solution for "User location is not supported for the API use"
+
+You can refer to the following two Gemini Api proxy projects [gemini-proxy](https://github.com/Jazee6/gemini-proxy) and [palm-netlify-proxy](https://github.com/antergone/palm-netlify-proxy) deployment method.
+
+**Note that Vercel and Netlify prohibit users from deploying proxy services. This solution may result in account suspension, so use with caution**
+
+#### About the solution that vercel and netlify agents cannot upload large files
+
+The currently known vercel and netlify both use serverless edge computing. Although the response speed is fast, they have size restrictions on uploaded files. Cloudflare Worker has relatively loose limits on large files (500MB for free users, 5GB for paid users) and can be used as an api proxy. [How to deploy the Cloudflare Worker api proxy](/docs/How-to-deploy-the-Cloudflare-Worker-api-proxy.md)
+
+#### About the problem of not being able to use the talk mode
+
+Currently, speech recognition uses the browser's SpeechRecognition api. The system will **hide the talk mode** in [some browsers that do not support the SpeechRecognition api](https://caniuse.com/?search=SpeechRecognition).
+
+Since most browsers based on the Chrome kernel use Google's speech recognition service in the implementation of the SpeechRecognition api, they require ability to access international networks normally.
+
+#### Why can’t I upload common documents such as doc, excel, and pdf?
+
+Currently, the two models `Gemini 1.5 Pro` and `Gemini 1.5 Flash` support most images, audios, videos and some text files. For details, see [Support List](https://ai.google.dev/gemini-api/docs/prompting_with_media). For other document types, we will try to use [LangChain.js](https://js.langchain.com/v0.2/docs/introduction/) later.
+
+## 常见问题
+
+#### “User location is not supported for the API use” 的解决方案
+
+可以参考以下两个 Gemini Api 代理项目 [gemini-proxy](https://github.com/Jazee6/gemini-proxy) 和 [palm-netlify-proxy](https://github.com/antergone/palm-netlify-proxy) 的部署方式。
+
+**注意 Vercel 和 Netlify 禁止用户部署代理服务，该解决方案可能会导致封号，需谨慎使用**
+
+#### 关于 vercel 与 netlify 代理无法上传大文件的解决方案
+
+目前了解到的 vercel 与 netlify 都使用了无服务器的边缘计算，虽然响应速度快，但对于上传文件有大小限制。Cloudflare Worker 对于大文件限制（免费用户 500MB，收费用户 5GB）相对宽松，可以用做 api 代理。[如何部署 Cloudflare Worker api 代理](/docs/How-to-deploy-the-Cloudflare-Worker-api-proxy.md)
+
+#### 关于无法使用语音对话功能的问题须知
+
+目前语音识别使用的是浏览器的 SpeechRecognition 接口，系统会在[部分不支持 SpeechRecognition 接口的浏览器](https://caniuse.com/?search=SpeechRecognition)中**隐藏语音对话功能**。
+
+由于大部分基于 Chrome 内核的浏览器在 SpeechRecognition 接口的实现上使用了 Google 的语音识别服务，因此需要能够正常访问国际网络的情况下使用。
+
+#### 为什么我无法上传 doc、excel、pdf 这类常见文档
+
+目前 `Gemini 1.5 Pro` 和 `Gemini 1.5 Flash` 这两个模型支持的大部分的图片、音频、视频和部分文本类的文件，详见[支持列表](https://ai.google.dev/gemini-api/docs/prompting_with_media)。对于其他文档类型，后续将尝试使用 [LangChain.js](https://js.langchain.com/v0.2/docs/introduction/) 来实现。
 
 ## LICENSE
 

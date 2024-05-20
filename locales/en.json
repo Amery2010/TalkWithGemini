@@ -45,5 +45,6 @@
   "voiceServer": "Voice Server",
   "defaultModel": "Default Model",
   "selectDefaultModel": "Please select default model",
-  "uploadTooltip": "Upload file, supports images, videos and common documents"
+  "uploadTooltip": "Upload files, supports images, audios, videos, and text documents",
+  "imageUploadTooltip": "Support upload images"
 }

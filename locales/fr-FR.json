@@ -43,5 +43,6 @@
   "generalSetting": "Paramètres Généraux",
   "llmModel": "LLM Modèle",
   "voiceServer": "Service vocal",
-  "uploadTooltip": "Téléverser un fichier, prend en charge les images, les vidéos et les documents courants"
+  "uploadTooltip": "Téléchargez des fichiers, prend en charge les images, l'audio, les vidéos et les documents texte",
+  "imageUploadTooltip": "Support pour le téléchargement d'images"
 }

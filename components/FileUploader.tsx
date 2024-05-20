@@ -1,20 +1,32 @@
-import { useRef, memo } from 'react'
-import { Paperclip } from 'lucide-react'
+import { useRef, memo, useMemo } from 'react'
+import { Paperclip, ImagePlus } from 'lucide-react'
+import imageCompression from 'browser-image-compression'
 import { useSettingStore } from '@/store/setting'
 import { useAttachmentStore } from '@/store/attachment'
 import FileManager from '@/utils/FileManager'
 import { encodeToken, encodeBase64 } from '@/utils/signature'
 import { readFileAsDataURL } from '@/utils/common'
-import mimeType from '@/constant/attachment'
+import { Model } from '@/constant/model'
+import mimeType, { imageMimeType } from '@/constant/attachment'
 import { isNull } from 'lodash-es'
 
+const compressionOptions = {
+  maxSizeMB: 1,
+  maxWidthOrHeight: 1024,
+  useWebWorker: true,
+  initialQuality: 0.85,
+}
+
 function FileUploader() {
-  const inputRef = useRef<HTMLInputElement>(null)
-  const settingStore = useSettingStore()
+  const attachmentRef = useRef<HTMLInputElement>(null)
+  const imageRef = useRef<HTMLInputElement>(null)
+  const { apiKey, apiProxy, password, model } = useSettingStore()
+  const isVisionModel = useMemo(() => {
+    return [Model['Gemini Pro Vision'], Model['Gemini 1.0 Pro Vision']].includes(model as Model)
+  }, [model])
 
   const handleFileUpload = async (files: FileList | null) => {
     if (isNull(files)) return false
-    const { apiKey, apiProxy, password } = settingStore
     const options = apiKey !== '' ? { apiKey, baseUrl: apiProxy } : { token: encodeToken(password) }
     const { add: addAttachment, update: updateAttachment } = useAttachmentStore.getState()
     for await (const file of files) {
@@ -27,7 +39,15 @@ function FileUploader() {
       }
       const fileManager = new FileManager(options)
       const formData = new FormData()
-      formData.append('file', file)
+      if (file.type.startsWith('image/')) {
+        const compressedFile = await imageCompression(file, compressionOptions)
+        fileInfor.preview = await readFileAsDataURL(compressedFile)
+        fileInfor.size = compressedFile.size
+        formData.append('file', compressedFile)
+      } else {
+        formData.append('file', file)
+      }
+      addAttachment(fileInfor)
       fileManager.uploadFile(formData).then(async ({ file }) => {
         if (file.state === 'PROCESSING') {
           const timer = setInterval(async () => {
@@ -47,24 +67,52 @@ function FileUploader() {
         }
         return false
       })
-      if (file.type.startsWith('image/')) {
-        fileInfor.preview = await readFileAsDataURL(file)
+    }
+  }
+
+  const handleImageUpload = async (files: FileList | null) => {
+    if (isNull(files)) return false
+    const { add: addAttachment, update: updateAttachment } = useAttachmentStore.getState()
+    for await (const file of files) {
+      const fileInfor: FileInfor = {
+        id: encodeBase64(`${file.name}:${file.type}:${file.type}`),
+        name: file.name,
+        mimeType: file.type,
+        size: file.size,
+        status: 'PROCESSING',
       }
       addAttachment(fileInfor)
+      const compressedFile = await imageCompression(file, compressionOptions)
+      fileInfor.preview = await readFileAsDataURL(compressedFile)
+      fileInfor.size = compressedFile.size
+      fileInfor.status = 'ACTIVE'
+      updateAttachment(fileInfor.id, fileInfor)
     }
   }
 
   return (
     <>
       <input
-        ref={inputRef}
+        ref={attachmentRef}
         type="file"
         accept={mimeType.join(',')}
         multiple
         hidden
         onChange={(ev) => handleFileUpload(ev.target.files)}
       />
-      <Paperclip onClick={() => inputRef.current?.click()} />
+      <input
+        ref={imageRef}
+        type="file"
+        accept={imageMimeType.join(',')}
+        multiple
+        hidden
+        onChange={(ev) => handleImageUpload(ev.target.files)}
+      />
+      {isVisionModel ? (
+        <ImagePlus onClick={() => imageRef.current?.click()} />
+      ) : (
+        <Paperclip onClick={() => attachmentRef.current?.click()} />
+      )}
     </>
   )
 }

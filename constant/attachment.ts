@@ -1,15 +1,8 @@
-export default [
-  'image/png',
-  'image/jpeg',
-  'image/webp',
-  'image/heic',
-  'image/heif',
-  'audio/wav',
-  'audio/mp3',
-  'audio/aiff',
-  'audio/aac',
-  'audio/ogg',
-  'audio/flac',
+export const imageMimeType = ['image/png', 'image/jpeg', 'image/webp', 'image/heic', 'image/heif']
+
+export const audioMimeType = ['audio/wav', 'audio/mp3', 'audio/aiff', 'audio/aac', 'audio/ogg', 'audio/flac']
+
+export const videoMimeType = [
   'video/mp4',
   'video/mpeg',
   'video/mov',
@@ -19,6 +12,9 @@ export default [
   'video/webm',
   'video/wmv',
   'video/3gpp',
+]
+
+export const textMimeType = [
   'text/plain',
   'text/html',
   'text/css',
@@ -34,5 +30,6 @@ export default [
   'text/xml',
   'application/rtf',
   'text/rtf',
-  'video/mp2t',
-] as const
+]
+
+export default [imageMimeType, audioMimeType, videoMimeType, textMimeType].flat()

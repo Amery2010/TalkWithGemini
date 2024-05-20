@@ -1,5 +1,6 @@
 import { create } from 'zustand'
 import storage from '@/utils/Storage'
+import { dataMigration } from '@/utils/migration'
 import { detectLanguage } from '@/utils/common'
 
 interface SettingStore extends Setting {
@@ -33,6 +34,7 @@ export const useSettingStore = create<SettingStore>((set) => ({
   maxHistoryLength: 0,
   assistantIndexUrl: '',
   init: async (isProtected) => {
+    await dataMigration()
     const sttLang = await storage.getItem<string>('sttLang')
     const ttsLang = await storage.getItem<string>('ttsLang')
     const ttsVoice = await storage.getItem<string>('ttsVoice')

@@ -43,5 +43,6 @@
   "generalSetting": "Configurações Gerais",
   "llmModel": "LLM Modelo",
   "voiceServer": "Serviço de voz",
-  "uploadTooltip": "Carregar arquivo, suporta imagens, vídeos e documentos comuns"
+  "uploadTooltip": "Carregar arquivos, suporta imagens, áudio, vídeos e documentos de texto",
+  "imageUploadTooltip": "Suporte para upload de imagens"
 }

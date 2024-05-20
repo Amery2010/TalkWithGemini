@@ -45,5 +45,6 @@
   "voiceServer": "语音服务",
   "defaultModel": "默认模型",
   "selectDefaultModel": "请选择默认模型",
-  "uploadTooltip": "上传文件，支持图片、视频以及常见文档"
+  "uploadTooltip": "上传文件，支持图片、音频、视频和文本文档",
+  "imageUploadTooltip": "支持上传图片"
 }

@@ -1,5 +1,5 @@
 import { memo } from 'react'
-import { File, FileAudio2, FileVideo2, Loader2, X } from 'lucide-react'
+import { File, FileImage, FileAudio2, FileVideo2, Loader2, X } from 'lucide-react'
 import { formatSize } from '@/utils/common'
 import { isFunction } from 'lodash-es'
 
@@ -10,8 +10,12 @@ type Props = {
 
 function FileCover({ file }: { file: FileInfor }) {
   if (file.mimeType.startsWith('image/')) {
-    // eslint-disable-next-line
-    return <img className="block h-14 w-14 rounded-sm object-cover" src={file.preview} alt="preview" />
+    return file.preview ? (
+      // eslint-disable-next-line
+      <img className="block h-14 w-full rounded-sm object-cover" src={file.preview} alt="preview" />
+    ) : (
+      <FileImage className="m-1 h-12 w-12" />
+    )
   } else if (file.mimeType.startsWith('audio/')) {
     return <FileAudio2 className="m-1 h-12 w-12" />
   } else if (file.mimeType.startsWith('video/')) {
@@ -27,17 +31,17 @@ function FileList({ fileList, onRemove }: Props) {
       {fileList.map((file) => {
         return (
           <div className="flex rounded-md border p-1.5" key={file.id}>
-            <div className="relative mr-1.5 h-14 w-14">
+            <div className="relative mr-1.5 h-14 w-1/3">
               {<FileCover file={file} />}
               {file.status !== 'ACTIVE' ? <Loader2 className="absolute left-4 top-4 h-6 w-6 animate-spin" /> : null}
             </div>
-            <div className="relative h-14 flex-auto pr-3 text-sm">
+            <div className="relative h-14 w-2/3 flex-auto pr-4 text-sm">
               <h4 className="text-line-clamp-2 font-medium leading-5">{file.name}</h4>
               <p>
                 <small>{formatSize(file.size)}</small>
               </p>
               {isFunction(onRemove) ? (
-                <X className="absolute right-0 top-0 h-5 w-5 cursor-pointer" onClick={() => onRemove(file.id)} />
+                <X className="absolute -right-1 top-0 h-5 w-5 cursor-pointer" onClick={() => onRemove(file.id)} />
               ) : null}
             </div>
           </div>

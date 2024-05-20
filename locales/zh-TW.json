@@ -43,5 +43,6 @@
   "generalSetting": "通用設置",
   "llmModel": "LLM 模型",
   "voiceServer": "語音服務",
-  "uploadTooltip": "上傳文件，支持圖片、視頻以及常見文檔"
+  "uploadTooltip": "上傳文件，支援圖片、音頻、視頻和文本文檔",
+  "imageUploadTooltip": "支持上傳圖片"
 }
