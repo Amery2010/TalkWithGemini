@@ -32,10 +32,10 @@ function FileUploader() {
         if (file.state === 'PROCESSING') {
           const timer = setInterval(async () => {
             const fileManager = new FileManager(options)
-            const fileMetadata: { file: FileMetadata } = await fileManager.getFileMetadata(file.name)
-            if (fileMetadata.file.state === 'ACTIVE') {
-              fileInfor.status = fileMetadata.file.state
-              fileInfor.metadata = fileMetadata.file
+            const fileMetadata: FileMetadata = await fileManager.getFileMetadata(file.name.substring(6))
+            if (fileMetadata.state === 'ACTIVE') {
+              fileInfor.status = fileMetadata.state
+              fileInfor.metadata = fileMetadata
               updateAttachment(fileInfor.id, fileInfor)
               clearInterval(timer)
             }

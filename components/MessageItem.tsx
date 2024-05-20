@@ -131,9 +131,9 @@ function MessageItem({ role, parts, attachments }: Message) {
       {role === 'model' && parts[0].text === '' ? (
         <BubblesLoading />
       ) : (
-        <div>
+        <div className="flex-auto">
           {fileList.length > 0 ? (
-            <div className="m-2 mt-0 w-full border-b border-dashed pb-2">
+            <div className="w-full border-b border-dashed pb-2">
               <FileList fileList={fileList} />
             </div>
           ) : null}

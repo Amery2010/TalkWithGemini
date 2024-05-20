@@ -15,8 +15,11 @@ export const runtime = 'edge'
 
 const geminiApiKey = process.env.GEMINI_API_KEY as string
 const geminiApiBaseUrl = process.env.GEMINI_API_BASE_URL as string
+const mode = process.env.NEXT_PUBLIC_BUILD_MODE
 
 export async function POST(req: NextRequest) {
+  if (mode === 'export') return new NextResponse('Not available under static deployment')
+
   const searchParams = req.nextUrl.searchParams
   const token = searchParams.get('token')
 
