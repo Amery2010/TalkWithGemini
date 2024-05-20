@@ -235,7 +235,6 @@ You can also specify additional environment variables:
 ```shell
 docker run -d -p 3000:3000 \
    -e GEMINI_API_KEY=AIza... \
-   -e NEXT_PUBLIC_ENABLE_PROTECT=1 \
    -e ACCESS_PASSWORD=your-password \
    xiangfa/talk-with-gemini
 ```
@@ -261,7 +260,6 @@ docker run -d -p 3000:3000 xiangfa/talk-with-gemini
 ```shell
 docker run -d -p 3000:3000 \
    -e GEMINI_API_KEY=AIza... \
-   -e NEXT_PUBLIC_ENABLE_PROTECT=1 \
    -e ACCESS_PASSWORD=页面访问密码 \
    xiangfa/talk-with-gemini
 ```

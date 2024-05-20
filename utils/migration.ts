@@ -26,8 +26,9 @@ export async function dataMigration() {
               role: item.role,
               parts: [{ inlineData: { mimeType: imageDataInfor[0].substring(5), data: imageDataInfor[1] } }],
             } as Message)
+          } else {
+            messageList.push({ id: item.id, role: item.role, parts: [{ text: item.content }] } as Message)
           }
-          messageList.push({ id: item.id, role: item.role, parts: [{ text: item.content }] } as Message)
         })
         await storage.setItem(name.substring(5), messageList)
       } else {

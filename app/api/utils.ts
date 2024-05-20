@@ -2,11 +2,10 @@ import { NextResponse } from 'next/server'
 import { generateSignature, generateUTCTimestamp, decodeToken } from '@/utils/signature'
 import { ErrorType } from '@/constant/errors'
 
-const isProtected = (process.env.NEXT_PUBLIC_ENABLE_PROTECT as string) === '1'
 const password = (process.env.ACCESS_PASSWORD as string) || ''
 
-export function checkToken(token: string) {
-  if (isProtected && password !== '') {
+export function checkToken(token: string): boolean {
+  if (password !== '') {
     const { sign, ts } = decodeToken(token)
     const utcTimestamp = generateUTCTimestamp()
     if (Math.abs(utcTimestamp - ts) > 60000) {
@@ -15,8 +14,8 @@ export function checkToken(token: string) {
     if (sign !== generateSignature(password, ts)) {
       return false
     }
-    return true
   }
+  return true
 }
 
 export const handleError = (message: string) => {
