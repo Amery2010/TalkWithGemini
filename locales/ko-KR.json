@@ -18,6 +18,8 @@
   "geminiKeyPlaceholder": "본인의 젬니 키를 입력해주세요",
   "apiProxyUrl": "API 프록시 URL",
   "apiProxyUrlPlaceholder": "API 프록시 URL을 입력해주세요 (선택사항)",
+  "uploadProxyUrl": "파일 업로드 프록시 URL",
+  "uploadProxyUrlPlaceholder": "파일 업로드 프록시 URL을 입력하세요 (선택 사항)",
   "followTheSystem": "시스템에 따르기",
   "speechRecognition": "음성 인식",
   "speechSynthesis": "음성 합성",

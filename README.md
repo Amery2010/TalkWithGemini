@@ -120,7 +120,7 @@ After adding or modifying this environment variable, please redeploy the project
 
 ### `GEMINI_API_KEY` (optional)
 
-Your Gemini Pro api key. If you need to `enable` the server api, this is required.
+Your Gemini api key. If you need to `enable` the server api, this is required.
 
 ### `GEMINI_API_BASE_URL` (optional)
 
@@ -128,7 +128,15 @@ Your Gemini Pro api key. If you need to `enable` the server api, this is require
 
 > Examples: `http://your-gemini-proxy.com`
 
-Override Gemini Pro api request base url.
+Override Gemini api request base url.
+
+### `GEMINI_UPLOAD_BASE_URL` (optional)
+
+> Default: `https://generativelanguage.googleapis.com`
+
+> Example: `http://your-gemini-upload-proxy.com`
+
+Override Gemini file upload api base url.
 
 ### `ASSISTANT_INDEX_URL` (optional)
 
@@ -150,7 +158,7 @@ Injected script code can be used for statistics or error tracking.
 
 ### `GEMINI_API_KEY`（可选）
 
-您的 Gemini Pro api 密钥。 如果您需要“启用”服务器 api，这是必需的。
+您的 Gemini api 密钥。 如果您需要“启用”服务器 api，这是必需的。
 
 ### `GEMINI_API_BASE_URL`（可选）
 
@@ -158,7 +166,15 @@ Injected script code can be used for statistics or error tracking.
 
 > 示例：`http://your-gemini-proxy.com`
 
-覆盖 Gemini Pro api 请求基本 url。
+覆盖 Gemini api 请求基本 url。
+
+### `GEMINI_UPLOAD_BASE_URL`（可选）
+
+> 默认值：`https://generativelanguage.googleapis.com`
+
+> 示例：`http://your-gemini-upload-proxy.com`
+
+覆盖 Gemini 文件上传 api 基本 url。
 
 ### `ASSISTANT_INDEX_URL`（可选）
 
@@ -166,7 +182,7 @@ Injected script code can be used for statistics or error tracking.
 
 > 示例：`http://your-assistant-market-proxy.com`
 
-覆盖 assistant market api 请求基本 url。
+覆盖助理市场 api 请求基本 url。
 
 ### `ACCESS_PASSWORD`（可选）
 
@@ -318,7 +334,7 @@ Currently, the two models `Gemini 1.5 Pro` and `Gemini 1.5 Flash` support most i
 
 #### “User location is not supported for the API use” 的解决方案
 
-可以参考以下两个 Gemini Api 代理项目 [gemini-proxy](https://github.com/Jazee6/gemini-proxy) 和 [palm-netlify-proxy](https://github.com/antergone/palm-netlify-proxy) 的部署方式。
+可以参考以下两个 Gemini Api 代理项目 [gemini-proxy](https://github.com/Jazee6/gemini-proxy) 和 [palm-netlify-proxy](https://github.com/Amery2010/palm-netlify-proxy) 的部署方式。
 
 **注意 Vercel 和 Netlify 禁止用户部署代理服务，该解决方案可能会导致封号，需谨慎使用**
 
@@ -335,6 +351,10 @@ Currently, the two models `Gemini 1.5 Pro` and `Gemini 1.5 Flash` support most i
 #### 为什么我无法上传 doc、excel、pdf 这类常见文档
 
 目前 `Gemini 1.5 Pro` 和 `Gemini 1.5 Flash` 这两个模型支持的大部分的图片、音频、视频和部分文本类的文件，详见[支持列表](https://ai.google.dev/gemini-api/docs/prompting_with_media)。对于其他文档类型，后续将尝试使用 [LangChain.js](https://js.langchain.com/v0.2/docs/introduction/) 来实现。
+
+## Star History
+
+[![Star History Chart](https://api.star-history.com/svg?repos=Amery2010/TalkWithGemini&type=Date)](https://star-history.com/#Amery2010/TalkWithGemini&Date)
 
 ## LICENSE
 

@@ -26,6 +26,7 @@ function Setting({ open, hiddenTalkPanel, onClose }: SettingProps) {
   const [password, setPassword] = useState<string>('')
   const [apiKey, setApiKey] = useState<string>('')
   const [apiProxy, setApiProxy] = useState<string>('')
+  const [uploadProxy, setUploadProxy] = useState<string>('')
   const [model, setModel] = useState<string>('')
   const [maxHistoryLength, setMaxHistoryLength] = useState<number>(0)
   const [lang, setLang] = useState<string>('')
@@ -45,6 +46,7 @@ function Setting({ open, hiddenTalkPanel, onClose }: SettingProps) {
     if (assistantIndexUrl !== settingStore.assistantIndexUrl) settingStore.setAssistantIndexUrl(assistantIndexUrl)
     if (apiKey !== settingStore.apiKey) settingStore.setApiKey(apiKey)
     if (apiProxy !== settingStore.apiProxy) settingStore.setApiProxy(apiProxy)
+    if (uploadProxy !== settingStore.uploadProxy) settingStore.setUploadProxy(uploadProxy)
     if (model !== settingStore.model) settingStore.setModel(model)
     if (maxHistoryLength !== settingStore.maxHistoryLength) settingStore.setMaxHistoryLength(maxHistoryLength)
     if (lang !== settingStore.lang) settingStore.setLang(lang)
@@ -84,6 +86,7 @@ function Setting({ open, hiddenTalkPanel, onClose }: SettingProps) {
     setPassword(settingStore.password)
     setApiKey(settingStore.apiKey)
     setApiProxy(settingStore.apiProxy)
+    setUploadProxy(settingStore.uploadProxy)
     setModel(settingStore.model)
     setLang(settingStore.lang)
     setSttLang(settingStore.sttLang)
@@ -183,6 +186,18 @@ function Setting({ open, hiddenTalkPanel, onClose }: SettingProps) {
                 className="col-span-3"
                 defaultValue={apiProxy}
                 onChange={(ev) => setApiProxy(ev.target.value)}
+              />
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="uploadProxy" className="text-right">
+                {t('uploadProxyUrl')}
+              </Label>
+              <Input
+                id="uploadProxy"
+                placeholder={t('uploadProxyUrlPlaceholder')}
+                className="col-span-3"
+                defaultValue={uploadProxy}
+                onChange={(ev) => setUploadProxy(ev.target.value)}
               />
             </div>
             <div className="grid grid-cols-4 items-center gap-4">

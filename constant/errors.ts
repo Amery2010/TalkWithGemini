@@ -3,4 +3,5 @@ export enum ErrorType {
   NoGeminiKey = 'The server Gemini key is missing',
   ServerError = 'Server Error',
   MissingParam = 'Missing required parameters',
+  NoUploadURL = 'Unable to get upload URL',
 }

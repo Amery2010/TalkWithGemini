@@ -1,6 +1,8 @@
 /** @type {import('next').NextConfig} */
 
 const mode = process.env.NEXT_PUBLIC_BUILD_MODE ?? 'standalone'
+const apiKey = process.env.GEMINI_API_KEY ?? ''
+const uploadProxyUrl = process.env.GEMINI_UPLOAD_BASE_URL ?? 'https://generativelanguage.googleapis.com'
 
 const nextConfig = {
   transpilePackages: ['crypto-js'],
@@ -21,8 +23,19 @@ if (mode !== 'export') {
     return {
       beforeFiles: [
         {
-          source: '/api/google/:path*',
-          destination: `https://generativelanguage.googleapis.com/:path*`,
+          source: '/api/google/upload/v1beta/files',
+          has: [
+            {
+              type: 'query',
+              key: 'uploadType',
+              value: '(?<uploadType>.*)',
+            },
+          ],
+          destination: `${uploadProxyUrl}/upload/v1beta/files?key=${apiKey}&uploadType=:uploadType`,
+        },
+        {
+          source: '/api/google/v1beta/files/:id',
+          destination: `${uploadProxyUrl}/v1beta/files/:id?key=${apiKey}`,
         },
       ],
     }

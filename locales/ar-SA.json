@@ -18,6 +18,8 @@
   "geminiKeyPlaceholder": "يرجى إدخال مفتاح Gemini الخاص بك",
   "apiProxyUrl": "عنوان URL للوكيل البرمجي للواجهة البرمجية للتطبيقات",
   "apiProxyUrlPlaceholder": "يرجى إدخال عنوان URL للوكيل البرمجي للواجهة البرمجية (اختياري)",
+  "uploadProxyUrl": "رابط وكيل تحميل الملفات",
+  "uploadProxyUrlPlaceholder": "الرجاء إدخال رابط وكيل تحميل الملفات (اختياري)",
   "followTheSystem": "اتبع النظام",
   "speechRecognition": "التعرف على الكلام",
   "speechSynthesis": "توليف الكلام",

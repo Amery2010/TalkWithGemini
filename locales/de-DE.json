@@ -18,6 +18,8 @@
   "geminiKeyPlaceholder": "Bitte geben Sie Ihren Gemini-Schlüssel ein",
   "apiProxyUrl": "API-Proxy-URL",
   "apiProxyUrlPlaceholder": "Bitte API-Proxy-URL eingeben (optional)",
+  "uploadProxyUrl": "URL des Datei-Upload-Proxys",
+  "uploadProxyUrlPlaceholder": "Bitte geben Sie die URL des Datei-Upload-Proxys ein (optional)",
   "followTheSystem": "Dem System folgen",
   "speechRecognition": "Spracherkennung",
   "speechSynthesis": "Sprachsynthese",

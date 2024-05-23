@@ -18,6 +18,8 @@
   "geminiKeyPlaceholder": "Пожалуйста, введите свой ключ Gemini",
   "apiProxyUrl": "URL прокси API",
   "apiProxyUrlPlaceholder": "Пожалуйста, введите URL прокси API (по желанию)",
+  "uploadProxyUrl": "URL прокси-сервера для загрузки файлов",
+  "uploadProxyUrlPlaceholder": "Пожалуйста, введите URL прокси-сервера для загрузки файлов (необязательно)",
   "followTheSystem": "Следовать системе",
   "speechRecognition": "Распознавание речи",
   "speechSynthesis": "Синтез речи",

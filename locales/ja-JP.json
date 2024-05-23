@@ -18,6 +18,8 @@
   "geminiKeyPlaceholder": "ジェミニキーを入力してください",
   "apiProxyUrl": "APIプロキシURL",
   "apiProxyUrlPlaceholder": "APIプロキシURLを入力してください（任意）",
+  "uploadProxyUrl": "ファイルアップロードプロキシのURL",
+  "uploadProxyUrlPlaceholder": "ファイルアップロードプロキシのURLを入力してください（オプション）",
   "followTheSystem": "システムに従う",
   "speechRecognition": "音声認識",
   "speechSynthesis": "音声合成",

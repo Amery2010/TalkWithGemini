@@ -1,11 +1,11 @@
-import { useRef, memo, useMemo } from 'react'
+import { useRef, useMemo, memo } from 'react'
 import { Paperclip, ImagePlus } from 'lucide-react'
 import imageCompression from 'browser-image-compression'
 import { useSettingStore } from '@/store/setting'
 import { useAttachmentStore } from '@/store/attachment'
-import FileManager from '@/utils/FileManager'
+import FileManager, { type FileManagerOptions } from '@/utils/FileManager'
+import FibonacciTimer from '@/utils/FibonacciTimer'
 import { encodeToken, encodeBase64 } from '@/utils/signature'
-import { readFileAsDataURL } from '@/utils/common'
 import { Model } from '@/constant/model'
 import mimeType, { imageMimeType } from '@/constant/attachment'
 import { isNull } from 'lodash-es'
@@ -20,15 +20,19 @@ const compressionOptions = {
 function FileUploader() {
   const attachmentRef = useRef<HTMLInputElement>(null)
   const imageRef = useRef<HTMLInputElement>(null)
-  const { apiKey, apiProxy, password, model } = useSettingStore()
+  const { apiKey, apiProxy, uploadProxy, password, model } = useSettingStore()
   const isVisionModel = useMemo(() => {
     return [Model['Gemini Pro Vision'], Model['Gemini 1.0 Pro Vision']].includes(model as Model)
   }, [model])
 
   const handleFileUpload = async (files: FileList | null) => {
     if (isNull(files)) return false
-    const options = apiKey !== '' ? { apiKey, baseUrl: apiProxy } : { token: encodeToken(password) }
+    const options: FileManagerOptions =
+      apiKey !== ''
+        ? { apiKey, baseUrl: apiProxy, uploadUrl: uploadProxy }
+        : { token: encodeToken(password), uploadUrl: uploadProxy }
     const { add: addAttachment, update: updateAttachment } = useAttachmentStore.getState()
+
     for await (const file of files) {
       const fileInfor: FileInfor = {
         id: encodeBase64(`${file.name}:${file.type}:${file.type}`),
@@ -38,35 +42,45 @@ function FileUploader() {
         status: 'PROCESSING',
       }
       const fileManager = new FileManager(options)
-      const formData = new FormData()
+      // const formData = new FormData()
+      let uploadFile: File
       if (file.type.startsWith('image/')) {
         const compressedFile = await imageCompression(file, compressionOptions)
-        fileInfor.preview = await readFileAsDataURL(compressedFile)
-        fileInfor.size = compressedFile.size
-        formData.append('file', compressedFile)
+        uploadFile = new File([compressedFile], file.name, { type: file.type })
+        fileInfor.preview = await imageCompression.getDataUrlFromFile(uploadFile)
+        fileInfor.size = uploadFile.size
       } else {
-        formData.append('file', file)
+        uploadFile = file
       }
       addAttachment(fileInfor)
-      fileManager.uploadFile(formData).then(async ({ file }) => {
-        if (file.state === 'PROCESSING') {
-          const timer = setInterval(async () => {
+
+      const checkFileStatus = async (fileMeta: FileMetadata) => {
+        if (fileMeta.state === 'PROCESSING') {
+          const fibonacciTimer = new FibonacciTimer()
+          const task = async () => {
             const fileManager = new FileManager(options)
-            const fileMetadata: FileMetadata = await fileManager.getFileMetadata(file.name.substring(6))
-            if (fileMetadata.state === 'ACTIVE') {
+            const fileMetadata: FileMetadata = await fileManager.getFileMetadata(fileMeta.name.substring(6))
+            if (fileMetadata.state !== 'PROCESSING') {
               fileInfor.status = fileMetadata.state
               fileInfor.metadata = fileMetadata
               updateAttachment(fileInfor.id, fileInfor)
-              clearInterval(timer)
+              fibonacciTimer.stopTimer()
             }
-          }, 1000)
+          }
+          fibonacciTimer.startTimer(task, 1000, 1)
         } else {
-          fileInfor.status = file.state
-          fileInfor.metadata = file
+          fileInfor.status = fileMeta.state
+          fileInfor.metadata = fileMeta
           updateAttachment(fileInfor.id, fileInfor)
         }
         return false
-      })
+      }
+      // Files smaller than 8MB are uploaded directly
+      if (file.size <= 4194304) {
+        fileManager.uploadFile(uploadFile).then((fileMetadata) => checkFileStatus(fileMetadata.file))
+      } else {
+        fileManager.resumableUploadFile(uploadFile).then((fileMetadata) => checkFileStatus(fileMetadata.file))
+      }
     }
   }
 
@@ -83,7 +97,7 @@ function FileUploader() {
       }
       addAttachment(fileInfor)
       const compressedFile = await imageCompression(file, compressionOptions)
-      fileInfor.preview = await readFileAsDataURL(compressedFile)
+      fileInfor.preview = await imageCompression.getDataUrlFromFile(compressedFile)
       fileInfor.size = compressedFile.size
       fileInfor.status = 'ACTIVE'
       updateAttachment(fileInfor.id, fileInfor)

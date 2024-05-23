@@ -8,6 +8,7 @@ interface SettingStore extends Setting {
   setPassword: (password: string) => void
   setApiKey: (key: string) => void
   setApiProxy: (url: string) => void
+  setUploadProxy: (url: string) => void
   setModel: (model: string) => void
   setLang: (lang: string) => void
   setSTTLang: (lang: string) => void
@@ -24,6 +25,7 @@ export const useSettingStore = create<SettingStore>((set) => ({
   password: '',
   apiKey: '',
   apiProxy: '',
+  uploadProxy: '',
   model: '',
   sttLang: '',
   ttsLang: '',
@@ -43,6 +45,7 @@ export const useSettingStore = create<SettingStore>((set) => ({
       password: (await storage.getItem<string>('password')) || '',
       apiKey: (await storage.getItem<string>('apiKey')) || '',
       apiProxy: (await storage.getItem<string>('apiProxy')) || 'https://generativelanguage.googleapis.com',
+      uploadProxy: (await storage.getItem<string>('uploadProxy')) || 'https://generativelanguage.googleapis.com',
       model: (await storage.getItem<string>('model')) || 'gemini-1.5-flash-latest',
       sttLang: sttLang || lang,
       ttsLang: ttsLang || lang,
@@ -70,6 +73,10 @@ export const useSettingStore = create<SettingStore>((set) => ({
   setApiProxy: (url) => {
     set(() => ({ apiProxy: url }))
     storage.setItem<string>('apiProxy', url)
+  },
+  setUploadProxy: (url) => {
+    set(() => ({ uploadProxy: url }))
+    storage.setItem<string>('uploadProxy', url)
   },
   setModel: (model) => {
     set(() => ({ model }))
