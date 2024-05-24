@@ -3,7 +3,6 @@
   "status": {
     "thinking": "التفكير"
   },
-  "regenerateAnswer": "إعادة توليد الإجابة",
   "clearChatContent": "مسح محتوى المحادثة",
   "chatMode": "وضع الدردشة",
   "voiceMode": "وضع الصوت",
@@ -46,5 +45,10 @@
   "llmModel": "نموذج LLM",
   "voiceServer": "خدمة الصوت",
   "uploadTooltip": "قم بتحميل الملفات، يدعم الصور، الصوتيات، الفيديوهات ومستندات النصوص",
-  "imageUploadTooltip": "دعم تحميل الصور"
+  "imageUploadTooltip": "دعم تحميل الصور",
+  "resend": "إعادة الإرسال",
+  "regenerate": "إعادة التفكير",
+  "edit": "تحرير",
+  "delete": "حذف",
+  "speak": "قراءة بصوت عالٍ"
 }

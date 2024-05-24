@@ -82,6 +82,7 @@ body {
 .hljs-warpper {
   position: relative;
   width: 100%;
+  max-width: 692px;
   margin: 0.5em 0;
   font-size: 0.8em;
   overflow-x: auto;
@@ -116,6 +117,7 @@ body {
 .katex-inline-warpper {
   position: relative;
   width: 100%;
+  max-width: 692px;
   overflow-x: auto;
   overflow-y: hidden;
 }
@@ -177,4 +179,14 @@ html.dark .hljs-warpper ::-webkit-scrollbar-thumb:hover {
   max-height: 200px;
   border-radius: 4px;
   margin-bottom: 8px;
+}
+
+@media (max-width: 768px) {
+  .hljs-warpper {
+    max-width: calc(100vw - 76px);
+  }
+  .katex-block-warpper,
+  .katex-inline-warpper {
+    max-width: calc(100vw - 76px);
+  }
 }

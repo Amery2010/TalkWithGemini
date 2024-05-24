@@ -3,7 +3,6 @@
   "status": {
     "thinking": "Pensando"
   },
-  "regenerateAnswer": "Regenerar resposta",
   "clearChatContent": "Limpar conteúdo do chat",
   "chatMode": "Modo de chat",
   "voiceMode": "Modo de voz",
@@ -46,5 +45,10 @@
   "llmModel": "LLM Modelo",
   "voiceServer": "Serviço de voz",
   "uploadTooltip": "Carregar arquivos, suporta imagens, áudio, vídeos e documentos de texto",
-  "imageUploadTooltip": "Suporte para upload de imagens"
+  "imageUploadTooltip": "Suporte para upload de imagens",
+  "resend": "Reenviar",
+  "regenerate": "Repensar",
+  "edit": "Editar",
+  "delete": "Excluir",
+  "speak": "Leitura em voz alta"
 }

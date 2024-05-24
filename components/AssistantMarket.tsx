@@ -1,7 +1,8 @@
-import { useState, useCallback, useLayoutEffect, memo } from 'react'
+import { useState, useCallback, useLayoutEffect, memo, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Card, CardDescription, CardHeader, CardFooter, CardTitle } from '@/components/ui/card'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import SearchBar from '@/components/SearchBar'
@@ -16,6 +17,12 @@ type AssistantProps = {
   onLoaded: () => void
 }
 
+type AssistantMarketIndex = {
+  agents: Assistant[]
+  tags: string[]
+  schemaVersion: number
+}
+
 function search(keyword: string, data: Assistant[]): Assistant[] {
   const results: Assistant[] = []
   // 'i' means case-insensitive
@@ -28,16 +35,23 @@ function search(keyword: string, data: Assistant[]): Assistant[] {
   return results
 }
 
+function filterDataByTag(data: Assistant[], tag: string): Assistant[] {
+  return tag !== 'all' ? data.filter((item) => item.meta.tags.includes(tag)) : data
+}
+
 function Assistant({ open, onClose, onSelect, onLoaded }: AssistantProps) {
   const { t } = useTranslation()
   const { assistants, update: updateAssistants } = useAssistantStore()
   const { lang, assistantIndexUrl } = useSettingStore()
   const [assistantList, setAssistantList] = useState<Assistant[]>([])
+  const [tagList, setTagList] = useState<string[]>([])
+  const [currentTag, setCurrentTag] = useState<string>('all')
 
   const handleClose = useCallback(
     (open: boolean) => {
       if (!open) {
         onClose()
+        setCurrentTag('')
         setAssistantList(assistants)
       }
     },
@@ -46,39 +60,50 @@ function Assistant({ open, onClose, onSelect, onLoaded }: AssistantProps) {
 
   const handleSelect = useCallback(
     async (assistant: Assistant) => {
-      onClose()
+      handleClose(false)
       const assistantMarketUrl = new AssistantMarketUrl(assistantIndexUrl)
       const response = await fetch(assistantMarketUrl.getAssistantUrl(assistant.identifier, lang))
       const assistantDeatil: AssistantDetail = await response.json()
       onSelect(assistantDeatil.config.systemRole)
     },
-    [lang, assistantIndexUrl, onClose, onSelect],
+    [lang, assistantIndexUrl, handleClose, onSelect],
   )
 
   const handleSearch = useCallback(
     (keyword: string) => {
-      const result = search(keyword, assistants)
+      const result = search(keyword, filterDataByTag(assistants, currentTag))
       setAssistantList(result)
+    },
+    [assistants, currentTag],
+  )
+
+  const handleClear = useCallback(() => {
+    setAssistantList(filterDataByTag(assistants, currentTag))
+  }, [currentTag, assistants])
+
+  const handleSelectTag = useCallback(
+    (value: string) => {
+      setCurrentTag(value)
+      setAssistantList(filterDataByTag(assistants, value))
     },
     [assistants],
   )
 
-  const handleClear = useCallback(() => {
-    setAssistantList(assistants)
-  }, [assistants])
-
   const fetchAssistantMarketIndex = useCallback(async () => {
     const assistantMarketUrl = new AssistantMarketUrl(assistantIndexUrl)
     const response = await fetch(assistantMarketUrl.getIndexUrl(lang))
-    const assistantMarketIndex = await response.json()
+    const assistantMarketIndex: AssistantMarketIndex = await response.json()
     updateAssistants(assistantMarketIndex.agents)
     setAssistantList(assistantMarketIndex.agents)
+    setTagList(assistantMarketIndex.tags)
     onLoaded()
   }, [lang, assistantIndexUrl, updateAssistants, onLoaded])
 
   useLayoutEffect(() => {
     if (assistantIndexUrl !== '' && assistants.length === 0) {
       fetchAssistantMarketIndex()
+    } else {
+      setAssistantList(assistants)
     }
   }, [assistantIndexUrl, assistants, fetchAssistantMarketIndex])
 
@@ -91,7 +116,24 @@ function Assistant({ open, onClose, onSelect, onLoaded }: AssistantProps) {
             <small>{t('totalAssistant', { total: assistants.length })}</small>
           </DialogTitle>
           <DialogDescription className="pb-2">{t('assistantMarketDescription')}</DialogDescription>
-          <SearchBar onSearch={handleSearch} onClear={() => handleClear()} />
+          <div className="flex gap-2">
+            <Select defaultValue="all" onValueChange={(value) => handleSelectTag(value)}>
+              <SelectTrigger className="w-[180px]">
+                <SelectValue placeholder="请选择分类" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">全部</SelectItem>
+                {tagList.map((tag) => {
+                  return (
+                    <SelectItem key={tag} value={tag}>
+                      {tag}
+                    </SelectItem>
+                  )
+                })}
+              </SelectContent>
+            </Select>
+            <SearchBar onSearch={handleSearch} onClear={() => handleClear()} />
+          </div>
         </DialogHeader>
         <ScrollArea className="h-[400px] w-full scroll-smooth max-sm:h-full">
           <div className="grid grid-cols-2 gap-2 p-6 pt-0 max-sm:grid-cols-1 max-sm:p-4 max-sm:pt-0">

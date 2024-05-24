@@ -15,6 +15,7 @@ type MessageStore = {
   init: () => Promise<Message[]>
   add: (message: Message) => void
   update: (id: string, message: Message) => void
+  remove: (id: string) => void
   clear: () => void
   save: () => void
   revoke: (id: string) => void
@@ -54,6 +55,15 @@ export const useMessageStore = create<MessageStore>((set, get) => ({
       }
     })
   },
+  remove: (id) => {
+    set((state) => {
+      const index = findIndex(state.messages, { id })
+      const messages = [...state.messages]
+      messages.splice(index, 1)
+      return { messages }
+    })
+    get().save()
+  },
   clear: () => {
     set(() => ({
       messages: [],
@@ -74,8 +84,10 @@ export const useMessageStore = create<MessageStore>((set, get) => ({
   revoke: (id) => {
     set((state) => {
       const index = findIndex(state.messages, { id })
-      return { messages: state.messages.slice(0, index) }
+      const messages = [...state.messages]
+      return { messages: messages.slice(0, index) }
     })
+    get().save()
   },
   instruction: (prompt) => {
     set(() => ({ systemInstruction: prompt }))

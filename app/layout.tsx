@@ -3,6 +3,7 @@ import Script from 'next/script'
 import ThemeProvider from '@/components/ThemeProvider'
 import StoreProvider from '@/components/StoreProvider'
 import I18Provider from '@/components/I18nProvider'
+import { Toaster } from '@/components/ui/toaster'
 import { isUndefined } from 'lodash-es'
 
 import 'katex/dist/katex.min.css'
@@ -43,6 +44,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <I18Provider>{children}</I18Provider>
           </StoreProvider>
         </ThemeProvider>
+        <Toaster />
       </body>
     </html>
   )

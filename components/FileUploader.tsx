@@ -1,6 +1,7 @@
 import { useRef, useMemo, memo } from 'react'
 import { Paperclip, ImagePlus } from 'lucide-react'
 import imageCompression from 'browser-image-compression'
+import { useToast } from '@/components/ui/use-toast'
 import { useSettingStore } from '@/store/setting'
 import { useAttachmentStore } from '@/store/attachment'
 import FileManager, { type FileManagerOptions } from '@/utils/FileManager'
@@ -18,6 +19,7 @@ const compressionOptions = {
 }
 
 function FileUploader() {
+  const { toast } = useToast()
   const attachmentRef = useRef<HTMLInputElement>(null)
   const imageRef = useRef<HTMLInputElement>(null)
   const { apiKey, apiProxy, uploadProxy, password, model } = useSettingStore()
@@ -77,10 +79,23 @@ function FileUploader() {
       }
       // Files smaller than 8MB are uploaded directly
       if (file.size <= 4194304) {
-        fileManager.uploadFile(uploadFile).then((fileMetadata) => checkFileStatus(fileMetadata.file))
+        fileManager
+          .uploadFile(uploadFile)
+          .then((fileMetadata) => checkFileStatus(fileMetadata.file))
+          .catch((err: string) => {
+            toast({ description: err })
+          })
       } else {
-        fileManager.resumableUploadFile(uploadFile).then((fileMetadata) => checkFileStatus(fileMetadata.file))
+        fileManager
+          .resumableUploadFile(uploadFile)
+          .then((fileMetadata) => checkFileStatus(fileMetadata.file))
+          .catch((err: string) => {
+            toast({ description: err })
+          })
       }
+    }
+    if (attachmentRef.current && attachmentRef.current.value) {
+      attachmentRef.current.value = ''
     }
   }
 
@@ -101,6 +116,9 @@ function FileUploader() {
       fileInfor.size = compressedFile.size
       fileInfor.status = 'ACTIVE'
       updateAttachment(fileInfor.id, fileInfor)
+    }
+    if (imageRef.current && imageRef.current.value) {
+      imageRef.current.value = ''
     }
   }
 

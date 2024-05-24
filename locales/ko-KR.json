@@ -3,7 +3,6 @@
   "status": {
     "thinking": "생각 중"
   },
-  "regenerateAnswer": "답변 재생성",
   "clearChatContent": "채팅 내용 지우기",
   "chatMode": "채팅 모드",
   "voiceMode": "음성 모드",
@@ -46,5 +45,10 @@
   "llmModel": "LLM 모델",
   "voiceServer": "음성 서비스",
   "uploadTooltip": "파일 업로드, 이미지, 오디오, 비디오 및 텍스트 문서 지원",
-  "imageUploadTooltip": "이미지 업로드 지원"
+  "imageUploadTooltip": "이미지 업로드 지원",
+  "resend": "재전송",
+  "regenerate": "다시 생각해 보다",
+  "edit": "편집",
+  "delete": "삭제",
+  "speak": "낭독"
 }

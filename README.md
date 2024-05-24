@@ -359,7 +359,3 @@ Currently, the two models `Gemini 1.5 Pro` and `Gemini 1.5 Flash` support most i
 ## LICENSE
 
 [GPL-3.0-only](https://opensource.org/license/gpl-3-0)
-
-## 开源协议
-
-[GPL-3.0-only](https://opensource.org/license/gpl-3-0)

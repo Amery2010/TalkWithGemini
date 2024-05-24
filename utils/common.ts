@@ -60,3 +60,9 @@ export function formatSize(size: number, pointLength = 2, units?: string[]): str
   while ((unit = units.shift() as string) && size >= 1024) size = size / 1024
   return (unit === units[0] ? size : size.toFixed(pointLength === undefined ? 2 : pointLength)) + unit
 }
+
+export const sentenceSegmentation = (content: string, locale: string) => {
+  const segmenter = new Intl.Segmenter(locale, { granularity: 'sentence' })
+  const segments = segmenter.segment(content)
+  return Array.from(segments).map((item) => item.segment)
+}

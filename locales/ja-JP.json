@@ -3,7 +3,6 @@
   "status": {
     "thinking": "考え中"
   },
-  "regenerateAnswer": "回答を再生成",
   "clearChatContent": "チャット内容を消去",
   "chatMode": "チャットモード",
   "voiceMode": "音声モード",
@@ -46,5 +45,10 @@
   "llmModel": "LLM モデル",
   "voiceServer": "音声サービス",
   "uploadTooltip": "ファイルをアップロードし、画像、オーディオ、ビデオ、テキストドキュメントをサポートしています",
-  "imageUploadTooltip": "画像のアップロードをサポート"
+  "imageUploadTooltip": "画像のアップロードをサポート",
+  "resend": "再送信",
+  "regenerate": "考え直す",
+  "edit": "編集",
+  "delete": "削除",
+  "speak": "読み上げる"
 }

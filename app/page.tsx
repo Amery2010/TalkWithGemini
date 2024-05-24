@@ -35,7 +35,7 @@ import { formatTime } from '@/utils/common'
 import { cn } from '@/utils'
 import { Model } from '@/constant/model'
 import { customAlphabet } from 'nanoid'
-import { isFunction } from 'lodash-es'
+import { isFunction, findIndex } from 'lodash-es'
 
 interface AnswerParams {
   messages: Message[]
@@ -357,25 +357,20 @@ export default function Home() {
     [content, isVisionModel, fetchAnswer, handleResponse, handleError],
   )
 
-  const handleResubmit = useCallback(async () => {
-    const messages = [...messagesRef.current]
-    const lastMessage = messages.pop()
-    const { model } = useSettingStore.getState()
-    const { add: addMessage, update: updateMessage } = useMessageStore.getState()
-    if (lastMessage?.role === 'model') {
-      lastMessage.parts = [{ text: '' }]
-      updateMessage(lastMessage.id, lastMessage)
-      await fetchAnswer({
-        messages: messagesRef.current,
-        model,
-        onResponse: (stream) => {
-          handleResponse(stream, lastMessage)
-        },
-        onError: (message, code) => {
-          handleError(message, code)
-        },
-      })
-    } else {
+  const handleResubmit = useCallback(
+    async (id: string) => {
+      const { model } = useSettingStore.getState()
+      const { add: addMessage, revoke: rovokeMessage } = useMessageStore.getState()
+      if (id !== 'error') {
+        const messageIndex = findIndex(messagesRef.current, { id })
+        if (messageIndex !== -1) {
+          if (messagesRef.current[messageIndex].role === 'model') {
+            rovokeMessage(id)
+          } else {
+            rovokeMessage(messagesRef.current[messageIndex + 1].id)
+          }
+        }
+      }
       const newModelMessage: Message = { id: nanoid(), role: 'model', parts: [{ text: '' }] }
       addMessage(newModelMessage)
       await fetchAnswer({
@@ -388,8 +383,9 @@ export default function Home() {
           handleError(message, code)
         },
       })
-    }
-  }, [fetchAnswer, handleResponse, handleError])
+    },
+    [fetchAnswer, handleResponse, handleError],
+  )
 
   const handleCleanMessage = useCallback(() => {
     const { clear: clearMessage } = useMessageStore.getState()
@@ -558,30 +554,30 @@ export default function Home() {
               key={msg.id}
             >
               <div className="flex gap-3 p-4 hover:bg-gray-50/80 dark:hover:bg-gray-900/80">
-                <MessageItem {...msg} />
+                <MessageItem {...msg} onRegenerate={handleResubmit} />
               </div>
             </div>
           ))}
           {errorMessage !== '' ? (
             <div className="group text-slate-500 transition-colors last:text-slate-800 hover:text-slate-800 dark:last:text-slate-400 dark:hover:text-slate-400 max-sm:hover:bg-transparent">
               <div className="flex gap-3 p-4 hover:bg-gray-50/80 dark:hover:bg-gray-900/80">
-                <ErrorMessageItem content={errorMessage} />
+                <ErrorMessageItem content={errorMessage} onRegenerate={() => handleResubmit('error')} />
               </div>
             </div>
           ) : null}
           {content !== '' ? (
             <div className="group text-slate-500 transition-colors last:text-slate-800 hover:text-slate-800 dark:last:text-slate-400 dark:hover:text-slate-400 max-sm:hover:bg-transparent">
               <div className="flex gap-3 p-4 hover:bg-gray-50/80 dark:hover:bg-gray-900/80">
-                <MessageItem id="tmp" role="user" parts={[{ text: content }]} />
+                <MessageItem id="preview" role="user" parts={[{ text: content }]} />
               </div>
             </div>
           ) : null}
           {messageStore.messages.length > 0 ? (
             <div className="my-2 flex h-4 justify-center text-xs text-slate-400 duration-300 dark:text-slate-600">
-              <span className="mx-2 cursor-pointer hover:text-slate-500" onClick={() => handleResubmit()}>
+              {/* <span className="mx-2 cursor-pointer hover:text-slate-500" onClick={() => handleResubmit()}>
                 {t('regenerateAnswer')}
               </span>
-              <Separator orientation="vertical" />
+              <Separator orientation="vertical" /> */}
               <span className="mx-2 cursor-pointer hover:text-slate-500" onClick={() => handleCleanMessage()}>
                 {t('clearChatContent')}
               </span>
@@ -599,6 +595,7 @@ export default function Home() {
         <div className="relative w-full rounded-md border border-input bg-[hsl(var(--background))] pt-2">
           <AttachmentArea className="m-2 mt-0 max-h-32 overflow-y-auto border-b border-dashed pb-2" />
           <textarea
+            autoFocus
             className={cn(
               'h-auto max-h-[120px] w-full resize-none border-none bg-transparent px-2 text-sm leading-6 transition-[height] focus-visible:outline-none',
               disableSpeechRecognition ? 'pr-9' : 'pr-[72px]',

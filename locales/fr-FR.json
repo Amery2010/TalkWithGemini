@@ -3,7 +3,6 @@
   "status": {
     "thinking": "En train de réfléchir"
   },
-  "regenerateAnswer": "Régénérer la réponse",
   "clearChatContent": "Effacer le contenu du chat",
   "chatMode": "Mode chat",
   "voiceMode": "Mode vocal",
@@ -46,5 +45,10 @@
   "llmModel": "LLM Modèle",
   "voiceServer": "Service vocal",
   "uploadTooltip": "Téléchargez des fichiers, prend en charge les images, l'audio, les vidéos et les documents texte",
-  "imageUploadTooltip": "Support pour le téléchargement d'images"
+  "imageUploadTooltip": "Support pour le téléchargement d'images",
+  "resend": "Renvoyer",
+  "regenerate": "Repenser",
+  "edit": "Modifier",
+  "delete": "Supprimer",
+  "speak": "Lecture à voix haute"
 }

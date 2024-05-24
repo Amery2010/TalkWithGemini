@@ -1,31 +1,138 @@
-import { memo, useEffect, useState, useCallback, useMemo } from 'react'
+import { useEffect, useState, useCallback, useMemo, memo } from 'react'
 import MarkdownIt from 'markdown-it'
 import markdownHighlight from 'markdown-it-highlightjs'
 import highlight from 'highlight.js'
 import markdownKatex from '@traptitech/markdown-it-katex'
 import Clipboard from 'clipboard'
 import { useTranslation } from 'react-i18next'
-import { User, Bot } from 'lucide-react'
+import { User, Bot, RotateCw, Sparkles, Copy, CopyCheck, PencilLine, Eraser, Volume2 } from 'lucide-react'
+import { EdgeSpeech } from '@xiangfa/polly'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import BubblesLoading from '@/components/BubblesLoading'
 import FileList from '@/components/FileList'
-import { upperFirst, find } from 'lodash-es'
+import EditableArea from '@/components/EditableArea'
+import IconButton from '@/components/IconButton'
+import { useMessageStore } from '@/store/chat'
+import { useSettingStore } from '@/store/setting'
+import AudioStream from '@/utils/AudioStream'
+import { sentenceSegmentation } from '@/utils/common'
+import { upperFirst, isFunction, find } from 'lodash-es'
+
+interface Props extends Message {
+  onRegenerate?: (id: string) => void
+}
 
 const registerCopy = (className: string) => {
   const clipboard = new Clipboard(className, {
-    text: function (trigger) {
+    text: (trigger) => {
       return decodeURIComponent(trigger.getAttribute('data-clipboard-text') || '')
     },
   })
   return clipboard
 }
 
-function MessageItem({ role, parts, attachments }: Message) {
+function filterMarkdown(text: string): string {
+  const md = new MarkdownIt()
+  // Convert Markdown to HTML using markdown-it
+  const html = md.render(text)
+  // Convert HTML to DOM objects using DOMParser
+  const parser = new DOMParser()
+  const doc = parser.parseFromString(html, 'text/html')
+  // Get filtered text content
+  const filteredText = doc.body.textContent || ''
+  return filteredText
+}
+
+function mergeSentences(sentences: string[], sentenceLength = 20): string[] {
+  const mergedSentences: string[] = []
+  let currentSentence = ''
+
+  sentences.forEach((sentence) => {
+    if (currentSentence.length + sentence.length >= sentenceLength) {
+      mergedSentences.push(currentSentence.trim())
+      currentSentence = sentence
+    } else {
+      currentSentence += ' ' + sentence
+    }
+  })
+
+  if (currentSentence.trim() !== '') {
+    mergedSentences.push(currentSentence.trim())
+  }
+  console.log(mergedSentences)
+  return mergedSentences
+}
+
+function MessageItem({ id, role, parts, attachments, onRegenerate }: Props) {
   const { t } = useTranslation()
   const [html, setHtml] = useState<string>('')
+  const [isEditing, setIsEditing] = useState<boolean>(false)
+  const [isCopyed, setIsCopyed] = useState<boolean>(false)
   const fileList = useMemo(() => {
     return attachments ? attachments.filter((item) => !item.metadata?.mimeType.startsWith('image/')) : []
   }, [attachments])
+  const content = useMemo(() => {
+    let text = ''
+    parts.forEach((item) => {
+      if (item.text) text = item.text
+    })
+    return text
+  }, [parts])
+
+  const handleRegenerate = useCallback(
+    (id: string) => {
+      if (isFunction(onRegenerate)) {
+        onRegenerate(id)
+      }
+    },
+    [onRegenerate],
+  )
+
+  const handleEdit = useCallback((id: string, content: string) => {
+    const { messages, update, save } = useMessageStore.getState()
+    const message = find(messages, { id })
+
+    if (message) {
+      const messageParts = [...message.parts]
+      messageParts.map((part) => {
+        if (part.text) part.text = content
+      })
+      update(id, { ...message, parts: messageParts })
+      save()
+    }
+
+    setIsEditing(false)
+  }, [])
+
+  const handleDelete = useCallback((id: string) => {
+    const { remove } = useMessageStore.getState()
+    remove(id)
+  }, [])
+
+  const handleCopy = useCallback(() => {
+    setIsCopyed(true)
+    setTimeout(() => {
+      setIsCopyed(false)
+    }, 2000)
+  }, [])
+
+  const handleSpeak = useCallback(async () => {
+    const { lang, ttsLang, ttsVoice } = useSettingStore.getState()
+    const sentences = mergeSentences(sentenceSegmentation(filterMarkdown(content), lang), 100)
+    const edgeSpeech = new EdgeSpeech({ locale: ttsLang })
+    const audioStream = new AudioStream()
+
+    for (const sentence of sentences) {
+      const response = await edgeSpeech.create({
+        input: sentence,
+        options: { voice: ttsVoice },
+      })
+      if (response) {
+        const audioData = await response.arrayBuffer()
+        audioStream.play({ audioData })
+      }
+    }
+  }, [content])
 
   const render = useCallback(
     (content: string) => {
@@ -107,13 +214,18 @@ function MessageItem({ role, parts, attachments }: Message) {
     const copyKatexInline = registerCopy('.copy-katex-inline')
     const copyKatexBlock = registerCopy('.copy-katex-block')
     const copyCode = registerCopy('.copy-code')
+
+    const copyContent = new Clipboard(`.copy-${id}`, {
+      text: () => content,
+    })
     return () => {
       setHtml('')
       copyKatexInline.destroy()
       copyKatexBlock.destroy()
       copyCode.destroy()
+      copyContent.destroy()
     }
-  }, [parts, attachments, render])
+  }, [id, content, parts, attachments, render])
 
   return (
     <>
@@ -131,16 +243,51 @@ function MessageItem({ role, parts, attachments }: Message) {
       {role === 'model' && parts && parts[0].text === '' ? (
         <BubblesLoading />
       ) : (
-        <div className="flex-auto">
+        <div className="group relative flex-auto">
           {fileList.length > 0 ? (
             <div className="w-full border-b border-dashed pb-2">
               <FileList fileList={fileList} />
             </div>
           ) : null}
-          <div
-            className="prose w-full overflow-hidden break-words text-base leading-8"
-            dangerouslySetInnerHTML={{ __html: html }}
-          ></div>
+          {!isEditing ? (
+            <>
+              <div
+                className="prose w-full overflow-hidden break-words pb-3 text-base leading-8"
+                dangerouslySetInnerHTML={{ __html: html }}
+              ></div>
+              <div className="absolute -bottom-3 right-0 flex gap-1 opacity-0 transition-opacity duration-300 group-hover:opacity-100">
+                {id !== 'preview' ? (
+                  <>
+                    <IconButton
+                      title={t(role === 'user' ? 'resend' : 'regenerate')}
+                      onClick={() => handleRegenerate(id)}
+                    >
+                      {role === 'user' ? <RotateCw className="h-4 w-4" /> : <Sparkles className="h-4 w-4" />}
+                    </IconButton>
+                    <IconButton title={t('edit')} onClick={() => setIsEditing(true)}>
+                      <PencilLine className="h-4 w-4" />
+                    </IconButton>
+                    <IconButton title={t('delete')} onClick={() => handleDelete(id)}>
+                      <Eraser className="h-4 w-4" />
+                    </IconButton>
+                  </>
+                ) : null}
+                <IconButton title={t('copy')} className={`copy-${id}`} onClick={() => handleCopy()}>
+                  {isCopyed ? <CopyCheck className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+                </IconButton>
+                <IconButton title={t('speak')} onClick={() => handleSpeak()}>
+                  <Volume2 className="h-4 w-4" />
+                </IconButton>
+              </div>
+            </>
+          ) : (
+            <EditableArea
+              content={content}
+              isEditing={isEditing}
+              onChange={(content) => handleEdit(id, content)}
+              onCancel={() => setIsEditing(false)}
+            />
+          )}
         </div>
       )}
     </>

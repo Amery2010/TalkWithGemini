@@ -3,7 +3,6 @@
   "status": {
     "thinking": "Thingking"
   },
-  "regenerateAnswer": "Regenerate answer",
   "clearChatContent": "Clear chat content",
   "chatMode": "Chat Mode",
   "voiceMode": "Voice Mode",
@@ -48,5 +47,10 @@
   "defaultModel": "Default Model",
   "selectDefaultModel": "Please select default model",
   "uploadTooltip": "Upload files, supports images, audios, videos, and text documents",
-  "imageUploadTooltip": "Support upload images"
+  "imageUploadTooltip": "Support upload images",
+  "resend": "Resend",
+  "regenerate": "Rethink",
+  "edit": "Edit",
+  "delete": "Delete",
+  "speak": "Reading aloud"
 }

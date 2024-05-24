@@ -3,7 +3,6 @@
   "status": {
     "thinking": "正在思考"
   },
-  "regenerateAnswer": "重新生成答案",
   "clearChatContent": "清空聊天内容",
   "chatMode": "聊天模式",
   "voiceMode": "语音对话模式",
@@ -48,5 +47,10 @@
   "defaultModel": "默认模型",
   "selectDefaultModel": "请选择默认模型",
   "uploadTooltip": "上传文件，支持图片、音频、视频和文本文档",
-  "imageUploadTooltip": "支持上传图片"
+  "imageUploadTooltip": "支持上传图片",
+  "resend": "重新发送",
+  "regenerate": "重新思考",
+  "edit": "编辑",
+  "delete": "删除",
+  "speak": "朗读"
 }
