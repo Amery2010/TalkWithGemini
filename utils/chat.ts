@@ -7,8 +7,8 @@ import { HarmCategory, HarmBlockThreshold } from '@google/generative-ai'
 
 export const generationConfig = {
   // maxOutputTokens: 4000,
-  temperature: 0.6,
-  topP: 0.8,
+  // temperature: 0.6,
+  // topP: 0.8,
   // topK: 16,
 }
 
@@ -49,7 +49,7 @@ export default function chat({
   const genAI = new GoogleGenerativeAI(apiKey)
   const modelParams: ModelParams = { model, generationConfig, safetySettings }
   if (systemInstruction) {
-    if ([Model['Gemini 1.5 Pro'], Model['Gemini 1.5 Flash']].includes(model as Model)) {
+    if (model.startsWith('gemini-1.5')) {
       modelParams.systemInstruction = systemInstruction
     } else {
       const systemInstructionMessages = [
@@ -64,7 +64,7 @@ export default function chat({
   if (isUndefined(message)) {
     throw new Error('Request parameter error')
   }
-  if ([Model['Gemini Pro Vision'], Model['Gemini 1.0 Pro Vision']].includes(model as Model)) {
+  if (['gemini-1.0-pro-vision', 'gemini-1.0-pro-vision-latest', 'gemini-pro-vision'].includes(model as Model)) {
     const textMessages: Message[] = []
     const imageMessages: InlineDataPart[] = message.parts.filter((part) =>
       part.inlineData?.mimeType.startsWith('image/'),

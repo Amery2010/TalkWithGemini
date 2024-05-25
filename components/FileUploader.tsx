@@ -24,7 +24,7 @@ function FileUploader() {
   const imageRef = useRef<HTMLInputElement>(null)
   const { apiKey, apiProxy, uploadProxy, password, model } = useSettingStore()
   const isVisionModel = useMemo(() => {
-    return [Model['Gemini Pro Vision'], Model['Gemini 1.0 Pro Vision']].includes(model as Model)
+    return ['gemini-1.0-pro-vision', 'gemini-1.0-pro-vision-latest', 'gemini-pro-vision'].includes(model as Model)
   }, [model])
 
   const handleFileUpload = async (files: FileList | null) => {

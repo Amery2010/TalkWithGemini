@@ -19,7 +19,7 @@ interface SettingStore extends Setting {
   setAssistantIndexUrl: (url: string) => void
 }
 
-const ASSISTANT_INDEX_URL = process.env.ASSISTANT_INDEX_URL
+const ASSISTANT_INDEX_URL = process.env.NEXT_PUBLIC_ASSISTANT_INDEX_URL
 
 export const useSettingStore = create<SettingStore>((set) => ({
   password: '',

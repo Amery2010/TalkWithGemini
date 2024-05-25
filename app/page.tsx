@@ -15,7 +15,6 @@ import {
 } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import ThemeToggle from '@/components/ThemeToggle'
-import { Separator } from '@/components/ui/separator'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
 import MessageItem from '@/components/MessageItem'
 import ErrorMessageItem from '@/components/ErrorMessageItem'
@@ -86,15 +85,14 @@ export default function Home() {
     }
   }, [status, t])
   const isVisionModel = useMemo(() => {
-    return [Model['Gemini Pro Vision'], Model['Gemini 1.0 Pro Vision']].includes(settingStore.model as Model)
+    return ['gemini-1.0-pro-vision', 'gemini-1.0-pro-vision-latest', 'gemini-pro-vision'].includes(
+      settingStore.model as Model,
+    )
   }, [settingStore.model])
   const supportAttachment = useMemo(() => {
-    return [
-      Model['Gemini 1.5 Pro'],
-      Model['Gemini 1.5 Flash'],
-      Model['Gemini Pro Vision'],
-      Model['Gemini 1.0 Pro Vision'],
-    ].includes(settingStore.model as Model)
+    return !['gemini-1.0-pro', 'gemini-1.0-pro-001', 'gemini-1.0-pro-latest', 'gemini-pro'].includes(
+      settingStore.model as Model,
+    )
   }, [settingStore.model])
   const isUploading = useMemo(() => {
     for (const file of attachmentStore.files) {

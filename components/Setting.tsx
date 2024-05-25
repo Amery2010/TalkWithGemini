@@ -12,13 +12,15 @@ import i18n from '@/plugins/i18n'
 import locales from '@/constant/locales'
 import { Model } from '@/constant/model'
 import { useSettingStore } from '@/store/setting'
-import { toPairs, values, entries } from 'lodash-es'
+import { toPairs, values } from 'lodash-es'
 
 type SettingProps = {
   open: boolean
   hiddenTalkPanel?: boolean
   onClose: () => void
 }
+
+const GEMINI_MODEL_LIST = process.env.NEXT_PUBLIC_GEMINI_MODEL_LIST
 
 function Setting({ open, hiddenTalkPanel, onClose }: SettingProps) {
   const { t } = useTranslation()
@@ -40,6 +42,40 @@ function Setting({ open, hiddenTalkPanel, onClose }: SettingProps) {
   const voiceOptions = useMemo(() => {
     return new EdgeSpeech({ locale: ttsLang }).voiceOptions || []
   }, [ttsLang])
+  const modelOptions = useMemo(() => {
+    const { setModel } = useSettingStore.getState()
+
+    let modelList: string[] = []
+    let defaultModel = 'gemini-1.5-flash-latest'
+    const defaultModelList: string[] = Object.values(Model)
+    const userModels: string[] = GEMINI_MODEL_LIST ? GEMINI_MODEL_LIST.split(',') : []
+
+    userModels.forEach((modelName) => {
+      if (modelName === 'all' || modelName === '+all') {
+        for (const name of defaultModelList) {
+          if (!modelList.includes(name)) modelList.push(name)
+        }
+      } else if (modelName === '-all') {
+        modelList = modelList.filter((name) => !defaultModelList.includes(name))
+      } else if (modelName.startsWith('-')) {
+        modelList = modelList.filter((name) => name !== modelName.substring(1))
+      } else if (modelName.startsWith('@')) {
+        const name = modelName.substring(1)
+        if (!modelList.includes(name)) modelList.push(name)
+        setModel(name)
+        defaultModel = name
+      } else {
+        modelList.push(modelName.startsWith('+') ? modelName.substring(1) : modelName)
+      }
+    })
+
+    const models = modelList.length > 0 ? modelList : defaultModelList
+    if (!models.includes(defaultModel)) {
+      setModel(models[0])
+    }
+
+    return models
+  }, [])
 
   const handleSubmit = () => {
     if (password !== settingStore.password) settingStore.setPassword(password)
@@ -209,10 +245,10 @@ function Setting({ open, hiddenTalkPanel, onClose }: SettingProps) {
                   <SelectValue placeholder={t('selectDefaultModel')} />
                 </SelectTrigger>
                 <SelectContent>
-                  {entries(Model).map(([key, value]) => {
+                  {modelOptions.map((value) => {
                     return (
-                      <SelectItem key={value} value={value as string}>
-                        {key}
+                      <SelectItem key={value} value={value}>
+                        {value}
                       </SelectItem>
                     )
                   })}

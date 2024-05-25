@@ -112,9 +112,33 @@ After adding or modifying this environment variable, please redeploy the project
 
 ## 访问密码
 
-项目提供访问控制。请在 vercel 环境变量页面添加名为 `ACCESS_PASSWORD` 的环境变量。
+项目提供访问控制。请在 `.env` 文件或环境变量页面添加名为 `ACCESS_PASSWORD` 的环境变量。
 
 添加或修改此环境变量后，请重新部署项目以使更改生效。
+
+## Custom model list
+
+This project supports custom model lists. Please add an environment variable named `NEXT_PUBLIC_GEMINI_MODEL_LIST` in the `.env` file or environment variables page.
+
+The default model list is represented by `all`, and multiple models are separated by `,`.
+
+If you need to add a new model, please directly write the model name `all,new-model-name`, or use the `+` symbol plus the model name to add, that is, `all,+new-model-name`.
+
+If you want to remove a model from the model list, use the `-` symbol followed by the model name to indicate removal, i.e. `all,-existing-model-name`. If you want to remove the default model list, you can use `-all`.
+
+If you want to set a default model, you can use the `@` symbol plus the model name to indicate the default model, that is, `all,@default-model-name`.
+
+## 自定义模型列表
+
+本项目支持自定义模型列表。请在 `.env` 文件或环境变量页面添加名为 `NEXT_PUBLIC_GEMINI_MODEL_LIST` 的环境变量。
+
+默认模型列表使用 `all` 表示，多个模型之间使用 `,` 分隔。
+
+如果需要增加新的模型请直接写入模型名称 `all,new-model-name`，或使用 `+` 符号加上模型名称表示增加，即 `all,+new-model-name`。
+
+如果要移除模型列表中的某个模型，请使用 `-` 符号加上模型名称表示移除，即 `all,-existing-model-name`。如果要移除默认模型列表，可以用 `-all` 表示。
+
+如果要设定默认模型，可以使用 `@` 符号加上模型名称表示默认模型，即 `all,@default-model-name`。
 
 ## Environment Variables
 
@@ -138,7 +162,11 @@ Override Gemini api request base url.
 
 Override Gemini file upload api base url.
 
-### `ASSISTANT_INDEX_URL` (optional)
+### `NEXT_PUBLIC_GEMINI_MODEL_LIST` (optional)
+
+Custom model list, default: all.
+
+### `NEXT_PUBLIC_ASSISTANT_INDEX_URL` (optional)
 
 > Default: `https://chat-agents.lobehub.com`
 
@@ -176,7 +204,11 @@ Injected script code can be used for statistics or error tracking.
 
 覆盖 Gemini 文件上传 api 基本 url。
 
-### `ASSISTANT_INDEX_URL`（可选）
+### `NEXT_PUBLIC_GEMINI_MODEL_LIST`（可选）
+
+自定义模型列表，默认为: all。
+
+### `NEXT_PUBLIC_ASSISTANT_INDEX_URL`（可选）
 
 > 默认值：`https://chat-agents.lobehub.com`
 
