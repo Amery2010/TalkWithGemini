@@ -1,6 +1,6 @@
 import { GoogleGenerativeAI, type InlineDataPart, type ModelParams } from '@google/generative-ai'
 import { getVisionPrompt } from '@/utils/prompt'
-import { Model } from '@/constant/model'
+import { Model, OldVisionModel } from '@/constant/model'
 import { isUndefined, pick } from 'lodash-es'
 
 import { HarmCategory, HarmBlockThreshold } from '@google/generative-ai'
@@ -64,7 +64,7 @@ export default function chat({
   if (isUndefined(message)) {
     throw new Error('Request parameter error')
   }
-  if (['gemini-1.0-pro-vision', 'gemini-1.0-pro-vision-latest', 'gemini-pro-vision'].includes(model as Model)) {
+  if (OldVisionModel.includes(model as Model)) {
     const textMessages: Message[] = []
     const imageMessages: InlineDataPart[] = message.parts.filter((part) =>
       part.inlineData?.mimeType.startsWith('image/'),

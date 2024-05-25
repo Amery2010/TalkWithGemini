@@ -13,3 +13,12 @@ export enum Model {
   'Gemini Pro Vision' = 'gemini-pro-vision',
   'Gemini Pro' = 'gemini-pro',
 }
+
+export const OldVisionModel = ['gemini-pro-vision', 'gemini-1.0-pro-vision', 'gemini-1.0-pro-vision-latest']
+
+export const OldTextModel = [
+  Model['Gemini 1.0 Pro'],
+  Model['Gemini 1.0 Pro (Tuning)'],
+  Model['Gemini 1.0 Pro Latest'],
+  Model['Gemini Pro'],
+]

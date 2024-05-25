@@ -48,7 +48,7 @@ function FileList({ fileList, onRemove }: Props) {
                 <small>{formatSize(file.size)}</small>
               </p>
               {isFunction(onRemove) ? (
-                <X className="absolute -right-1 top-0 h-5 w-5 cursor-pointer" onClick={() => onRemove(file.id)} />
+                <X className="absolute -right-1 -top-0.5 h-5 w-5 cursor-pointer" onClick={() => onRemove(file.id)} />
               ) : null}
             </div>
           </div>

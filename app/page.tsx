@@ -30,9 +30,12 @@ import AudioStream from '@/utils/AudioStream'
 import PromiseQueue from '@/utils/PromiseQueue'
 import textStream, { streamToText } from '@/utils/textStream'
 import { encodeToken } from '@/utils/signature'
+import type { FileManagerOptions } from '@/utils/FileManager'
+import { fileUpload, imageUpload } from '@/utils/upload'
 import { formatTime } from '@/utils/common'
 import { cn } from '@/utils'
-import { Model } from '@/constant/model'
+import { Model, OldVisionModel, OldTextModel } from '@/constant/model'
+import mimeType from '@/constant/attachment'
 import { customAlphabet } from 'nanoid'
 import { isFunction, findIndex } from 'lodash-es'
 
@@ -84,15 +87,11 @@ export default function Home() {
         return t('status.thinking')
     }
   }, [status, t])
-  const isVisionModel = useMemo(() => {
-    return ['gemini-1.0-pro-vision', 'gemini-1.0-pro-vision-latest', 'gemini-pro-vision'].includes(
-      settingStore.model as Model,
-    )
+  const isOldVisionModel = useMemo(() => {
+    return OldVisionModel.includes(settingStore.model as Model)
   }, [settingStore.model])
   const supportAttachment = useMemo(() => {
-    return !['gemini-1.0-pro', 'gemini-1.0-pro-001', 'gemini-1.0-pro-latest', 'gemini-pro'].includes(
-      settingStore.model as Model,
-    )
+    return !OldTextModel.includes(settingStore.model as Model)
   }, [settingStore.model])
   const isUploading = useMemo(() => {
     for (const file of attachmentStore.files) {
@@ -297,7 +296,7 @@ export default function Home() {
       const messagePart: Message['parts'] = []
       if (files.length > 0) {
         for (const file of files) {
-          if (isVisionModel) {
+          if (isOldVisionModel) {
             if (file.preview) {
               messagePart.push({
                 inlineData: {
@@ -323,7 +322,7 @@ export default function Home() {
         id: nanoid(),
         role: 'user',
         parts: messagePart,
-        attachments: isVisionModel ? [] : files,
+        attachments: isOldVisionModel ? [] : files,
       }
       addMessage(newUserMessage)
       const newModelMessage: Message = { id: nanoid(), role: 'model', parts: [{ text: '' }] }
@@ -352,7 +351,7 @@ export default function Home() {
         },
       })
     },
-    [content, isVisionModel, fetchAnswer, handleResponse, handleError],
+    [content, isOldVisionModel, fetchAnswer, handleResponse, handleError],
   )
 
   const handleResubmit = useCallback(
@@ -459,6 +458,52 @@ export default function Home() {
       }
     },
     [content, isRecording, handleSubmit, checkAccessStatus],
+  )
+
+  const handleFileUpload = useCallback(
+    async (files: FileList | null) => {
+      if (!supportAttachment) return false
+
+      const fileList: File[] = []
+
+      if (files) {
+        for (let i = 0; i < files.length; i++) {
+          const file = files[i]
+          if (mimeType.includes(file.type)) {
+            fileList.push(file)
+          }
+        }
+
+        const { add: addAttachment, update: updateAttachment } = useAttachmentStore.getState()
+        if (isOldVisionModel) {
+          await imageUpload({ files: fileList, addAttachment, updateAttachment })
+        } else {
+          const { apiKey, apiProxy, uploadProxy, password } = useSettingStore.getState()
+          const options: FileManagerOptions =
+            apiKey !== ''
+              ? { apiKey, baseUrl: apiProxy, uploadUrl: uploadProxy }
+              : { token: encodeToken(password), uploadUrl: uploadProxy }
+
+          await fileUpload({ files: fileList, fileManagerOptions: options, addAttachment, updateAttachment })
+        }
+      }
+    },
+    [supportAttachment, isOldVisionModel],
+  )
+
+  const handlePaste = useCallback(
+    async (ev: React.ClipboardEvent<HTMLDivElement>) => {
+      await handleFileUpload(ev.clipboardData?.files)
+    },
+    [handleFileUpload],
+  )
+
+  const handleDrop = useCallback(
+    async (ev: React.DragEvent<HTMLDivElement>) => {
+      ev.preventDefault()
+      await handleFileUpload(ev.dataTransfer?.files)
+    },
+    [handleFileUpload],
   )
 
   const initAssistant = useCallback((prompt: string) => {
@@ -590,7 +635,12 @@ export default function Home() {
             <AudioLines />
           </Button>
         ) : null}
-        <div className="relative w-full rounded-md border border-input bg-[hsl(var(--background))] pt-2">
+        <div
+          className="relative w-full rounded-md border border-input bg-[hsl(var(--background))] pt-2"
+          onPaste={handlePaste}
+          onDrop={handleDrop}
+          onDragOver={(ev) => ev.preventDefault()}
+        >
           <AttachmentArea className="m-2 mt-0 max-h-32 overflow-y-auto border-b border-dashed pb-2" />
           <textarea
             autoFocus
@@ -618,7 +668,7 @@ export default function Home() {
                     </div>
                   </TooltipTrigger>
                   <TooltipContent className="mb-1 max-w-36">
-                    {isVisionModel ? t('imageUploadTooltip') : t('uploadTooltip')}
+                    {isOldVisionModel ? t('imageUploadTooltip') : t('uploadTooltip')}
                   </TooltipContent>
                 </Tooltip>
               </TooltipProvider>
