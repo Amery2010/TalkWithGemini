@@ -2,6 +2,7 @@
 const { PHASE_PRODUCTION_BUILD, PHASE_EXPORT } = require('next/constants')
 
 const mode = process.env.NEXT_PUBLIC_BUILD_MODE
+const basePath = process.env.EXPORT_BASE_PATH || ''
 const apiKey = process.env.GEMINI_API_KEY ?? ''
 const uploadProxyUrl = process.env.GEMINI_UPLOAD_BASE_URL ?? 'https://generativelanguage.googleapis.com'
 
@@ -16,7 +17,7 @@ module.exports = async (phase) => {
   if (mode === 'export') {
     nextConfig.output = 'export'
     // Only used for static deployment, the default deployment directory is the root directory
-    nextConfig.basePath = ''
+    nextConfig.basePath = basePath
   } else if (mode === 'standalone') {
     nextConfig.output = 'standalone'
   }

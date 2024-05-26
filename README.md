@@ -20,19 +20,19 @@ Simple interface, supports image recognition and voice conversation
 
 简洁的界面，支持图片识别和语音对话
 
-![cover](./docs/images/screenshot.jpg)
+![cover](./public/screenshots/app.jpg)
 
 Supports Gemini 1.5 and Gemini 1.5 Flash multimodal models
 
 支持 Gemini 1.5 和 Gemini 1.5 Flash 多模态模型
 
-![Gemini 1.5 Flash](./docs/images/Gemini-1.5-Flash.jpg)
+![Gemini 1.5 Flash](./public/screenshots/gemini-1.5.jpg)
 
 A new assistant market with hundreds of hand-picked system commands
 
 全新的助理市场，拥有数百精选的系统指令
 
-![Assistant Market](./docs/images/AssistantMarket.jpg)
+![Assistant Market](./public/screenshots/assistant-market.jpg)
 
 > Note: If you encounter problems during the use of the project, you can check the known problems and solutions of [FAQ](#FAQ).
 
@@ -186,6 +186,10 @@ Access password.
 
 Injected script code can be used for statistics or error tracking.
 
+### `EXPORT_BASE_PATH` (optional)
+
+Only used to set the page base path in [static deployment](#static-deployment) mode.
+
 ## 环境变量
 
 ### `GEMINI_API_KEY`（可选）
@@ -227,6 +231,10 @@ Injected script code can be used for statistics or error tracking.
 ### `HEAD_SCRIPTS` （可选）
 
 用于注入的脚本代码可用于统计或错误跟踪。
+
+### `EXPORT_BASE_PATH` （可选）
+
+仅用于[静态部署](#静态部署)模式下设置页面基础路径。
 
 ## Requirements
 
@@ -328,9 +336,7 @@ You can also build a static page version directly, and then upload all files in 
 pnpm build:export
 ```
 
-If you deploy the project in a subdirectory and encounter resource loading failures when accessing, please modify the `nextConfig.basePath` in the `next.config.js` file to the specific directory of your subdirectory `nextConfig.basePath = '/path/project'.
-
-**Static deployment does not support setting environment variables**
+If you deploy the project in a subdirectory and encounter resource loading failures when accessing, please add `EXPORT_BASE_PATH=/path/project` in the `.env` file or variable setting page.
 
 ### 静态部署
 
@@ -340,9 +346,7 @@ If you deploy the project in a subdirectory and encounter resource loading failu
 pnpm build:export
 ```
 
-如果您将项目部署在子目录下，在访问时会遇到资源加载失败的情况，请修改 `next.config.js` 文件中 `nextConfig.basePath` 为您子目录的具体目录 `nextConfig.basePath = '/路径/项目名称'`。
-
-**静态部署不支持设置环境变量**
+如果您将项目部署在子目录下，在访问时会遇到资源加载失败的情况，请在 `.env` 文件或者变量设置页面增加 `EXPORT_BASE_PATH=/路径/项目名称`。
 
 ## FAQ
 
