@@ -6,23 +6,19 @@ import { isNull } from 'lodash-es'
 
 export const runtime = 'edge'
 export const preferredRegion = ['cle1', 'iad1', 'pdx1', 'sfo1', 'sin1', 'syd1', 'hnd1', 'kix1']
-export const dynamic = 'force-dynamic'
 
 const geminiApiKey = process.env.GEMINI_API_KEY as string
 const geminiApiBaseUrl = process.env.GEMINI_API_BASE_URL || 'https://generativelanguage.googleapis.com'
 const geminiUploadProxyUrl = process.env.GEMINI_UPLOAD_BASE_URL || 'https://generativelanguage.googleapis.com'
-const mode = process.env.NEXT_PUBLIC_BUILD_MODE
 
 export async function POST(req: NextRequest) {
-  if (mode === 'export') return new NextResponse('Not available under static deployment')
-
   const searchParams = req.nextUrl.searchParams
   const token = searchParams.get('token')
   const uploadType = searchParams.get('uploadType')
 
-  // if (isNull(token) || !checkToken(token)) {
-  //   return NextResponse.json({ code: 40301, message: ErrorType.InValidToken }, { status: 403 })
-  // }
+  if (isNull(token) || !checkToken(token)) {
+    return NextResponse.json({ code: 40301, message: ErrorType.InValidToken }, { status: 403 })
+  }
   if (!geminiApiKey) {
     return NextResponse.json({ code: 50001, message: ErrorType.NoGeminiKey }, { status: 500 })
   }

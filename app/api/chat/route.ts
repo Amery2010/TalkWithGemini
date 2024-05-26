@@ -13,15 +13,11 @@ type GeminiRequest = {
 
 export const runtime = 'edge'
 export const preferredRegion = ['cle1', 'iad1', 'pdx1', 'sfo1', 'sin1', 'syd1', 'hnd1', 'kix1']
-export const dynamic = 'force-dynamic'
 
 const geminiApiKey = process.env.GEMINI_API_KEY as string
 const geminiApiBaseUrl = process.env.GEMINI_API_BASE_URL as string
-const mode = process.env.NEXT_PUBLIC_BUILD_MODE
 
 export async function POST(req: NextRequest) {
-  if (mode === 'export') return new NextResponse('Not available under static deployment')
-
   const searchParams = req.nextUrl.searchParams
   const token = searchParams.get('token')
 

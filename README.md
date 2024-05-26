@@ -34,6 +34,10 @@ A new assistant market with hundreds of hand-picked system commands
 
 ![Assistant Market](./docs/images/AssistantMarket.jpg)
 
+> Note: If you encounter problems during the use of the project, you can check the known problems and solutions of [FAQ](#FAQ).
+
+> 注意：如果您项目使用过程中遇到问题，可以查看[常见问题](#常见问题)的已知问题及解决方案。
+
 ## Features
 
 - **Deploy for free with one-click** on Vercel in under 1 minute
@@ -67,16 +71,16 @@ A new assistant market with hundreds of hand-picked system commands
 ## Roadmap
 
 - [x] Reconstruct the topic square and introduce Prompt list
-- [ ] Add conversation list
+- [ ] Implementation based on functionCall plug-in
+- [ ] Support conversation list
 - [ ] Use tauri to package desktop applications
-- [ ] Share as image, share to ShareGPT link
 
 ## 开发计划
 
 - [x] 重构话题广场，引入 Prompt 列表
-- [ ] 增加对话列表
+- [ ] 实现基于 functionCall 插件
+- [ ] 支持对话列表
 - [ ] 使用 tauri 打包桌面应用
-- [ ] 分享为图片，分享到 ShareGPT 链接
 
 ## Get Started
 
@@ -340,7 +344,7 @@ pnpm build:export
 
 **静态部署不支持设置环境变量**
 
-## Q&A
+## FAQ
 
 #### Solution for "User location is not supported for the API use"
 
