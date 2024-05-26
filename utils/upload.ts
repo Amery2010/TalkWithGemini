@@ -19,6 +19,8 @@ type imageUploadOptions = {
   onError?: (error: string) => void
 }
 
+const inVercelOrNetlify = process.env.VERCEL === '1' || process.env.NETLIFY === 'true'
+
 const compressionOptions = {
   maxSizeMB: 1,
   maxWidthOrHeight: 1024,
@@ -76,20 +78,28 @@ export async function fileUpload({
       }
       return false
     }
-    // Files smaller than 8MB are uploaded directly
-    if (file.size <= 4194304) {
+    // Files smaller than 4MB are uploaded directly
+    if (file.size <= 4194304 || !inVercelOrNetlify) {
       fileManager
         .uploadFile(uploadFile)
         .then((fileMetadata) => checkFileStatus(fileMetadata.file))
         .catch((err: string) => {
-          if (isFunction(onError)) onError(err)
+          if (isFunction(onError)) {
+            fileInfor.status = 'FAILED'
+            updateAttachment(fileInfor.id, fileInfor)
+            onError(err)
+          }
         })
     } else {
       fileManager
         .resumableUploadFile(uploadFile)
         .then((fileMetadata) => checkFileStatus(fileMetadata.file))
         .catch((err: string) => {
-          if (isFunction(onError)) onError(err)
+          if (isFunction(onError)) {
+            fileInfor.status = 'FAILED'
+            updateAttachment(fileInfor.id, fileInfor)
+            onError(err)
+          }
         })
     }
   }
@@ -107,7 +117,11 @@ export async function imageUpload({ files, addAttachment, updateAttachment, onEr
     }
     addAttachment(fileInfor)
     const compressedFile = await imageCompression(file, compressionOptions).catch((err: string) => {
-      if (isFunction(onError)) onError(err)
+      if (isFunction(onError)) {
+        fileInfor.status = 'FAILED'
+        updateAttachment(fileInfor.id, fileInfor)
+        onError(err)
+      }
     })
     if (compressedFile) {
       fileInfor.preview = await imageCompression.getDataUrlFromFile(compressedFile)

@@ -64,7 +64,7 @@ export default async function textStream(options: {
     let { value, done } = await reader.read()
     if (done) {
       if (buffer) onStatement(buffer)
-      if (chunks.length > 0) handleRemainingText()
+      if (chunks.length > 0) onMessage(chunks.join(''))
       onFinish()
       break
     }

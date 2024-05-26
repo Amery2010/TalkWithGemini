@@ -371,7 +371,8 @@ export default function Home() {
           if (messagesRef.current[messageIndex].role === 'model') {
             rovokeMessage(id)
           } else {
-            rovokeMessage(messagesRef.current[messageIndex + 1].id)
+            const nextMessage = messagesRef.current[messageIndex + 1]
+            if (nextMessage) rovokeMessage(messagesRef.current[messageIndex + 1].id)
           }
         }
       }
@@ -470,6 +471,7 @@ export default function Home() {
   const handleFileUpload = useCallback(
     async (files: FileList | null) => {
       if (!supportAttachment) return false
+      if (!checkAccessStatus()) return false
 
       const fileList: File[] = []
 
@@ -495,7 +497,7 @@ export default function Home() {
         }
       }
     },
-    [supportAttachment, isOldVisionModel],
+    [supportAttachment, isOldVisionModel, checkAccessStatus],
   )
 
   const handlePaste = useCallback(

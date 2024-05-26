@@ -43,8 +43,10 @@ export async function POST(req: NextRequest) {
       const url = uploadUrl.toString()
       return NextResponse.json({ url }, { headers: { Location: url } })
     } else {
-      req.nextUrl.pathname = req.nextUrl.pathname.replace('api/', 'api/google')
-      return NextResponse.redirect(req.nextUrl, 308)
+      const formData = await req.formData()
+      const fileManager = new FileManager({ apiKey: geminiApiKey, baseUrl: geminiApiBaseUrl })
+      const result = await fileManager.uploadFile(formData.get('file') as File)
+      return NextResponse.json(result)
     }
   } catch (error) {
     if (error instanceof Error) {

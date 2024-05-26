@@ -287,14 +287,14 @@ pnpm dev
 ```shell
 docker pull xiangfa/talk-with-gemini:latest
 
-docker run -d --name talk-with-gemini -p 3000:3000 xiangfa/talk-with-gemini
+docker run -d --name talk-with-gemini -p 5481:3000 xiangfa/talk-with-gemini
 ```
 
 You can also specify additional environment variables:
 
 ```shell
 docker run -d --name talk-with-gemini \
-   -p 3000:3000 \
+   -p 5481:3000 \
    -e GEMINI_API_KEY=AIza... \
    -e ACCESS_PASSWORD=your-password \
    xiangfa/talk-with-gemini
@@ -313,14 +313,14 @@ If you need to specify other environment variables, please add `-e key=value` to
 ```shell
 docker pull xiangfa/talk-with-gemini:latest
 
-docker run -d --name talk-with-gemini -p 3000:3000 xiangfa/talk-with-gemini
+docker run -d --name talk-with-gemini -p 5481:3000 xiangfa/talk-with-gemini
 ```
 
 您也可以指定额外的环境变量：
 
 ```shell
 docker run -d --name talk-with-gemini \
-   -p 3000:3000 \
+   -p 5481:3000 \
    -e GEMINI_API_KEY=AIza... \
    -e ACCESS_PASSWORD=页面访问密码 \
    xiangfa/talk-with-gemini
