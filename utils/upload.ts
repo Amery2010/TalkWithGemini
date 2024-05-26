@@ -19,8 +19,6 @@ type imageUploadOptions = {
   onError?: (error: string) => void
 }
 
-const inVercelOrNetlify = process.env.VERCEL === '1' || process.env.NETLIFY === 'true'
-
 const compressionOptions = {
   maxSizeMB: 1,
   maxWidthOrHeight: 1024,
@@ -81,7 +79,7 @@ export async function fileUpload({
 
     const fileManager = new FileManager(fileManagerOptions)
     // Files smaller than 4MB are uploaded directly
-    if (file.size <= 4194304 || !inVercelOrNetlify) {
+    if (file.size <= 4194304) {
       fileManager
         .uploadFile(uploadFile)
         .then((fileMetadata) => {

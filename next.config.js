@@ -25,23 +25,34 @@ module.exports = async (phase) => {
   if (mode !== 'export') {
     nextConfig.rewrites = async () => {
       return {
-        beforeFiles: [
-          {
-            source: '/api/google/upload/v1beta/files',
-            has: [
+        beforeFiles: apiKey
+          ? [
               {
-                type: 'query',
-                key: 'uploadType',
-                value: '(?<uploadType>.*)',
+                source: '/api/google/upload/v1beta/files',
+                has: [
+                  {
+                    type: 'query',
+                    key: 'uploadType',
+                    value: '(?<uploadType>.*)',
+                  },
+                ],
+                destination: `${uploadProxyUrl}/upload/v1beta/files?key=${apiKey}&uploadType=:uploadType`,
+              },
+              {
+                source: '/api/google/v1beta/files/:id',
+                destination: `${uploadProxyUrl}/v1beta/files/:id?key=${apiKey}`,
+              },
+            ]
+          : [
+              {
+                source: '/api/google/upload/v1beta/files',
+                destination: '/api/upload/files',
+              },
+              {
+                source: '/api/google/v1beta/files/:path',
+                destination: '/api/upload/files?id=:path',
               },
             ],
-            destination: `${uploadProxyUrl}/upload/v1beta/files?key=${apiKey}&uploadType=:uploadType`,
-          },
-          {
-            source: '/api/google/v1beta/files/:id',
-            destination: `${uploadProxyUrl}/v1beta/files/:id?key=${apiKey}`,
-          },
-        ],
       }
     }
   }

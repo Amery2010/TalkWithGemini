@@ -6,8 +6,6 @@ export type FileManagerOptions = {
   onError?: (message: string) => void
 }
 
-const inVercelOrNetlify = process.env.VERCEL === '1' || process.env.NETLIFY === 'true'
-
 class FileManager {
   options: FileManagerOptions
   uploadBaseUrl: string
@@ -120,72 +118,55 @@ class FileManager {
     })
   }
   async uploadFile(file: File): Promise<{ file: FileMetadata }> {
-    if (inVercelOrNetlify) {
-      const generateBoundary = () => {
-        let str = ''
-        for (let i = 0; i < 2; i++) {
-          str = str + Math.random().toString().slice(2)
-        }
-        return str
+    const generateBoundary = () => {
+      let str = ''
+      for (let i = 0; i < 2; i++) {
+        str = str + Math.random().toString().slice(2)
       }
-      const boundary = generateBoundary()
-      // Multipart formatting code taken from @firebase/storage
-      const metadataString = JSON.stringify({
-        file: {
-          mimeType: file.type,
-          displayName: file.name,
-        },
-      })
-      const preBlobPart =
-        '--' +
-        boundary +
-        '\r\n' +
-        'Content-Type: application/json; charset=utf-8\r\n\r\n' +
-        metadataString +
-        '\r\n--' +
-        boundary +
-        '\r\n' +
-        'Content-Type: ' +
-        file.type +
-        '\r\n\r\n'
-      const postBlobPart = '\r\n--' + boundary + '--'
-      const blob = new Blob([preBlobPart, file, postBlobPart])
-      const response = await fetch(
-        this.options.token
-          ? `/api/google/upload/v1beta/files?uploadType=multipart`
-          : `${this.uploadBaseUrl}/upload/v1beta/files?uploadType=multipart&key=${this.options.apiKey}`,
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': `multipart/related; boundary=${boundary}`,
-          },
-          body: blob,
-        },
-      ).catch((err) => {
-        throw new Error(err.message)
-      })
-      return await response.json()
-    } else {
-      const formData = new FormData()
-      formData.append('file', file)
-      const response = await fetch(
-        this.options.token
-          ? `/api/upload?token=${this.options.token}`
-          : `${this.uploadBaseUrl}/upload/v1beta/files?key=${this.options.apiKey}`,
-        {
-          method: 'POST',
-          body: formData,
-        },
-      ).catch((err) => {
-        throw new Error(err)
-      })
-      return await response.json()
+      return str
     }
+    const boundary = generateBoundary()
+    // Multipart formatting code taken from @firebase/storage
+    const metadataString = JSON.stringify({
+      file: {
+        mimeType: file.type,
+        displayName: file.name,
+      },
+    })
+    const preBlobPart =
+      '--' +
+      boundary +
+      '\r\n' +
+      'Content-Type: application/json; charset=utf-8\r\n\r\n' +
+      metadataString +
+      '\r\n--' +
+      boundary +
+      '\r\n' +
+      'Content-Type: ' +
+      file.type +
+      '\r\n\r\n'
+    const postBlobPart = '\r\n--' + boundary + '--'
+    const blob = new Blob([preBlobPart, file, postBlobPart])
+    const response = await fetch(
+      this.options.token
+        ? `/api/google/upload/v1beta/files?uploadType=multipart`
+        : `${this.uploadBaseUrl}/upload/v1beta/files?uploadType=multipart&key=${this.options.apiKey}`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': `multipart/related; boundary=${boundary}`,
+        },
+        body: blob,
+      },
+    ).catch((err) => {
+      throw new Error(err.message)
+    })
+    return await response.json()
   }
   async getFileMetadata(fileID: string) {
     const response = await fetch(
       this.options.token
-        ? `${inVercelOrNetlify ? `/api/google/v1beta/files/${fileID}` : `/api/files?id=${fileID}&token=${this.options.token}`}`
+        ? `/api/google/v1beta/files/${fileID}`
         : `${this.uploadBaseUrl}/v1beta/files/${fileID}?key=${this.options.apiKey}`,
       {
         method: 'GET',
