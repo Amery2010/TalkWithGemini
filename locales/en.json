@@ -52,5 +52,14 @@
   "regenerate": "Rethink",
   "edit": "Edit",
   "delete": "Delete",
-  "speak": "Reading aloud"
+  "speak": "Reading aloud",
+  "modelParams": "Model parameters",
+  "temperature": "Randomness",
+  "maxOutputTokens": "Limit of one response per time",
+  "safety": "Blocking level",
+  "default": "Default",
+  "none": "None",
+  "low": "Low",
+  "middle": "Middle",
+  "high": "High"
 }

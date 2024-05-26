@@ -2,6 +2,7 @@ import { create } from 'zustand'
 import storage from '@/utils/Storage'
 import { dataMigration } from '@/utils/migration'
 import { detectLanguage } from '@/utils/common'
+import { OldTextModel, OldVisionModel, type Model } from '@/constant/model'
 
 interface SettingStore extends Setting {
   init: (isProtected: boolean) => Promise<Setting>
@@ -17,9 +18,24 @@ interface SettingStore extends Setting {
   setTalkMode: (mode: 'chat' | 'voice') => void
   setMaxHistoryLength: (length: number) => void
   setAssistantIndexUrl: (url: string) => void
+  setTopP: (value: number) => void
+  setTopK: (value: number) => void
+  setTemperature: (value: number) => void
+  setMaxOutputTokens: (value: number) => void
+  setSafety: (level: string) => void
 }
 
 const ASSISTANT_INDEX_URL = process.env.NEXT_PUBLIC_ASSISTANT_INDEX_URL
+
+function getDefaultModelConfig(model: string) {
+  if (OldTextModel.includes(model as Model)) {
+    return { topP: 1, topK: 16, temperature: 0.9, maxOutputTokens: 2048 }
+  } else if (OldVisionModel.includes(model as Model)) {
+    return { topP: 1, topK: 32, temperature: 0.4, maxOutputTokens: 4096 }
+  } else {
+    return { topP: 0.95, topK: 64, temperature: 1, maxOutputTokens: 8192 }
+  }
+}
 
 export const useSettingStore = create<SettingStore>((set) => ({
   password: '',
@@ -35,18 +51,25 @@ export const useSettingStore = create<SettingStore>((set) => ({
   talkMode: 'chat',
   maxHistoryLength: 0,
   assistantIndexUrl: '',
+  topP: 0.95,
+  topK: 64,
+  temperature: 1,
+  maxOutputTokens: 8192,
+  safety: 'low',
   init: async (isProtected) => {
     await dataMigration()
     const sttLang = await storage.getItem<string>('sttLang')
     const ttsLang = await storage.getItem<string>('ttsLang')
     const ttsVoice = await storage.getItem<string>('ttsVoice')
     const lang = (await storage.getItem<string>('lang')) || detectLanguage()
+    const model = (await storage.getItem<string>('model')) || 'gemini-1.5-flash-latest'
+    const defaultModelConfig = getDefaultModelConfig(model)
     const state: Setting = {
       password: (await storage.getItem<string>('password')) || '',
       apiKey: (await storage.getItem<string>('apiKey')) || '',
       apiProxy: (await storage.getItem<string>('apiProxy')) || 'https://generativelanguage.googleapis.com',
       uploadProxy: (await storage.getItem<string>('uploadProxy')) || 'https://generativelanguage.googleapis.com',
-      model: (await storage.getItem<string>('model')) || 'gemini-1.5-flash-latest',
+      model,
       sttLang: sttLang || lang,
       ttsLang: ttsLang || lang,
       ttsVoice: ttsVoice || '',
@@ -58,6 +81,11 @@ export const useSettingStore = create<SettingStore>((set) => ({
         (await storage.getItem<string>('assistantIndexUrl')) ||
         ASSISTANT_INDEX_URL ||
         'https://chat-agents.lobehub.com',
+      topP: (await storage.getItem<number>('topP')) ?? defaultModelConfig.topP,
+      topK: (await storage.getItem<number>('topK')) ?? defaultModelConfig.topK,
+      temperature: (await storage.getItem<number>('temperature')) ?? defaultModelConfig.temperature,
+      maxOutputTokens: (await storage.getItem<number>('maxOutputTokens')) ?? defaultModelConfig.maxOutputTokens,
+      safety: (await storage.getItem<string>('safety')) || 'low',
     }
     set(() => state)
     return state
@@ -78,8 +106,13 @@ export const useSettingStore = create<SettingStore>((set) => ({
     set(() => ({ uploadProxy: url }))
     storage.setItem<string>('uploadProxy', url)
   },
-  setModel: (model) => {
-    set(() => ({ model }))
+  setModel: async (model) => {
+    const defaultModelConfig = getDefaultModelConfig(model)
+    const topP = (await storage.getItem<number>('topP')) ?? defaultModelConfig.topP
+    const topK = (await storage.getItem<number>('topK')) ?? defaultModelConfig.topK
+    const temperature = (await storage.getItem<number>('temperature')) ?? defaultModelConfig.temperature
+    const maxOutputTokens = (await storage.getItem<number>('maxOutputTokens')) ?? defaultModelConfig.maxOutputTokens
+    set(() => ({ model, topP, topK, temperature, maxOutputTokens }))
     storage.setItem<string>('model', model)
   },
   setLang: (lang) => {
@@ -109,5 +142,25 @@ export const useSettingStore = create<SettingStore>((set) => ({
   setAssistantIndexUrl: (url) => {
     set(() => ({ assistantIndexUrl: url }))
     storage.setItem<string>('assistantIndexUrl', url)
+  },
+  setTopP: (value) => {
+    set(() => ({ topP: value }))
+    storage.setItem<number>('topP', value)
+  },
+  setTopK: (value) => {
+    set(() => ({ topK: value }))
+    storage.setItem<number>('topK', value)
+  },
+  setTemperature: (value) => {
+    set(() => ({ temperature: value }))
+    storage.setItem<number>('temperature', value)
+  },
+  setMaxOutputTokens: (value) => {
+    set(() => ({ maxOutputTokens: value }))
+    storage.setItem<number>('maxOutputTokens', value)
+  },
+  setSafety: (level) => {
+    set(() => ({ safety: level }))
+    storage.setItem<string>('safety', level)
   },
 }))

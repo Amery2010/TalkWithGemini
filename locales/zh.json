@@ -52,5 +52,14 @@
   "regenerate": "重新思考",
   "edit": "编辑",
   "delete": "删除",
-  "speak": "朗读"
+  "speak": "朗读",
+  "modelParams": "模型参数",
+  "temperature": "随机性",
+  "maxOutputTokens": "单次回复限制",
+  "safety": "屏蔽程度",
+  "default": "默认",
+  "none": "无",
+  "low": "低",
+  "middle": "中",
+  "high": "高"
 }

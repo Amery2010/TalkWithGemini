@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Button } from '@/components/ui/button'
 import { Slider } from '@/components/ui/slider'
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
 import ResponsiveDialog from '@/components/ResponsiveDialog'
 import i18n from '@/plugins/i18n'
 import locales from '@/constant/locales'
@@ -36,6 +37,11 @@ function Setting({ open, hiddenTalkPanel, onClose }: SettingProps) {
   const [ttsLang, setTtsLang] = useState<string>('')
   const [ttsVoice, setTtsVoice] = useState<string>('')
   const [assistantIndexUrl, setAssistantIndexUrl] = useState<string>('')
+  const [topP, setTopP] = useState<number>(0.95)
+  const [topK, setTopK] = useState<number>(64)
+  const [temperature, setTemperature] = useState<number>(1)
+  const [maxOutputTokens, setMaxOutputTokens] = useState<number>(8192)
+  const [safety, setSafety] = useState<string>('low')
   const isProtected = useMemo(() => {
     return settingStore.isProtected
   }, [settingStore.isProtected])
@@ -89,6 +95,11 @@ function Setting({ open, hiddenTalkPanel, onClose }: SettingProps) {
     if (sttLang !== settingStore.sttLang) settingStore.setSTTLang(sttLang)
     if (ttsLang !== settingStore.ttsLang) settingStore.setTTSLang(ttsLang)
     if (ttsVoice !== settingStore.ttsVoice) settingStore.setTTSVoice(ttsVoice)
+    if (topP !== settingStore.topP) settingStore.setTopP(topP)
+    if (topK !== settingStore.topK) settingStore.setTopK(topK)
+    if (temperature !== settingStore.temperature) settingStore.setTemperature(temperature)
+    if (maxOutputTokens !== settingStore.maxOutputTokens) settingStore.setMaxOutputTokens(maxOutputTokens)
+    if (safety !== settingStore.safety) settingStore.setSafety(safety)
     onClose()
   }
 
@@ -130,6 +141,11 @@ function Setting({ open, hiddenTalkPanel, onClose }: SettingProps) {
     setTtsVoice(settingStore.ttsVoice)
     setMaxHistoryLength(settingStore.maxHistoryLength)
     setAssistantIndexUrl(settingStore.assistantIndexUrl)
+    setTopP(settingStore.topP)
+    setTopK(settingStore.topK)
+    setTemperature(settingStore.temperature)
+    setMaxOutputTokens(settingStore.maxOutputTokens)
+    setSafety(settingStore.safety)
   }, [settingStore])
 
   return (
@@ -145,9 +161,10 @@ function Setting({ open, hiddenTalkPanel, onClose }: SettingProps) {
       }
     >
       <Tabs className="max-sm:px-4" defaultValue="general">
-        <TabsList className="mx-auto grid w-full grid-cols-3">
+        <TabsList className="mx-auto grid w-full grid-cols-4">
           <TabsTrigger value="general">{t('generalSetting')}</TabsTrigger>
           <TabsTrigger value="model">{t('llmModel')}</TabsTrigger>
+          <TabsTrigger value="params">{t('modelParams')}</TabsTrigger>
           <TabsTrigger disabled={hiddenTalkPanel} value="voice">
             {t('voiceServer')}
           </TabsTrigger>
@@ -271,6 +288,108 @@ function Setting({ open, hiddenTalkPanel, onClose }: SettingProps) {
                 <span className="w-1/5 text-center text-sm leading-10">
                   {maxHistoryLength === 0 ? t('unlimited') : maxHistoryLength}
                 </span>
+              </div>
+            </div>
+          </div>
+        </TabsContent>
+        <TabsContent value="params">
+          <div className="grid w-full gap-4 px-4 py-4">
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="topP" className="text-right">
+                Top-P
+              </Label>
+              <div className="col-span-3 flex h-10">
+                <Slider
+                  id="topP"
+                  className="flex-1"
+                  defaultValue={[topP]}
+                  max={1}
+                  step={0.1}
+                  onValueChange={(values) => setTopP(values[0])}
+                />
+                <span className="w-1/5 text-center text-sm leading-10">{topP}</span>
+              </div>
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="topK" className="text-right">
+                Top-K
+              </Label>
+              <div className="col-span-3 flex h-10">
+                <Slider
+                  id="topK"
+                  className="flex-1"
+                  defaultValue={[topK]}
+                  max={128}
+                  step={1}
+                  onValueChange={(values) => setTopK(values[0])}
+                />
+                <span className="w-1/5 text-center text-sm leading-10">{topK}</span>
+              </div>
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="temperature" className="text-right">
+                {t('temperature')}
+              </Label>
+              <div className="col-span-3 flex h-10">
+                <Slider
+                  id="temperature"
+                  className="flex-1"
+                  defaultValue={[temperature]}
+                  max={1}
+                  step={0.1}
+                  onValueChange={(values) => setTemperature(values[0])}
+                />
+                <span className="w-1/5 text-center text-sm leading-10">{temperature}</span>
+              </div>
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="maxOutputTokens" className="text-right">
+                {t('maxOutputTokens')}
+              </Label>
+              <div className="col-span-3 flex h-10">
+                <Slider
+                  id="maxOutputTokens"
+                  className="flex-1"
+                  defaultValue={[maxOutputTokens]}
+                  max={8196}
+                  step={1}
+                  onValueChange={(values) => setMaxOutputTokens(values[0])}
+                />
+                <span className="w-1/5 text-center text-sm leading-10">{maxOutputTokens}</span>
+              </div>
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="safety" className="text-right">
+                {t('safety')}
+              </Label>
+              <div className="col-span-3 flex h-10">
+                <RadioGroup
+                  id="safety"
+                  className="grid w-full grid-cols-5"
+                  defaultValue={safety}
+                  onValueChange={(value) => setSafety(value)}
+                >
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="default" id="default" />
+                    <Label htmlFor="default">{t('default')}</Label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="none" id="none" />
+                    <Label htmlFor="none">{t('none')}</Label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="low" id="low" />
+                    <Label htmlFor="low">{t('low')}</Label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="middle" id="middle" />
+                    <Label htmlFor="middle">{t('middle')}</Label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="high" id="high" />
+                    <Label htmlFor="high">{t('high')}</Label>
+                  </div>
+                </RadioGroup>
               </div>
             </div>
           </div>

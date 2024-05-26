@@ -59,7 +59,6 @@ function mergeSentences(sentences: string[], sentenceLength = 20): string[] {
   if (currentSentence.trim() !== '') {
     mergedSentences.push(currentSentence.trim())
   }
-  console.log(mergedSentences)
   return mergedSentences
 }
 

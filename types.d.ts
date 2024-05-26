@@ -20,6 +20,11 @@ declare global {
     maxHistoryLength: number
     assistantIndexUrl: string
     uploadProxy: string
+    topP: number
+    topK: number
+    temperature: number
+    maxOutputTokens: number
+    safety: string
   }
 
   interface Assistant {

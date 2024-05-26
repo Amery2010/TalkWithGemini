@@ -50,5 +50,14 @@
   "regenerate": "Überdenken",
   "edit": "Bearbeiten",
   "delete": "Löschen",
-  "speak": "Vorlesen"
+  "speak": "Vorlesen",
+  "modelParams": "Modellparameter",
+  "temperature": "Zufälligkeit",
+  "maxOutputTokens": "Beschränkung auf eine Antwort pro Mal",
+  "safety": "Sperrstufe",
+  "default": "Standardmäßig",
+  "none": "Nichts",
+  "low": "Niedrig",
+  "middle": "Mittel",
+  "high": "Hoch"
 }

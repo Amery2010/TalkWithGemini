@@ -37,7 +37,7 @@ import { cn } from '@/utils'
 import { Model, OldVisionModel, OldTextModel } from '@/constant/model'
 import mimeType from '@/constant/attachment'
 import { customAlphabet } from 'nanoid'
-import { isFunction, findIndex } from 'lodash-es'
+import { isFunction, findIndex, pick } from 'lodash-es'
 
 interface AnswerParams {
   messages: Message[]
@@ -146,13 +146,16 @@ export default function Home() {
 
   const fetchAnswer = useCallback(async ({ messages, model, onResponse, onError }: AnswerParams) => {
     const { systemInstruction } = useMessageStore.getState()
-    const { apiKey, apiProxy, password } = useSettingStore.getState()
+    const { apiKey, apiProxy, password, topP, topK, temperature, maxOutputTokens, safety } = useSettingStore.getState()
+    const generationConfig: RequestProps['generationConfig'] = { topP, topK, temperature, maxOutputTokens }
     setErrorMessage('')
     if (apiKey !== '') {
       const config: RequestProps = {
         messages,
         apiKey: apiKey,
         model,
+        generationConfig,
+        safety,
       }
       if (apiProxy) config.baseUrl = apiProxy
       if (systemInstruction) config.systemInstruction = systemInstruction
@@ -183,12 +186,16 @@ export default function Home() {
     } else {
       const token = encodeToken(password)
       const config: {
-        messages: Message[]
+        messages: Pick<Message, 'role' | 'parts'>[]
         model: string
         systemInstruction?: string
+        generationConfig: RequestProps['generationConfig']
+        safety: string
       } = {
-        messages,
+        messages: messages.map((item) => pick(item, ['role', 'parts'])),
         model,
+        generationConfig,
+        safety,
       }
       if (systemInstruction) config.systemInstruction = systemInstruction
       const response = await fetch(`/api/chat?token=${token}`, {

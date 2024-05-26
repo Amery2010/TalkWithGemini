@@ -1,35 +1,8 @@
-import { GoogleGenerativeAI, type InlineDataPart, type ModelParams } from '@google/generative-ai'
+import { GoogleGenerativeAI, HarmCategory, HarmBlockThreshold } from '@google/generative-ai'
+import type { InlineDataPart, ModelParams } from '@google/generative-ai'
 import { getVisionPrompt } from '@/utils/prompt'
 import { Model, OldVisionModel } from '@/constant/model'
-import { isUndefined, pick } from 'lodash-es'
-
-import { HarmCategory, HarmBlockThreshold } from '@google/generative-ai'
-
-export const generationConfig = {
-  // maxOutputTokens: 4000,
-  // temperature: 0.6,
-  // topP: 0.8,
-  // topK: 16,
-}
-
-export const safetySettings = [
-  {
-    category: HarmCategory.HARM_CATEGORY_HARASSMENT,
-    threshold: HarmBlockThreshold.BLOCK_NONE,
-  },
-  {
-    category: HarmCategory.HARM_CATEGORY_HATE_SPEECH,
-    threshold: HarmBlockThreshold.BLOCK_NONE,
-  },
-  {
-    category: HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT,
-    threshold: HarmBlockThreshold.BLOCK_NONE,
-  },
-  {
-    category: HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT,
-    threshold: HarmBlockThreshold.BLOCK_NONE,
-  },
-]
+import { isUndefined, pick, values } from 'lodash-es'
 
 export type RequestProps = {
   model?: string
@@ -37,6 +10,42 @@ export type RequestProps = {
   messages: Message[]
   apiKey: string
   baseUrl?: string
+  generationConfig: {
+    topP: number
+    topK: number
+    temperature: number
+    maxOutputTokens: number
+  }
+  safety: string
+}
+
+function getSafetySettings(level: string) {
+  let threshold: HarmBlockThreshold
+  switch (level) {
+    case 'none':
+      threshold = HarmBlockThreshold.BLOCK_NONE
+      break
+    case 'low':
+      threshold = HarmBlockThreshold.BLOCK_LOW_AND_ABOVE
+      break
+    case 'middle':
+      threshold = HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE
+      break
+    case 'high':
+      threshold = HarmBlockThreshold.BLOCK_ONLY_HIGH
+      break
+    default:
+      threshold = HarmBlockThreshold.HARM_BLOCK_THRESHOLD_UNSPECIFIED
+      break
+  }
+  return [
+    HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT,
+    HarmCategory.HARM_CATEGORY_HARASSMENT,
+    HarmCategory.HARM_CATEGORY_HATE_SPEECH,
+    HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT,
+  ].map((category) => {
+    return { category, threshold }
+  })
 }
 
 export default function chat({
@@ -45,9 +54,11 @@ export default function chat({
   model = Model['Gemini Pro'],
   apiKey,
   baseUrl,
+  generationConfig,
+  safety,
 }: RequestProps) {
   const genAI = new GoogleGenerativeAI(apiKey)
-  const modelParams: ModelParams = { model, generationConfig, safetySettings }
+  const modelParams: ModelParams = { model, generationConfig, safetySettings: getSafetySettings(safety) }
   if (systemInstruction) {
     if (model.startsWith('gemini-1.5')) {
       modelParams.systemInstruction = systemInstruction

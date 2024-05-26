@@ -50,5 +50,14 @@
   "regenerate": "Repensar",
   "edit": "Editar",
   "delete": "Excluir",
-  "speak": "Leitura em voz alta"
+  "speak": "Leitura em voz alta",
+  "modelParams": "Parâmetros do modelo",
+  "temperature": "Aleatoriedade",
+  "maxOutputTokens": "Limite de uma resposta por vez",
+  "safety": "Nível de bloqueio",
+  "default": "Padrão",
+  "none": "Nada",
+  "low": "Baixo",
+  "middle": "Médio",
+  "high": "Alto"
 }

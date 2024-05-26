@@ -9,6 +9,13 @@ type GeminiRequest = {
   model: string
   messages: Message[]
   systemInstruction?: string
+  generationConfig: {
+    topP: number
+    topK: number
+    temperature: number
+    maxOutputTokens: number
+  }
+  safety: string
 }
 
 export const runtime = 'edge'
@@ -29,13 +36,15 @@ export async function POST(req: NextRequest) {
   }
 
   try {
-    const { messages = [], model, systemInstruction } = (await req.json()) as GeminiRequest
+    const { messages = [], model, systemInstruction, generationConfig, safety } = (await req.json()) as GeminiRequest
     const result = await chat({
       messages,
       model,
       systemInstruction,
       apiKey: geminiApiKey,
       baseUrl: geminiApiBaseUrl,
+      generationConfig,
+      safety,
     })
     const stream = GoogleGenerativeAIStream(result)
     return new StreamingTextResponse(stream)

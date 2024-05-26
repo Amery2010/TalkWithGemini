@@ -50,5 +50,14 @@
   "regenerate": "다시 생각해 보다",
   "edit": "편집",
   "delete": "삭제",
-  "speak": "낭독"
+  "speak": "낭독",
+  "modelParams": "모델 매개변수",
+  "temperature": "무작위성",
+  "maxOutputTokens": "한 번에 한 번의 응답 제한",
+  "safety": "차단 수준",
+  "default": "기본 설정",
+  "none": "없음",
+  "low": "낮은",
+  "middle": "중간",
+  "high": "높은"
 }
