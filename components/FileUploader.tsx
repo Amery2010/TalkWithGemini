@@ -8,8 +8,14 @@ import { useSettingStore } from '@/store/setting'
 import { useAttachmentStore } from '@/store/attachment'
 import { Model, OldVisionModel } from '@/constant/model'
 import mimeType, { imageMimeType } from '@/constant/attachment'
+import { isFunction } from 'lodash-es'
 
-function FileUploader() {
+type Props = {
+  beforeUpload?: () => void
+  afterUpload?: () => void
+}
+
+function FileUploader({ beforeUpload, afterUpload }: Props) {
   const { toast } = useToast()
   const attachmentRef = useRef<HTMLInputElement>(null)
   const imageRef = useRef<HTMLInputElement>(null)
@@ -27,6 +33,8 @@ function FileUploader() {
 
   const handleFileUpload = useCallback(
     async (files: FileList | null) => {
+      if (isFunction(beforeUpload)) beforeUpload()
+
       const { apiKey, apiProxy, uploadProxy, password } = useSettingStore.getState()
       const options: FileManagerOptions =
         apiKey !== ''
@@ -45,12 +53,16 @@ function FileUploader() {
       if (attachmentRef.current && attachmentRef.current.value) {
         attachmentRef.current.value = ''
       }
+
+      if (isFunction(afterUpload)) afterUpload()
     },
-    [handleError],
+    [handleError, beforeUpload, afterUpload],
   )
 
   const handleImageUpload = useCallback(
     async (files: FileList | null) => {
+      if (isFunction(beforeUpload)) beforeUpload()
+
       const { add: addAttachment, update: updateAttachment } = useAttachmentStore.getState()
 
       await imageUpload({ files, addAttachment, updateAttachment, onError: handleError })
@@ -58,8 +70,10 @@ function FileUploader() {
       if (imageRef.current && imageRef.current.value) {
         imageRef.current.value = ''
       }
+
+      if (isFunction(afterUpload)) afterUpload()
     },
-    [handleError],
+    [handleError, beforeUpload, afterUpload],
   )
 
   return (

@@ -73,7 +73,7 @@ class FileManager {
           },
           body: chunk,
         }).catch((err) => {
-          throw new Error(err.message)
+          throw new Error(err)
         })
       }
 
@@ -177,7 +177,7 @@ class FileManager {
           body: formData,
         },
       ).catch((err) => {
-        throw new Error(err.message)
+        throw new Error(err)
       })
       return await response.json()
     }

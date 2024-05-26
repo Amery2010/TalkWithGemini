@@ -6,6 +6,7 @@ import { isNull } from 'lodash-es'
 
 const geminiApiKey = process.env.GEMINI_API_KEY as string
 const geminiApiBaseUrl = process.env.GEMINI_API_BASE_URL as string
+const geminiUploadProxyUrl = process.env.GEMINI_UPLOAD_BASE_URL || 'https://generativelanguage.googleapis.com'
 const mode = process.env.NEXT_PUBLIC_BUILD_MODE
 
 export const preferredRegion = ['sfo1']
@@ -28,7 +29,11 @@ export async function GET(req: NextRequest) {
   }
 
   try {
-    const fileManager = new FileManager({ apiKey: geminiApiKey, baseUrl: geminiApiBaseUrl })
+    const fileManager = new FileManager({
+      apiKey: geminiApiKey,
+      baseUrl: geminiApiBaseUrl,
+      uploadUrl: geminiUploadProxyUrl,
+    })
     const result = await fileManager.getFileMetadata(id)
     return NextResponse.json(result)
   } catch (error) {

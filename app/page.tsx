@@ -673,7 +673,7 @@ export default function Home() {
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <div className="box-border flex h-8 w-8 cursor-pointer items-center justify-center rounded-full p-1.5 text-slate-800 hover:bg-secondary/80 dark:text-slate-600">
-                      <FileUploader />
+                      <FileUploader beforeUpload={() => checkAccessStatus()} />
                     </div>
                   </TooltipTrigger>
                   <TooltipContent className="mb-1 max-w-36">

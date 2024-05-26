@@ -2,7 +2,7 @@ import imageCompression from 'browser-image-compression'
 import FileManager, { type FileManagerOptions } from '@/utils/FileManager'
 import FibonacciTimer from '@/utils/FibonacciTimer'
 import { encodeBase64 } from '@/utils/signature'
-import { isNull, isFunction } from 'lodash-es'
+import { isNull, isFunction, isString } from 'lodash-es'
 
 type fileUploadOptions = {
   files: FileList | File[] | null
@@ -36,6 +36,8 @@ export async function fileUpload({
   onError,
 }: fileUploadOptions) {
   if (isNull(files)) return false
+  if (fileManagerOptions.token === '' || fileManagerOptions.apiKey === '') return false
+
   for await (const file of files) {
     const fileInfor: FileInfor = {
       id: encodeBase64(`${file.name}:${file.type}:${file.type}`),
@@ -44,8 +46,6 @@ export async function fileUpload({
       size: file.size,
       status: 'PROCESSING',
     }
-    const fileManager = new FileManager(fileManagerOptions)
-    // const formData = new FormData()
     let uploadFile: File
     if (file.type.startsWith('image/')) {
       const compressedFile = await imageCompression(file, compressionOptions)
@@ -78,27 +78,41 @@ export async function fileUpload({
       }
       return false
     }
+
+    const fileManager = new FileManager(fileManagerOptions)
     // Files smaller than 4MB are uploaded directly
     if (file.size <= 4194304 || !inVercelOrNetlify) {
       fileManager
         .uploadFile(uploadFile)
-        .then((fileMetadata) => checkFileStatus(fileMetadata.file))
+        .then((fileMetadata) => {
+          if (fileMetadata.file) {
+            checkFileStatus(fileMetadata.file)
+          } else {
+            throw new Error('File upload fail')
+          }
+        })
         .catch((err: string) => {
           if (isFunction(onError)) {
             fileInfor.status = 'FAILED'
             updateAttachment(fileInfor.id, fileInfor)
-            onError(err)
+            onError(isString(err) ? err : 'File upload fail')
           }
         })
     } else {
       fileManager
         .resumableUploadFile(uploadFile)
-        .then((fileMetadata) => checkFileStatus(fileMetadata.file))
+        .then((fileMetadata) => {
+          if (fileMetadata.file) {
+            checkFileStatus(fileMetadata.file)
+          } else {
+            throw new Error('File upload fail')
+          }
+        })
         .catch((err: string) => {
           if (isFunction(onError)) {
             fileInfor.status = 'FAILED'
             updateAttachment(fileInfor.id, fileInfor)
-            onError(err)
+            onError(isString(err) ? err : 'File upload fail')
           }
         })
     }
