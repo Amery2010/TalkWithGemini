@@ -356,9 +356,9 @@ You can refer to the following two Gemini Api proxy projects [gemini-proxy](http
 
 **Note that Vercel and Netlify prohibit users from deploying proxy services. This solution may result in account suspension, so use with caution**
 
-#### About the solution that vercel and netlify agents cannot upload large files
+~~#### About the solution that vercel and netlify agents cannot upload large files~~
 
-The currently known vercel and netlify both use serverless edge computing. Although the response speed is fast, they have size restrictions on uploaded files. Cloudflare Worker has relatively loose limits on large files (500MB for free users, 5GB for paid users) and can be used as an api proxy. [How to deploy the Cloudflare Worker api proxy](/docs/How-to-deploy-the-Cloudflare-Worker-api-proxy.md)
+~~The currently known vercel and netlify both use serverless edge computing. Although the response speed is fast, they have size restrictions on uploaded files. Cloudflare Worker has relatively loose limits on large files (500MB for free users, 5GB for paid users) and can be used as an api proxy. [How to deploy the Cloudflare Worker api proxy](/docs/How-to-deploy-the-Cloudflare-Worker-api-proxy.md)~~
 
 #### About the problem of not being able to use the talk mode
 
@@ -370,6 +370,12 @@ Since most browsers based on the Chrome kernel use Google's speech recognition s
 
 Currently, the two models `Gemini 1.5 Pro` and `Gemini 1.5 Flash` support most images, audios, videos and some text files. For details, see [Support List](https://ai.google.dev/gemini-api/docs/prompting_with_media). For other document types, we will try to use [LangChain.js](https://js.langchain.com/v0.2/docs/introduction/) later.
 
+### Why can’t the website I deployed with one click of vercel be accessed normally in China?
+
+The domain name generated after vercel was deployed has been blocked by the domestic network a few years ago, but the IP address of the server has not been blocked. You can customize the domain name and you can access it normally in China. Since vercel does not have a server in China, there will sometimes be slight network fluctuations, which is normal. How to set a domain name, you can refer to the solution article I found on the Internet [Vercel binds a custom domain name] (https://docs.tangly1024.com/article/vercel-domain).
+
+**Note: Try not to use vercel-deployed websites in WeChat. I won’t explain the specific reasons**
+
 ## 常见问题
 
 #### “User location is not supported for the API use” 的解决方案
@@ -378,9 +384,9 @@ Currently, the two models `Gemini 1.5 Pro` and `Gemini 1.5 Flash` support most i
 
 **注意 Vercel 和 Netlify 禁止用户部署代理服务，该解决方案可能会导致封号，需谨慎使用**
 
-#### 关于 vercel 与 netlify 代理无法上传大文件的解决方案
+~~#### 关于 vercel 与 netlify 代理无法上传大文件的解决方案~~
 
-目前了解到的 vercel 与 netlify 都使用了无服务器的边缘计算，虽然响应速度快，但对于上传文件有大小限制。Cloudflare Worker 对于大文件限制（免费用户 500MB，收费用户 5GB）相对宽松，可以用做 api 代理。[如何部署 Cloudflare Worker api 代理](/docs/How-to-deploy-the-Cloudflare-Worker-api-proxy.md)
+~~目前了解到的 vercel 与 netlify 都使用了无服务器的边缘计算，虽然响应速度快，但对于上传文件有大小限制。Cloudflare Worker 对于大文件限制（免费用户 500MB，收费用户 5GB）相对宽松，可以用做 api 代理。[如何部署 Cloudflare Worker api 代理](/docs/How-to-deploy-the-Cloudflare-Worker-api-proxy.md)~~
 
 #### 关于无法使用语音对话功能的问题须知
 
@@ -391,6 +397,12 @@ Currently, the two models `Gemini 1.5 Pro` and `Gemini 1.5 Flash` support most i
 #### 为什么我无法上传 doc、excel、pdf 这类常见文档
 
 目前 `Gemini 1.5 Pro` 和 `Gemini 1.5 Flash` 这两个模型支持的大部分的图片、音频、视频和部分文本类的文件，详见[支持列表](https://ai.google.dev/gemini-api/docs/prompting_with_media)。对于其他文档类型，后续将尝试使用 [LangChain.js](https://js.langchain.com/v0.2/docs/introduction/) 来实现。
+
+### 为什么我用 vercel 一键部署后的网站无法在中国正常访问
+
+vercel 部署后生成的域名在几年前就已经被国内网络屏蔽，但并没有屏蔽服务器的 ip 地址。可以自定义域名，就可以在国内正常访问了。由于 vercel 在国内并没有服务器，所以有时候会出现些许的网络波动，属于正常现象。如何设置域名，可以参考我从网上找到的解决文章[Vercel绑定自定义域名](https://docs.tangly1024.com/article/vercel-domain)。
+
+**注意：尽可能不要在微信里使用 vercel 部署的网站，具体原因不多解释**
 
 ## Star History
 

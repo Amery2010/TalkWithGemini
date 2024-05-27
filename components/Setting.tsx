@@ -238,6 +238,7 @@ function Setting({ open, hiddenTalkPanel, onClose }: SettingProps) {
                 placeholder={t('apiProxyUrlPlaceholder')}
                 className="col-span-3"
                 defaultValue={apiProxy}
+                disabled={apiKey === ''}
                 onChange={(ev) => setApiProxy(ev.target.value)}
               />
             </div>
@@ -250,6 +251,7 @@ function Setting({ open, hiddenTalkPanel, onClose }: SettingProps) {
                 placeholder={t('uploadProxyUrlPlaceholder')}
                 className="col-span-3"
                 defaultValue={uploadProxy}
+                disabled={apiKey === ''}
                 onChange={(ev) => setUploadProxy(ev.target.value)}
               />
             </div>
