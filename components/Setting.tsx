@@ -228,7 +228,7 @@ function Setting({ open, hiddenTalkPanel, onClose }: SettingProps) {
           </div>
         </TabsContent>
         <TabsContent value="model">
-          <div className="grid w-full gap-4 px-4 py-4">
+          <div className="grid w-full gap-4 px-4 py-4 max-sm:px-0">
             <div className="grid grid-cols-4 items-center gap-4">
               <Label htmlFor="key" className="text-right">
                 {!isProtected ? <span className="leading-12 mr-1 text-red-500">*</span> : null}
@@ -309,7 +309,7 @@ function Setting({ open, hiddenTalkPanel, onClose }: SettingProps) {
           </div>
         </TabsContent>
         <TabsContent value="params">
-          <div className="grid w-full gap-4 px-4 py-4">
+          <div className="grid w-full gap-4 px-4 py-4 max-sm:px-0">
             <div className="grid grid-cols-4 items-center gap-4">
               <Label htmlFor="topP" className="text-right">
                 Top-P
@@ -407,7 +407,7 @@ function Setting({ open, hiddenTalkPanel, onClose }: SettingProps) {
           </div>
         </TabsContent>
         <TabsContent value="voice">
-          <div className="grid w-full gap-4 px-4 py-4">
+          <div className="grid w-full gap-4 px-4 py-4 max-sm:px-0">
             <div className="grid grid-cols-4 items-center gap-4">
               <Label htmlFor="stt" className="text-right">
                 {t('speechRecognition')}
