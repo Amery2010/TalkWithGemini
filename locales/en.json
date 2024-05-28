@@ -61,5 +61,6 @@
   "none": "None",
   "low": "Low",
   "middle": "Middle",
-  "high": "High"
+  "high": "High",
+  "pwaInstall": "Install browser application (PWA)"
 }

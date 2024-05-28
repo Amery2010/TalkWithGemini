@@ -1,6 +1,8 @@
 import { memo, useEffect, useMemo, useState } from 'react'
 import { EdgeSpeech } from '@xiangfa/polly'
 import { useTranslation } from 'react-i18next'
+import { MonitorDown } from 'lucide-react'
+import { usePWAInstall } from 'react-use-pwa-install'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Input } from '@/components/ui/input'
@@ -25,6 +27,7 @@ const GEMINI_MODEL_LIST = process.env.NEXT_PUBLIC_GEMINI_MODEL_LIST
 
 function Setting({ open, hiddenTalkPanel, onClose }: SettingProps) {
   const { t } = useTranslation()
+  const pwaInstall = usePWAInstall()
   const settingStore = useSettingStore()
   const [password, setPassword] = useState<string>('')
   const [apiKey, setApiKey] = useState<string>('')
@@ -170,7 +173,7 @@ function Setting({ open, hiddenTalkPanel, onClose }: SettingProps) {
           </TabsTrigger>
         </TabsList>
         <TabsContent value="general">
-          <div className="grid w-full gap-4 px-4 py-4">
+          <div className="grid w-full gap-4 px-4 py-4 max-sm:px-0">
             <div className="grid grid-cols-4 items-center gap-4">
               <Label htmlFor="password" className="text-right">
                 {isProtected ? <span className="leading-12 mr-1 text-red-500">*</span> : null}
@@ -211,6 +214,17 @@ function Setting({ open, hiddenTalkPanel, onClose }: SettingProps) {
                 </SelectContent>
               </Select>
             </div>
+            {pwaInstall ? (
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="stt" className="text-right">
+                  {t('language')}
+                </Label>
+                <Button className="col-span-3" variant="ghost" onClick={() => pwaInstall()}>
+                  <MonitorDown className="mr-1.5 h-4 w-4" />
+                  {t('pwaInstall')}
+                </Button>
+              </div>
+            ) : null}
           </div>
         </TabsContent>
         <TabsContent value="model">
@@ -367,14 +381,10 @@ function Setting({ open, hiddenTalkPanel, onClose }: SettingProps) {
               <div className="col-span-3 flex h-10">
                 <RadioGroup
                   id="safety"
-                  className="grid w-full grid-cols-5"
+                  className="grid w-full grid-cols-4"
                   defaultValue={safety}
                   onValueChange={(value) => setSafety(value)}
                 >
-                  <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="default" id="default" />
-                    <Label htmlFor="default">{t('default')}</Label>
-                  </div>
                   <div className="flex items-center space-x-2">
                     <RadioGroupItem value="none" id="none" />
                     <Label htmlFor="none">{t('none')}</Label>

@@ -125,6 +125,9 @@ importers:
       react-i18next:
         specifier: ^14.1.1
         version: 14.1.1(i18next@23.11.4)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      react-use-pwa-install:
+        specifier: ^1.0.1
+        version: 1.0.1(react@18.3.1)
       siriwave:
         specifier: ^2.4.0
         version: 2.4.0
@@ -2269,6 +2272,9 @@ packages:
     resolution: {integrity: sha512-vYt7UD1U9Wg6138shLtLOvdAu+8DsC/ilFtEVHcH+wydcSpNE20AfSOduf6MkRFahL5FY7X1oU7nKVZFtfq8Fg==}
     engines: {node: '>=6'}
 
+  pwa-install-handler@2.6.0:
+    resolution: {integrity: sha512-bJ7kv8fY6lNlrz2T96OZz+sUiAiwR5zZ1a1PqV0AeKaRcgoCcGuXhD8itZMAmStaa8w44MGtId/pDk6Qc5knnQ==}
+
   query-string@9.0.0:
     resolution: {integrity: sha512-4EWwcRGsO2H+yzq6ddHcVqkCQ2EFUSfDMEjF8ryp8ReymyZhIuaFRGLomeOQLkrzacMHoyky2HW0Qe30UbzkKw==}
     engines: {node: '>=18'}
@@ -2330,6 +2336,11 @@ packages:
     peerDependenciesMeta:
       '@types/react':
         optional: true
+
+  react-use-pwa-install@1.0.1:
+    resolution: {integrity: sha512-bG3eiuf9GE78gB6ZbdjsenYjMNZPJmxEG7HMfaJ5arpvs5e+p/+yNT1tJl60KinmbIPdSeZj2B6YoaPiW33QlA==}
+    peerDependencies:
+      react: 18 || 19
 
   react@18.3.1:
     resolution: {integrity: sha512-wS+hAgJShR0KhEvPJArfuPVN1+Hz1t0Y6n5jLrGQbkb4urgPE/0Rve+1kMB1v/oWgHgm4WIcV+i7F2pTVj+2iQ==}
@@ -5019,6 +5030,8 @@ snapshots:
 
   punycode@2.3.1: {}
 
+  pwa-install-handler@2.6.0: {}
+
   query-string@9.0.0:
     dependencies:
       decode-uri-component: 0.4.1
@@ -5073,6 +5086,11 @@ snapshots:
       tslib: 2.6.2
     optionalDependencies:
       '@types/react': 18.3.2
+
+  react-use-pwa-install@1.0.1(react@18.3.1):
+    dependencies:
+      pwa-install-handler: 2.6.0
+      react: 18.3.1
 
   react@18.3.1:
     dependencies:

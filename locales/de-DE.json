@@ -59,5 +59,6 @@
   "none": "Nichts",
   "low": "Niedrig",
   "middle": "Mittel",
-  "high": "Hoch"
+  "high": "Hoch",
+  "pwaInstall": "Browser-App (PWA) installieren"
 }

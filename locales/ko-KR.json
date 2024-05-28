@@ -59,5 +59,6 @@
   "none": "없음",
   "low": "낮은",
   "middle": "중간",
-  "high": "높은"
+  "high": "높은",
+  "pwaInstall": "브라우저 애플리케이션(PWA) 설치하기"
 }

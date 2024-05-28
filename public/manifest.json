@@ -3,6 +3,7 @@
   "short_name": "Talk with Gemini",
   "description": "Deploy your private Gemini application for free with one click, supporting Gemini 1.5 Pro, Gemini 1.5 Flash, Gemini Pro and Gemini Pro Vision models.",
   "id": "talk-with-gemini",
+  "scope": ".",
   "icons": [
     {
       "src": "icons/logo-192x192.png",
@@ -23,24 +24,44 @@
   ],
   "screenshots": [
     {
-      "src": "screenshots/app.jpg",
-      "sizes": "2048x1192",
-      "type": "image/jpeg"
+      "src": "screenshots/mobile-screenshot-1.png",
+      "sizes": "750x1334",
+      "type": "image/png",
+      "form_factor": "narrow"
     },
     {
-      "src": "screenshots/gemini-1.5.jpg",
-      "sizes": "1920x863",
-      "type": "image/jpeg"
+      "src": "screenshots/mobile-screenshot-2.png",
+      "sizes": "750x1334",
+      "type": "image/png",
+      "form_factor": "narrow"
     },
     {
-      "src": "screenshots/assistant-market.jpg",
-      "sizes": "1920x872",
-      "type": "image/jpeg"
+      "src": "screenshots/mobile-screenshot-3.png",
+      "sizes": "750x1334",
+      "type": "image/png",
+      "form_factor": "narrow"
+    },
+    {
+      "src": "screenshots/pc-screenshot-1.png",
+      "sizes": "2048x1640",
+      "type": "image/png",
+      "form_factor": "wide"
+    },
+    {
+      "src": "screenshots/pc-screenshot-2.png",
+      "sizes": "2048x1640",
+      "type": "image/png",
+      "form_factor": "wide"
     }
   ],
   "theme_color": "#FFFFFF",
   "background_color": "#FFFFFF",
   "start_url": ".",
+  "tab_strip": {
+    "new_tab_button": {
+      "url": "/"
+    }
+  },
   "display": "standalone",
   "orientation": "portrait"
 }

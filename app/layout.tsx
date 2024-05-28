@@ -33,6 +33,7 @@ export const metadata: Metadata = {
       url: './logo.svg',
     },
   },
+  manifest: './manifest.json',
   appleWebApp: {
     capable: true,
     statusBarStyle: 'default',

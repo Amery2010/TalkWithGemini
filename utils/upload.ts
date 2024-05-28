@@ -2,6 +2,7 @@ import imageCompression from 'browser-image-compression'
 import FileManager, { type FileManagerOptions } from '@/utils/FileManager'
 import FibonacciTimer from '@/utils/FibonacciTimer'
 import { encodeBase64 } from '@/utils/signature'
+import { formatSize } from '@/utils/common'
 import { isNull, isFunction, isString } from 'lodash-es'
 
 type fileUploadOptions = {
@@ -19,8 +20,10 @@ type imageUploadOptions = {
   onError?: (error: string) => void
 }
 
+const UPLOAD_SIZE_LIMIT = Number(process.env.NEXT_PUBLIC_UPLOAD_LIMIT || '0')
+
 const compressionOptions = {
-  maxSizeMB: 1,
+  maxSizeMB: 2,
   maxWidthOrHeight: 1024,
   useWebWorker: true,
   initialQuality: 0.85,
@@ -37,6 +40,11 @@ export async function fileUpload({
   if (fileManagerOptions.token === '' || fileManagerOptions.apiKey === '') return false
 
   for await (const file of files) {
+    if (UPLOAD_SIZE_LIMIT > 0 && file.size > UPLOAD_SIZE_LIMIT) {
+      const errorMessage = `File size larger than ${formatSize(UPLOAD_SIZE_LIMIT)} limit!`
+      if (isFunction(onError)) onError(errorMessage)
+      throw new Error(errorMessage)
+    }
     const fileInfor: FileInfor = {
       id: encodeBase64(`${file.name}:${file.type}:${file.type}`),
       name: file.name,

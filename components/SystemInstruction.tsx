@@ -75,7 +75,7 @@ function SystemInstruction({ prompt, onClear }: Props) {
           onClick={() => onClear()}
         />
       </CardHeader>
-      <ScrollArea className="max-h-[130px] overflow-y-auto">
+      <ScrollArea className="max-h-[130px] overflow-y-auto max-sm:max-h-[90px]">
         <CardContent className="p-4 pt-0">
           <div
             className="prose w-full overflow-hidden break-words text-sm leading-6"

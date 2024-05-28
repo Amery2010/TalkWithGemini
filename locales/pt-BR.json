@@ -59,5 +59,6 @@
   "none": "Nada",
   "low": "Baixo",
   "middle": "Médio",
-  "high": "Alto"
+  "high": "Alto",
+  "pwaInstall": "Instalar aplicativo de navegador (PWA)"
 }

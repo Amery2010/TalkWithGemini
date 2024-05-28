@@ -59,5 +59,6 @@
   "none": "無",
   "low": "低",
   "middle": "中",
-  "high": "高"
+  "high": "高",
+  "pwaInstall": "安裝瀏覽器應用(PWA)"
 }

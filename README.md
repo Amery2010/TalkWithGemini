@@ -20,19 +20,13 @@ Simple interface, supports image recognition and voice conversation
 
 简洁的界面，支持图片识别和语音对话
 
-![cover](./public/screenshots/app.jpg)
+![cover](./public/screenshots/screenshots.png)
 
 Supports Gemini 1.5 and Gemini 1.5 Flash multimodal models
 
 支持 Gemini 1.5 和 Gemini 1.5 Flash 多模态模型
 
-![Gemini 1.5 Flash](./public/screenshots/gemini-1.5.jpg)
-
-A new assistant market with hundreds of hand-picked system commands
-
-全新的助理市场，拥有数百精选的系统指令
-
-![Assistant Market](./public/screenshots/assistant-market.jpg)
+![Gemini 1.5 Flash](./public/screenshots/pc-screenshot-1.png)
 
 > Note: If you encounter problems during the use of the project, you can check the known problems and solutions of [FAQ](#FAQ).
 
@@ -156,7 +150,7 @@ Your Gemini api key. If you need to `enable` the server api, this is required.
 
 > Examples: `http://your-gemini-proxy.com`
 
-Override Gemini api request base url.
+Override Gemini api request base url. **To avoid server-side proxy url leaks, links in front-end pages will not be overwritten. **
 
 ### `GEMINI_UPLOAD_BASE_URL` (optional)
 
@@ -164,7 +158,7 @@ Override Gemini api request base url.
 
 > Example: `http://your-gemini-upload-proxy.com`
 
-Override Gemini file upload api base url.
+Override Gemini file upload api base url. **To avoid server-side proxy url leaks, links in front-end pages will not be overwritten. **
 
 ### `NEXT_PUBLIC_GEMINI_MODEL_LIST` (optional)
 
@@ -176,7 +170,11 @@ Custom model list, default: all.
 
 > Examples: `http://your-assistant-market-proxy.com`
 
-Override assistant market api request base url.
+Override assistant market api request base url. The api link in the front-end interface will be adjusted synchronously.
+
+### `NEXT_PUBLIC_UPLOAD_LIMIT` (optional)
+
+File upload size limit. There is no file size limit by default.
 
 ### `ACCESS_PASSWORD` (optional)
 
@@ -202,7 +200,7 @@ Only used to set the page base path in [static deployment](#static-deployment) m
 
 > 示例：`http://your-gemini-proxy.com`
 
-覆盖 Gemini api 请求基本 url。
+覆盖 Gemini api 请求基本 url。**为了避免服务端代理 url 泄漏，不会覆盖前端页面中的链接。**
 
 ### `GEMINI_UPLOAD_BASE_URL`（可选）
 
@@ -210,7 +208,7 @@ Only used to set the page base path in [static deployment](#static-deployment) m
 
 > 示例：`http://your-gemini-upload-proxy.com`
 
-覆盖 Gemini 文件上传 api 基本 url。
+覆盖 Gemini 文件上传 api 基本 url。**为了避免服务端代理 url 泄漏，不会覆盖前端页面中的链接。**
 
 ### `NEXT_PUBLIC_GEMINI_MODEL_LIST`（可选）
 
@@ -222,7 +220,11 @@ Only used to set the page base path in [static deployment](#static-deployment) m
 
 > 示例：`http://your-assistant-market-proxy.com`
 
-覆盖助理市场 api 请求基本 url。
+覆盖助理市场 api 请求基本 url。会同步调整前端界面中的 api 链接。
+
+### `NEXT_PUBLIC_UPLOAD_LIMIT`（可选）
+
+文件上传大小限制。默认不限制文件大小。
 
 ### `ACCESS_PASSWORD`（可选）
 
@@ -328,7 +330,7 @@ docker run -d --name talk-with-gemini \
 
 如果您需要指定其他环境变量，请自行在上述命令中增加 `-e 环境变量=环境变量值` 来指定。
 
-### static deployment
+### Static Deployment
 
 You can also build a static page version directly, and then upload all files in the `out` directory to any website service that supports static pages, such as Github Page, Cloudflare, Vercel, etc..
 
