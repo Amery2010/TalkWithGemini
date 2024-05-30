@@ -35,7 +35,7 @@ type Props = {
 
 function DrawerDialog({ open, onClose, title, description, trigger, children, footer }: Props) {
   const { t } = useTranslation()
-  const isDesktop = useMediaQuery('(min-width: 384px)')
+  const isDesktop = useMediaQuery('(min-width: 450px)')
 
   const handleClose = (open: boolean) => {
     if (!open) onClose()

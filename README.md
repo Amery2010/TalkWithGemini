@@ -1,8 +1,10 @@
 # Talk With Gemini
 
-![GitHub License](https://img.shields.io/github/license/Amery2010/TalkWithGemini)
+![GitHub deployments](https://img.shields.io/github/deployments/Amery2010/TalkWithGemini/Production)
 ![GitHub Release](https://img.shields.io/github/v/release/Amery2010/TalkWithGemini)
 ![Docker Image Size (tag)](https://img.shields.io/docker/image-size/xiangfa/talk-with-gemini/latest)
+![Docker Pulls](https://img.shields.io/docker/pulls/xiangfa/talk-with-gemini)
+![GitHub License](https://img.shields.io/github/license/Amery2010/TalkWithGemini)
 
 Deploy your private Gemini application for free with one click, supporting Gemini 1.5 Pro, Gemini 1.5 Flash, Gemini Pro and Gemini Pro Vision models.
 
@@ -297,9 +299,24 @@ You can also specify additional environment variables:
 ```shell
 docker run -d --name talk-with-gemini \
    -p 5481:3000 \
-   -e GEMINI_API_KEY=AIza... \
+   -e GEMINI_API_KEY=AIzaSy... \
    -e ACCESS_PASSWORD=your-password \
    xiangfa/talk-with-gemini
+```
+
+Or deploy using `docker-compose.yml`:
+
+```shell
+version: '3.9'
+services:
+   talk-with-gemini:
+      image: xiangfa/talk-with-gemini
+      container_name: talk-with-gemini
+      environment:
+         - GEMINI_API_KEY=AIzaSy...
+         - ACCESS_PASSWORD=your-password
+      ports:
+         - '5481:3000'
 ```
 
 If you need to specify other environment variables, please add `-e key=value` to the above command to specify it.
@@ -323,9 +340,24 @@ docker run -d --name talk-with-gemini -p 5481:3000 xiangfa/talk-with-gemini
 ```shell
 docker run -d --name talk-with-gemini \
    -p 5481:3000 \
-   -e GEMINI_API_KEY=AIza... \
-   -e ACCESS_PASSWORD=页面访问密码 \
+   -e GEMINI_API_KEY=AIzaSy... \
+   -e ACCESS_PASSWORD=your-password \
    xiangfa/talk-with-gemini
+```
+
+或使用 `docker-compose.yml` 部署：
+
+```shell
+version: '3.9'
+services:
+   talk-with-gemini:
+      image: xiangfa/talk-with-gemini
+      container_name: talk-with-gemini
+      environment:
+         - GEMINI_API_KEY=AIzaSy...
+         - ACCESS_PASSWORD=your-password
+      ports:
+         - '5481:3000'
 ```
 
 如果您需要指定其他环境变量，请自行在上述命令中增加 `-e 环境变量=环境变量值` 来指定。
@@ -352,31 +384,13 @@ pnpm build:export
 
 ## FAQ
 
-#### Solution for "User location is not supported for the API use"
-
-You can refer to the following two Gemini Api proxy projects [gemini-proxy](https://github.com/Jazee6/gemini-proxy) and [palm-netlify-proxy](https://github.com/antergone/palm-netlify-proxy) deployment method.
-
-**Note that Vercel and Netlify prohibit users from deploying proxy services. This solution may result in account suspension, so use with caution**
-
-~~#### About the solution that vercel and netlify agents cannot upload large files~~
+#### ~~About the solution that vercel and netlify agents cannot upload large files~~
 
 ~~The currently known vercel and netlify both use serverless edge computing. Although the response speed is fast, they have size restrictions on uploaded files. Cloudflare Worker has relatively loose limits on large files (500MB for free users, 5GB for paid users) and can be used as an api proxy. [How to deploy the Cloudflare Worker api proxy](/docs/How-to-deploy-the-Cloudflare-Worker-api-proxy.md)~~
-
-#### About the problem of not being able to use the talk mode
-
-Currently, speech recognition uses the browser's SpeechRecognition api. The system will **hide the talk mode** in [some browsers that do not support the SpeechRecognition api](https://caniuse.com/?search=SpeechRecognition).
-
-Since most browsers based on the Chrome kernel use Google's speech recognition service in the implementation of the SpeechRecognition api, they require ability to access international networks normally.
 
 #### Why can’t I upload common documents such as doc, excel, and pdf?
 
 Currently, the two models `Gemini 1.5 Pro` and `Gemini 1.5 Flash` support most images, audios, videos and some text files. For details, see [Support List](https://ai.google.dev/gemini-api/docs/prompting_with_media). For other document types, we will try to use [LangChain.js](https://js.langchain.com/v0.2/docs/introduction/) later.
-
-### Why can’t the website I deployed with one click of vercel be accessed normally in China?
-
-The domain name generated after vercel was deployed has been blocked by the domestic network a few years ago, but the IP address of the server has not been blocked. You can customize the domain name and you can access it normally in China. Since vercel does not have a server in China, there will sometimes be slight network fluctuations, which is normal. How to set a domain name, you can refer to the solution article I found on the Internet [Vercel binds a custom domain name] (https://docs.tangly1024.com/article/vercel-domain).
-
-**Note: Try not to use vercel-deployed websites in WeChat. I won’t explain the specific reasons**
 
 ## 常见问题
 
@@ -386,7 +400,7 @@ The domain name generated after vercel was deployed has been blocked by the dome
 
 **注意 Vercel 和 Netlify 禁止用户部署代理服务，该解决方案可能会导致封号，需谨慎使用**
 
-~~#### 关于 vercel 与 netlify 代理无法上传大文件的解决方案~~
+#### ~~关于 vercel 与 netlify 代理无法上传大文件的解决方案~~
 
 ~~目前了解到的 vercel 与 netlify 都使用了无服务器的边缘计算，虽然响应速度快，但对于上传文件有大小限制。Cloudflare Worker 对于大文件限制（免费用户 500MB，收费用户 5GB）相对宽松，可以用做 api 代理。[如何部署 Cloudflare Worker api 代理](/docs/How-to-deploy-the-Cloudflare-Worker-api-proxy.md)~~
 
