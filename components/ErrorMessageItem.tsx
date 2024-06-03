@@ -37,7 +37,7 @@ function ErrorMessageItem({ content, onRegenerate }: Props) {
           <Bot />
         </AvatarFallback>
       </Avatar>
-      <div className="group relative">
+      <div className="group relative w-full">
         <div className="prose overflow-hidden break-words text-base leading-8">
           <div className="font-semibold text-red-500">{content}</div>
         </div>

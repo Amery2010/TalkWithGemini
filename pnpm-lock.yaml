@@ -57,8 +57,8 @@ importers:
         specifier: ^3.6.0
         version: 3.6.0
       '@xiangfa/polly':
-        specifier: ^0.3.3
-        version: 0.3.3
+        specifier: ^0.3.5
+        version: 0.3.5
       ai:
         specifier: ^2.2.37
         version: 2.2.37(react@18.3.1)(solid-js@1.8.17)(svelte@4.2.17)(vue@3.4.27(typescript@5.4.5))
@@ -206,16 +206,16 @@ packages:
     resolution: {integrity: sha512-30iZtAPgz+LTIYoeivqYo853f02jBYSd5uGnGpkFV0M3xOt9aN73erkgYAmZU43x4VfqcnLxW9Kpg3R5LC4YYw==}
     engines: {node: '>=6.0.0'}
 
-  '@babel/helper-string-parser@7.24.1':
-    resolution: {integrity: sha512-2ofRCjnnA9y+wk8b9IAREroeUP02KHp431N2mhKniy2yKIDKpbrHv9eXwm8cBeWQYcJmzv5qKCu65P47eCF7CQ==}
+  '@babel/helper-string-parser@7.24.6':
+    resolution: {integrity: sha512-WdJjwMEkmBicq5T9fm/cHND3+UlFa2Yj8ALLgmoSQAJZysYbBjw+azChSGPN4DSPLXOcooGRvDwZWMcF/mLO2Q==}
     engines: {node: '>=6.9.0'}
 
-  '@babel/helper-validator-identifier@7.24.5':
-    resolution: {integrity: sha512-3q93SSKX2TWCG30M2G2kwaKeTYgEUp5Snjuj8qm729SObL6nbtUldAi37qbxkD5gg3xnBio+f9nqpSepGZMvxA==}
+  '@babel/helper-validator-identifier@7.24.6':
+    resolution: {integrity: sha512-4yA7s865JHaqUdRbnaxarZREuPTHrjpDT+pXoAZ1yhyo6uFnIEpS8VMu16siFOHDpZNKYv5BObhsB//ycbICyw==}
     engines: {node: '>=6.9.0'}
 
-  '@babel/parser@7.24.5':
-    resolution: {integrity: sha512-EOv5IK8arwh3LI47dz1b0tKUb/1uhHAnHJOrjgtQMIpu1uXd9mlFrJg9IUgGUgZ41Ch0K8REPTYpO7B76b4vJg==}
+  '@babel/parser@7.24.6':
+    resolution: {integrity: sha512-eNZXdfU35nJC2h24RznROuOpO94h6x8sg9ju0tT9biNtLZ2vuP8SduLqqV+/8+cebSLV9SJEAN5Z3zQbJG/M+Q==}
     engines: {node: '>=6.0.0'}
     hasBin: true
 
@@ -223,8 +223,8 @@ packages:
     resolution: {integrity: sha512-Nms86NXrsaeU9vbBJKni6gXiEXZ4CVpYVzEjDH9Sb8vmZ3UljyA1GSOJl/6LGPO8EHLuSF9H+IxNXHPX8QHJ4g==}
     engines: {node: '>=6.9.0'}
 
-  '@babel/types@7.24.5':
-    resolution: {integrity: sha512-6mQNsaLeXTw0nxYUYu+NSa4Hx4BlF1x1x8/PMFbiR+GBSr+2DkECc69b8hgy2frEodNcvPffeH8YfWd3LI6jhQ==}
+  '@babel/types@7.24.6':
+    resolution: {integrity: sha512-WaMsgi6Q8zMgMth93GvWPXkhAIEobfsIkLTacoVZoK1J0CevIPGYY2Vo5YvJGqyHqXM6P4ppOYGsIRU8MM9pFQ==}
     engines: {node: '>=6.9.0'}
 
   '@eslint-community/eslint-utils@4.4.0':
@@ -1008,8 +1008,8 @@ packages:
   '@vue/shared@3.4.27':
     resolution: {integrity: sha512-DL3NmY2OFlqmYYrzp39yi3LDkKxa5vZVwxWdQ3rG0ekuWscHraeIbnI8t+aZK7qhYqEqWKTUdijadunb9pnrgA==}
 
-  '@xiangfa/polly@0.3.3':
-    resolution: {integrity: sha512-qGeZkr8ZC11V6MWw5l8KYEHGC2MG4F86OHhTX4TjIJ4rg3sWj+pvcNzJf4K7ItYI88pN7AWE8o+McUE+03/4Tg==}
+  '@xiangfa/polly@0.3.5':
+    resolution: {integrity: sha512-ol1wZV16FYF1v1RR8424fos575rFVxjas8Tavz2ovUyioj1TxXMSuSygB/IGPfyr3PFUwRYZETjxTiiaImi/fA==}
 
   acorn-jsx@5.3.2:
     resolution: {integrity: sha512-rq9s+JNhf0IChjtDXxllJ7g41oZk5SlXtp0LHwyA5cejwn7vKmKp4pPri6YEePv2PU65sAsegbXtIinmDFDXgQ==}
@@ -2826,22 +2826,22 @@ snapshots:
       '@jridgewell/gen-mapping': 0.3.5
       '@jridgewell/trace-mapping': 0.3.25
 
-  '@babel/helper-string-parser@7.24.1': {}
+  '@babel/helper-string-parser@7.24.6': {}
 
-  '@babel/helper-validator-identifier@7.24.5': {}
+  '@babel/helper-validator-identifier@7.24.6': {}
 
-  '@babel/parser@7.24.5':
+  '@babel/parser@7.24.6':
     dependencies:
-      '@babel/types': 7.24.5
+      '@babel/types': 7.24.6
 
   '@babel/runtime@7.24.5':
     dependencies:
       regenerator-runtime: 0.14.1
 
-  '@babel/types@7.24.5':
+  '@babel/types@7.24.6':
     dependencies:
-      '@babel/helper-string-parser': 7.24.1
-      '@babel/helper-validator-identifier': 7.24.5
+      '@babel/helper-string-parser': 7.24.6
+      '@babel/helper-validator-identifier': 7.24.6
       to-fast-properties: 2.0.0
 
   '@eslint-community/eslint-utils@4.4.0(eslint@8.57.0)':
@@ -3600,7 +3600,7 @@ snapshots:
 
   '@vue/compiler-core@3.4.27':
     dependencies:
-      '@babel/parser': 7.24.5
+      '@babel/parser': 7.24.6
       '@vue/shared': 3.4.27
       entities: 4.5.0
       estree-walker: 2.0.2
@@ -3613,7 +3613,7 @@ snapshots:
 
   '@vue/compiler-sfc@3.4.27':
     dependencies:
-      '@babel/parser': 7.24.5
+      '@babel/parser': 7.24.6
       '@vue/compiler-core': 3.4.27
       '@vue/compiler-dom': 3.4.27
       '@vue/compiler-ssr': 3.4.27
@@ -3651,7 +3651,7 @@ snapshots:
 
   '@vue/shared@3.4.27': {}
 
-  '@xiangfa/polly@0.3.3':
+  '@xiangfa/polly@0.3.5':
     dependencies:
       query-string: 9.0.0
       radash: 12.1.0

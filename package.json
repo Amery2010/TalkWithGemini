@@ -1,6 +1,6 @@
 {
   "name": "talk-with-gemini",
-  "version": "0.10.9",
+  "version": "0.11.0",
   "private": true,
   "author": "Amery2010 <amery@xiangfa.org>",
   "license": "GPL-3.0-only",
@@ -29,7 +29,7 @@
     "@radix-ui/react-tooltip": "^1.0.7",
     "@serwist/next": "^9.0.2",
     "@traptitech/markdown-it-katex": "^3.6.0",
-    "@xiangfa/polly": "^0.3.3",
+    "@xiangfa/polly": "^0.3.5",
     "ai": "^2.2.37",
     "browser-image-compression": "^2.0.2",
     "class-variance-authority": "^0.7.0",

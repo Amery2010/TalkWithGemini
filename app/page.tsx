@@ -1,7 +1,7 @@
 'use client'
 import dynamic from 'next/dynamic'
-import { useRef, useState, useMemo, KeyboardEvent, useEffect, useCallback, useLayoutEffect } from 'react'
-import { EdgeSpeech, SpeechRecognition } from '@xiangfa/polly'
+import { useRef, useState, useMemo, KeyboardEvent, useEffect, useCallback } from 'react'
+import { EdgeSpeech, SpeechRecognition, getRecordMineType } from '@xiangfa/polly'
 import SiriWave from 'siriwave'
 import {
   MessageCircleHeart,
@@ -25,19 +25,20 @@ import { useMessageStore } from '@/store/chat'
 import { useAttachmentStore } from '@/store/attachment'
 import { useSettingStore } from '@/store/setting'
 import chat, { type RequestProps } from '@/utils/chat'
-import { summarizePrompt, getVoiceModelPrompt, getSummaryPrompt } from '@/utils/prompt'
+import { summarizePrompt, getVoiceModelPrompt, getSummaryPrompt, getTalkAudioPrompt } from '@/utils/prompt'
+import { AudioRecorder } from '@/utils/Recorder'
 import AudioStream from '@/utils/AudioStream'
 import PromiseQueue from '@/utils/PromiseQueue'
 import textStream, { streamToText } from '@/utils/textStream'
 import { encodeToken } from '@/utils/signature'
 import type { FileManagerOptions } from '@/utils/FileManager'
 import { fileUpload, imageUpload } from '@/utils/upload'
-import { formatTime } from '@/utils/common'
+import { formatTime, readFileAsDataURL } from '@/utils/common'
 import { cn } from '@/utils'
 import { Model, OldVisionModel, OldTextModel } from '@/constant/model'
 import mimeType from '@/constant/attachment'
 import { customAlphabet } from 'nanoid'
-import { isFunction, findIndex, pick } from 'lodash-es'
+import { isFunction, findIndex, pick, isUndefined } from 'lodash-es'
 
 interface AnswerParams {
   messages: Message[]
@@ -59,6 +60,7 @@ export default function Home() {
   const scrollAreaBottomRef = useRef<HTMLDivElement>(null)
   const audioStreamRef = useRef<AudioStream>()
   const edgeSpeechRef = useRef<EdgeSpeech>()
+  const audioRecordRef = useRef<AudioRecorder>()
   const speechRecognitionRef = useRef<SpeechRecognition>()
   const speechQueue = useRef<PromiseQueue>()
   const messagesRef = useRef(useMessageStore.getState().messages)
@@ -70,8 +72,8 @@ export default function Home() {
   const [content, setContent] = useState<string>('')
   const [subtitle, setSubtitle] = useState<string>('')
   const [errorMessage, setErrorMessage] = useState<string>('')
-  const [isRecording, setIsRecording] = useState<boolean>(false)
-  const [recordTimer, setRecordTimer] = useState<NodeJS.Timeout>()
+  // const [isRecording, setIsRecording] = useState<boolean>(false)
+  // const [recordTimer, setRecordTimer] = useState<NodeJS.Timeout>()
   const [recordTime, setRecordTime] = useState<number>(0)
   const [settingOpen, setSetingOpen] = useState<boolean>(false)
   const [speechSilence, setSpeechSilence] = useState<boolean>(false)
@@ -296,11 +298,12 @@ export default function Home() {
 
   const handleSubmit = useCallback(
     async (text: string): Promise<void> => {
-      if (content === '') return Promise.reject(false)
+      if (text === '') return Promise.reject(false)
       const { talkMode, model } = useSettingStore.getState()
       const { files, clear: clearAttachment } = useAttachmentStore.getState()
       const { summary, add: addMessage } = useMessageStore.getState()
       const messagePart: Message['parts'] = []
+      let talkAudioMode: boolean = false
       if (files.length > 0) {
         for (const file of files) {
           if (isOldVisionModel) {
@@ -324,7 +327,18 @@ export default function Home() {
           }
         }
       }
-      messagePart.push({ text })
+      if (text.startsWith('data:audio/webm;base64,') || text.startsWith('data:audio/mp4;base64,')) {
+        const audioData = text.substring(5).split(';base64,')
+        messagePart.push({
+          inlineData: {
+            mimeType: audioData[0],
+            data: audioData[1],
+          },
+        })
+        talkAudioMode = true
+      } else {
+        messagePart.push({ text })
+      }
       const newUserMessage: Message = {
         id: nanoid(),
         role: 'user',
@@ -335,14 +349,17 @@ export default function Home() {
       const newModelMessage: Message = { id: nanoid(), role: 'model', parts: [{ text: '' }] }
       addMessage(newModelMessage)
       let messages: Message[] = [...messagesRef.current.slice(0, -1)]
-      if (summary.content !== '') {
-        const newMessages = messages.filter((item) => !summary.ids.includes(item.id))
-        messages = [...getSummaryPrompt(summary.content), ...newMessages]
+      if (talkAudioMode) {
+        messages = getTalkAudioPrompt(messages)
       }
       if (talkMode === 'voice') {
         messages = getVoiceModelPrompt(messages)
         setStatus('thinkng')
         setSubtitle('')
+      }
+      if (summary.content !== '') {
+        const newMessages = messages.filter((item) => !summary.ids.includes(item.id))
+        messages = [...getSummaryPrompt(summary.content), ...newMessages]
       }
       setContent('')
       clearAttachment()
@@ -358,7 +375,7 @@ export default function Home() {
         },
       })
     },
-    [content, isOldVisionModel, fetchAnswer, handleResponse, handleError],
+    [isOldVisionModel, fetchAnswer, handleResponse, handleError],
   )
 
   const handleResubmit = useCallback(
@@ -415,39 +432,64 @@ export default function Home() {
     }
   }, [])
 
-  const startRecordTime = useCallback(() => {
-    const intervalTimer = setInterval(() => {
-      setRecordTime((time) => time + 1)
-    }, 1000)
-    setRecordTimer(intervalTimer)
-  }, [])
+  // const startRecordTime = useCallback(() => {
+  //   const intervalTimer = setInterval(() => {
+  //     setRecordTime((time) => time + 1)
+  //   }, 1000)
+  //   setRecordTimer(intervalTimer)
+  // }, [])
 
-  const endRecordTimer = useCallback(() => {
-    clearInterval(recordTimer)
-  }, [recordTimer])
+  // const endRecordTimer = useCallback(() => {
+  //   clearInterval(recordTimer)
+  // }, [recordTimer])
+
+  // const handleRecorder = useCallback(() => {
+  //   if (!checkAccessStatus()) return false
+  //   if (!audioStreamRef.current) {
+  //     audioStreamRef.current = new AudioStream()
+  //   }
+  //   if (speechRecognitionRef.current) {
+  //     const { talkMode } = useSettingStore.getState()
+  //     if (isRecording) {
+  //       speechRecognitionRef.current.stop()
+  //       endRecordTimer()
+  //       setRecordTime(0)
+  //       if (talkMode === 'voice') {
+  //         handleSubmit(speechRecognitionRef.current.text)
+  //       }
+  //       setIsRecording(false)
+  //     } else {
+  //       speechRecognitionRef.current.start()
+  //       setIsRecording(true)
+  //       startRecordTime()
+  //     }
+  //   }
+  // }, [checkAccessStatus, handleSubmit, startRecordTime, endRecordTimer, isRecording])
 
   const handleRecorder = useCallback(() => {
     if (!checkAccessStatus()) return false
     if (!audioStreamRef.current) {
       audioStreamRef.current = new AudioStream()
     }
-    if (speechRecognitionRef.current) {
-      const { talkMode } = useSettingStore.getState()
-      if (isRecording) {
-        speechRecognitionRef.current.stop()
-        endRecordTimer()
-        setRecordTime(0)
-        if (talkMode === 'voice') {
-          handleSubmit(speechRecognitionRef.current.text)
-        }
-        setIsRecording(false)
-      } else {
-        speechRecognitionRef.current.start()
-        setIsRecording(true)
-        startRecordTime()
-      }
+    if (!audioRecordRef.current) {
+      audioRecordRef.current = new AudioRecorder({
+        onTimeUpdate: (time) => {
+          setRecordTime(time)
+        },
+        onFinish: async (audioData) => {
+          const recordType = getRecordMineType()
+          const file = new File([audioData], `${Date.now()}.${recordType.extension}`, { type: recordType.mineType })
+          const recordDataURL = await readFileAsDataURL(file)
+          handleSubmit(recordDataURL)
+        },
+      })
     }
-  }, [checkAccessStatus, handleSubmit, startRecordTime, endRecordTimer, isRecording])
+    if (audioRecordRef.current.isRecording) {
+      audioRecordRef.current.stop()
+    } else {
+      audioRecordRef.current.start()
+    }
+  }, [checkAccessStatus, handleSubmit])
 
   const handleStopTalking = useCallback(() => {
     setSpeechSilence(true)
@@ -458,14 +500,14 @@ export default function Home() {
 
   const handleKeyDown = useCallback(
     (ev: KeyboardEvent<HTMLTextAreaElement>) => {
-      if (ev.key === 'Enter' && !ev.shiftKey && !isRecording) {
+      if (ev.key === 'Enter' && !ev.shiftKey && !audioRecordRef.current?.isRecording) {
         if (!checkAccessStatus()) return false
         // Prevent the default carriage return and line feed behavior
         ev.preventDefault()
         handleSubmit(content)
       }
     },
-    [content, isRecording, handleSubmit, checkAccessStatus],
+    [content, handleSubmit, checkAccessStatus],
   )
 
   const handleFileUpload = useCallback(
@@ -553,18 +595,25 @@ export default function Home() {
     }
   }, [settingStore.ttsLang])
 
-  useLayoutEffect(() => {
-    const instance = new SiriWave({
-      container: siriWaveRef.current!,
-      style: 'ios9',
-      speed: 0.04,
-      amplitude: 0.1,
-      width: window.innerWidth,
-      height: window.innerHeight / 5,
-    })
-    setSiriWave(instance)
+  useEffect(() => {
+    const { talkMode } = useSettingStore.getState()
+    let instance: SiriWave
+    if (talkMode === 'chat') {
+      instance = new SiriWave({
+        container: siriWaveRef.current!,
+        style: 'ios9',
+        speed: 0.04,
+        amplitude: 0.1,
+        width: window.innerWidth,
+        height: window.innerHeight / 5,
+      })
+      setSiriWave(instance)
+    }
+
     return () => {
-      instance.dispose()
+      if (talkMode === 'chat' && instance) {
+        instance.dispose()
+      }
     }
   }, [])
 
@@ -684,17 +733,22 @@ export default function Home() {
             ) : null}
             {!disableSpeechRecognition ? (
               <TooltipProvider>
-                <Tooltip open={isRecording}>
+                <Tooltip open={audioRecordRef.current?.isRecording}>
                   <TooltipTrigger asChild>
                     <div
                       className="box-border flex h-8 w-8 cursor-pointer items-center justify-center rounded-full p-1.5 text-slate-800 hover:bg-secondary/80 dark:text-slate-600"
                       onClick={() => handleRecorder()}
                     >
-                      <Mic className={isRecording ? 'animate-pulse' : ''} />
+                      <Mic className={audioRecordRef.current?.isRecording ? 'animate-pulse' : ''} />
                     </div>
                   </TooltipTrigger>
-                  <TooltipContent className="mb-1 px-2 py-1 text-center font-mono text-red-500">
-                    {formatTime(recordTime)}
+                  <TooltipContent
+                    className={cn(
+                      'mb-1 px-2 py-1 text-center',
+                      isUndefined(audioRecordRef.current?.isRecording) ? '' : 'font-mono text-red-500',
+                    )}
+                  >
+                    {isUndefined(audioRecordRef.current?.isRecording) ? t('startRecording') : formatTime(recordTime)}
                   </TooltipContent>
                 </Tooltip>
               </TooltipProvider>
@@ -705,7 +759,7 @@ export default function Home() {
           title={t('send')}
           variant="secondary"
           size="icon"
-          disabled={isRecording || isUploading}
+          disabled={audioRecordRef.current?.isRecording || isUploading}
           onClick={() => handleSubmit(content)}
         >
           <SendHorizontal />
@@ -754,7 +808,7 @@ export default function Home() {
                   disabled={status === 'thinkng'}
                   onClick={() => handleRecorder()}
                 >
-                  {isRecording ? formatTime(recordTime) : <Mic className="h-8 w-8" />}
+                  {audioRecordRef.current?.isRecording ? formatTime(recordTime) : <Mic className="h-8 w-8" />}
                 </Button>
               )}
               <Button

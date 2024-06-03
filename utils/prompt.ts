@@ -93,3 +93,27 @@ export function getVisionPrompt(message: Message, messages: Message[]) {
     `
   return messages.length > 0 ? conversation + content : content
 }
+
+export function getTalkAudioPrompt(messages: Message[]): Message[] {
+  return [
+    {
+      id: 'talkAudioRequire',
+      role: 'user',
+      parts: [
+        {
+          text: `I am communicating with you through audio. Please feel the emotions in the audio, understand and answer the content in the audio. You do not need to repeat my questions, but must respond orally.`,
+        },
+      ],
+    },
+    {
+      id: 'talkAudioReply',
+      role: 'model',
+      parts: [
+        {
+          text: 'OK, I will reply in the language in the audio',
+        },
+      ],
+    },
+    ...messages,
+  ]
+}

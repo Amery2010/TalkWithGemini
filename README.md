@@ -1,5 +1,6 @@
 # Talk With Gemini
 
+![Discord](https://img.shields.io/discord/1245639658604593152)
 ![GitHub deployments](https://img.shields.io/github/deployments/Amery2010/TalkWithGemini/Production)
 ![GitHub Release](https://img.shields.io/github/v/release/Amery2010/TalkWithGemini)
 ![Docker Image Size (tag)](https://img.shields.io/docker/image-size/xiangfa/talk-with-gemini/latest)
@@ -44,10 +45,11 @@ Supports Gemini 1.5 and Gemini 1.5 Flash multimodal models
 - Full Markdown support: LaTex formulas, code highlighting, and more
 - Automatically compress contextual chat records to save Tokens while supporting very long conversations
 - Privacy and security, all data is saved locally in the user's browser
+- Support PWA, can run as an application
 - Well-designed UI, responsive design, supports dark mode
 - Extremely fast first screen loading speed, supporting streaming response
 - Static deployment supports deployment on any website service that supports static pages, such as Github Page, Cloudflare, Vercel, etc.
-- Multi-language support: English, Simplified Chinese, Traditional Chinese, Japanese, 한국어, Español, Deutsch, Français, Português, Русский and العربية
+- Multi-language support: English、简体中文、繁体中文、日本語、한국어、Español、Deutsch、Français、Português、Русский and العربية
 
 ## 主要功能
 
@@ -59,6 +61,7 @@ Supports Gemini 1.5 and Gemini 1.5 Flash multimodal models
 - 完整的 Markdown 支持：LaTex 公式、代码高亮等等
 - 自动压缩上下文聊天记录，在节省 Token 的同时支持超长对话
 - 隐私安全，所有数据保存在用户浏览器本地
+- 支持 PWA，可以以应用形式运行
 - 精心设计的 UI，响应式设计，支持深色模式
 - 极快的首屏加载速度，支持流式响应
 - 静态部署，支持部署在任何支持静态页面的网站服务，比如 Github Page、Cloudflare、Vercel 等

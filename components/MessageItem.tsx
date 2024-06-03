@@ -1,3 +1,4 @@
+'use client'
 import { useEffect, useState, useCallback, useMemo, memo } from 'react'
 import MarkdownIt from 'markdown-it'
 import markdownHighlight from 'markdown-it-highlightjs'
@@ -70,6 +71,32 @@ function MessageItem({ id, role, parts, attachments, onRegenerate }: Props) {
   const fileList = useMemo(() => {
     return attachments ? attachments.filter((item) => !item.metadata?.mimeType.startsWith('image/')) : []
   }, [attachments])
+  const inlineImageList = useMemo(() => {
+    const imageList: string[] = []
+    parts.forEach(async (part) => {
+      if (part.inlineData?.mimeType.startsWith('image/')) {
+        imageList.push(`data:${part.inlineData.mimeType};base64,${part.inlineData.data}`)
+      } else if (part.fileData && attachments) {
+        for (const attachment of attachments) {
+          if (attachment.metadata?.uri === part.fileData.fileUri) {
+            if (part.fileData?.mimeType.startsWith('image/') && attachment.preview) {
+              imageList.push(attachment.preview)
+            }
+          }
+        }
+      }
+    })
+    return imageList
+  }, [parts, attachments])
+  const inlineAudioList = useMemo(() => {
+    const audioList: string[] = []
+    parts.forEach(async (part) => {
+      if (part.inlineData?.mimeType.startsWith('audio/')) {
+        audioList.push(`data:${part.inlineData.mimeType};base64,${part.inlineData.data}`)
+      }
+    })
+    return audioList
+  }, [parts])
   const content = useMemo(() => {
     let text = ''
     parts.forEach((item) => {
@@ -195,18 +222,6 @@ function MessageItem({ id, role, parts, attachments, onRegenerate }: Props) {
     parts.forEach(async (part) => {
       if (part.text) {
         messageParts.push(render(part.text))
-      } else if (part.inlineData?.mimeType.startsWith('image/')) {
-        messageParts.push(
-          `<img class="inline-image" alt="inline-image" src="data:${part.inlineData.mimeType};base64,${part.inlineData.data}" />`,
-        )
-      } else if (part.fileData && attachments) {
-        for (const attachment of attachments) {
-          if (attachment.metadata?.uri === part.fileData.fileUri) {
-            if (part.fileData?.mimeType.startsWith('image/')) {
-              messageParts.push(`<img class="inline-image" alt="inline-image" src="${attachment.preview}" />`)
-            }
-          }
-        }
       }
     })
     setHtml(messageParts.join(''))
@@ -244,8 +259,23 @@ function MessageItem({ id, role, parts, attachments, onRegenerate }: Props) {
       ) : (
         <div className="group relative flex-auto">
           {fileList.length > 0 ? (
-            <div className="w-full border-b border-dashed pb-2">
+            <div className="not:last:border-dashed not:last:border-b w-full pb-2">
               <FileList fileList={fileList} />
+            </div>
+          ) : null}
+          {inlineAudioList.length > 0 ? (
+            <div className="not:last:border-dashed not:last:border-b flex w-full flex-wrap pb-2">
+              {inlineAudioList.map((audio, idx) => {
+                return <audio key={idx} className="mb-2" src={audio} controls preload="auto" />
+              })}
+            </div>
+          ) : null}
+          {inlineImageList.length > 0 ? (
+            <div className="flex flex-wrap gap-2 pb-2">
+              {inlineImageList.map((image, idx) => {
+                // eslint-disable-next-line
+                return <img key={idx} className="max-h-48 rounded-sm" src={image} alt="inline-image" />
+              })}
             </div>
           ) : null}
           {!isEditing ? (
