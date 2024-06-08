@@ -180,6 +180,19 @@ html.dark .hljs-warpper ::-webkit-scrollbar-thumb:hover {
   border-radius: 4px;
   margin-bottom: 8px;
 }
+.yarl__root .yarl__container {
+  background-color: rgba(0, 0, 0, 0.8);
+}
+.audio-slider span[role='slider'] {
+  cursor: pointer;
+  width: 16px;
+  height: 16px;
+  transition: all 150ms linear;
+}
+.audio-slider span[role='slider']:hover {
+  width: 20px;
+  height: 20px;
+}
 
 @media (max-width: 768px) {
   .hljs-warpper {

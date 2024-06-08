@@ -1,23 +1,28 @@
 'use client'
 import { useEffect, useState, useCallback, useMemo, memo } from 'react'
+import { useTranslation } from 'react-i18next'
+import Lightbox from 'yet-another-react-lightbox'
+import LightboxFullscreen from 'yet-another-react-lightbox/plugins/fullscreen'
 import MarkdownIt from 'markdown-it'
 import markdownHighlight from 'markdown-it-highlightjs'
 import highlight from 'highlight.js'
 import markdownKatex from '@traptitech/markdown-it-katex'
 import Clipboard from 'clipboard'
-import { useTranslation } from 'react-i18next'
-import { User, Bot, RotateCw, Sparkles, Copy, CopyCheck, PencilLine, Eraser, Volume2 } from 'lucide-react'
+import { User, Bot, RotateCw, Sparkles, Copy, CopyCheck, PencilLine, Eraser, Volume2, Eye } from 'lucide-react'
 import { EdgeSpeech } from '@xiangfa/polly'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import BubblesLoading from '@/components/BubblesLoading'
 import FileList from '@/components/FileList'
 import EditableArea from '@/components/EditableArea'
+import AudioPlayer from '@/components/AudioPlayer'
 import IconButton from '@/components/IconButton'
 import { useMessageStore } from '@/store/chat'
 import { useSettingStore } from '@/store/setting'
 import AudioStream from '@/utils/AudioStream'
 import { sentenceSegmentation } from '@/utils/common'
 import { upperFirst, isFunction, find } from 'lodash-es'
+
+import 'yet-another-react-lightbox/styles.css'
 
 interface Props extends Message {
   onRegenerate?: (id: string) => void
@@ -68,6 +73,8 @@ function MessageItem({ id, role, parts, attachments, onRegenerate }: Props) {
   const [html, setHtml] = useState<string>('')
   const [isEditing, setIsEditing] = useState<boolean>(false)
   const [isCopyed, setIsCopyed] = useState<boolean>(false)
+  const [showLightbox, setShowLightbox] = useState<boolean>(false)
+  const [lightboxIndex, setLightboxIndex] = useState<number>(0)
   const fileList = useMemo(() => {
     return attachments ? attachments.filter((item) => !item.metadata?.mimeType.startsWith('image/')) : []
   }, [attachments])
@@ -159,6 +166,11 @@ function MessageItem({ id, role, parts, attachments, onRegenerate }: Props) {
       }
     }
   }, [content])
+
+  const openLightbox = useCallback((index: number) => {
+    setLightboxIndex(index)
+    setShowLightbox(true)
+  }, [])
 
   const render = useCallback(
     (content: string) => {
@@ -266,15 +278,22 @@ function MessageItem({ id, role, parts, attachments, onRegenerate }: Props) {
           {inlineAudioList.length > 0 ? (
             <div className="not:last:border-dashed not:last:border-b flex w-full flex-wrap pb-2">
               {inlineAudioList.map((audio, idx) => {
-                return <audio key={idx} className="mb-2" src={audio} controls preload="auto" />
+                return <AudioPlayer key={idx} className="mb-2" src={audio} />
               })}
             </div>
           ) : null}
           {inlineImageList.length > 0 ? (
             <div className="flex flex-wrap gap-2 pb-2">
               {inlineImageList.map((image, idx) => {
-                // eslint-disable-next-line
-                return <img key={idx} className="max-h-48 rounded-sm" src={image} alt="inline-image" />
+                return (
+                  <div key={idx} className="group/image relative cursor-pointer" onClick={() => openLightbox(idx)}>
+                    {
+                      // eslint-disable-next-line
+                      <img className="max-h-48 rounded-sm" src={image} alt="inline-image" />
+                    }
+                    <Eye className="absolute left-1/2 top-1/2 -ml-4 -mt-4 h-8 w-8 text-white/80 opacity-0 group-hover/image:opacity-100" />
+                  </div>
+                )
               })}
             </div>
           ) : null}
@@ -319,6 +338,13 @@ function MessageItem({ id, role, parts, attachments, onRegenerate }: Props) {
           )}
         </div>
       )}
+      <Lightbox
+        open={showLightbox}
+        close={() => setShowLightbox(false)}
+        slides={inlineImageList.map((item) => ({ src: item }))}
+        index={lightboxIndex}
+        plugins={[LightboxFullscreen]}
+      />
     </>
   )
 }

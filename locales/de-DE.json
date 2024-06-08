@@ -60,5 +60,8 @@
   "low": "Niedrig",
   "middle": "Mittel",
   "high": "Hoch",
-  "pwaInstall": "Browser-App (PWA) installieren"
+  "pwaInstall": "Browser-App (PWA) installieren",
+  "autoStopRecord": "Automatische Beendigung der Aufnahme",
+  "settingEnable": "Aktiviert",
+  "settingDisable": "Deaktiviert"
 }

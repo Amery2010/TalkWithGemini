@@ -10,6 +10,7 @@ import { Label } from '@/components/ui/label'
 import { Button } from '@/components/ui/button'
 import { Slider } from '@/components/ui/slider'
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
+import { Switch } from '@/components/ui/switch'
 import ResponsiveDialog from '@/components/ResponsiveDialog'
 import i18n from '@/plugins/i18n'
 import locales from '@/constant/locales'
@@ -45,6 +46,7 @@ function Setting({ open, hiddenTalkPanel, onClose }: SettingProps) {
   const [temperature, setTemperature] = useState<number>(1)
   const [maxOutputTokens, setMaxOutputTokens] = useState<number>(8192)
   const [safety, setSafety] = useState<string>('low')
+  const [autoStopRecord, setAutoStopRecord] = useState<boolean>(false)
   const isProtected = useMemo(() => {
     return settingStore.isProtected
   }, [settingStore.isProtected])
@@ -103,6 +105,7 @@ function Setting({ open, hiddenTalkPanel, onClose }: SettingProps) {
     if (temperature !== settingStore.temperature) settingStore.setTemperature(temperature)
     if (maxOutputTokens !== settingStore.maxOutputTokens) settingStore.setMaxOutputTokens(maxOutputTokens)
     if (safety !== settingStore.safety) settingStore.setSafety(safety)
+    if (autoStopRecord !== settingStore.autoStopRecord) settingStore.setAutoStopRecord(autoStopRecord)
     onClose()
   }
 
@@ -149,6 +152,7 @@ function Setting({ open, hiddenTalkPanel, onClose }: SettingProps) {
     setTemperature(settingStore.temperature)
     setMaxOutputTokens(settingStore.maxOutputTokens)
     setSafety(settingStore.safety)
+    setAutoStopRecord(settingStore.autoStopRecord)
   }, [settingStore])
 
   return (
@@ -452,6 +456,13 @@ function Setting({ open, hiddenTalkPanel, onClose }: SettingProps) {
                   })}
                 </SelectContent>
               </Select>
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="autoStopRecord" className="text-right">
+                {t('autoStopRecord')}
+              </Label>
+              <Switch checked={autoStopRecord} onCheckedChange={setAutoStopRecord} />
+              <span className="text-center">{autoStopRecord ? t('settingEnable') : t('settingDisable')}</span>
             </div>
           </div>
         </TabsContent>

@@ -21,7 +21,7 @@ import {
   DrawerTitle,
   DrawerTrigger,
 } from '@/components/ui/drawer'
-import { useMediaQuery } from '@/hooks/useMediaQuery'
+import useMediaQuery from '@/hooks/useMediaQuery'
 
 type Props = {
   open: boolean

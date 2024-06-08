@@ -1,7 +1,7 @@
 import { isFunction } from 'lodash-es'
 
 export interface AudioRecorderPayload {
-  autoRecord?: boolean
+  autoStop?: boolean
   volumeThreshold?: number
   silenceThreshold?: number
   onStart?: () => void
@@ -19,11 +19,11 @@ export class AudioRecorder {
   public blob: Blob | null = null
   public time: number = 0
   public isRecording: boolean = false
+  public autoStop: boolean = false
   protected audioContext: AudioContext
   protected mediaRecorder: MediaRecorder | null = null
   protected volumeThreshold: number = 30
   protected silenceThreshold: number = 2000
-  protected autoRecord: boolean = false
   protected onStart() {}
   protected onTimeUpdate(time: number) {}
   protected onFinish(audioData: Blob) {}
@@ -57,7 +57,7 @@ export class AudioRecorder {
     return `${minutesStr}:${secondsStr}`
   }
   constructor({
-    autoRecord,
+    autoStop,
     volumeThreshold,
     silenceThreshold,
     onStart,
@@ -66,7 +66,7 @@ export class AudioRecorder {
     onError,
   }: AudioRecorderPayload) {
     this.audioContext = new AudioContext()
-    if (autoRecord) this.autoRecord = autoRecord
+    if (autoStop) this.autoStop = autoStop
     // 设置音量阈值
     if (volumeThreshold) this.volumeThreshold = volumeThreshold
     // 设置静音持续时间阈值（单位：毫秒）
@@ -78,12 +78,7 @@ export class AudioRecorder {
   }
   public start() {
     if (this.mediaRecorder) {
-      if (this.mediaRecorder.state === 'paused') {
-        this.mediaRecorder.resume()
-      } else {
-        this.mediaRecorder.start(1000)
-      }
-      this.onStart()
+      this.mediaRecorder.start(1000)
     } else {
       // 获取麦克风音频流
       navigator.mediaDevices
@@ -94,9 +89,6 @@ export class AudioRecorder {
         .catch((error: Error) => {
           this.onError(error)
         })
-    }
-    if (!this.autoRecord) {
-      this.isRecording = true
     }
   }
   protected recording(stream: MediaStream) {
@@ -127,6 +119,7 @@ export class AudioRecorder {
     mediaRecorder.addEventListener('start', () => {
       this.isRecording = true
       this.startTimer()
+      this.onStart()
     })
     mediaRecorder.addEventListener('pause', () => {
       const blob = new Blob(chunks)
@@ -164,14 +157,6 @@ export class AudioRecorder {
       const volume = getVolumeFromFrequencyData(frequencyData, bufferLength)
 
       if (volume > this.volumeThreshold) {
-        // 声音超过阈值，判断为发言开始
-        if (mediaRecorder.state === 'paused') {
-          mediaRecorder.resume()
-        } else {
-          mediaRecorder.start(1000)
-        }
-        this.onStart()
-
         // 重置静音计时器
         clearTimeout(silenceTimer)
         silenceTimer = null
@@ -180,7 +165,7 @@ export class AudioRecorder {
         if (!silenceTimer) {
           silenceTimer = setTimeout(() => {
             if (mediaRecorder.state === 'recording') {
-              mediaRecorder.pause()
+              mediaRecorder.stop()
             }
             cancelAnimationFrame(rafID)
             this.isRecording = false
@@ -196,12 +181,10 @@ export class AudioRecorder {
     }
 
     // 开始处理音频流
-    if (this.autoRecord) {
+    if (this.autoStop) {
       processAudio()
-    } else {
-      mediaRecorder.start(1000)
-      this.onStart()
     }
+    mediaRecorder.start(1000)
   }
   public stop() {
     this.mediaRecorder?.stop()

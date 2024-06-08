@@ -5,7 +5,7 @@ type UseMediaQueryOptions = {
   initializeWithValue?: boolean
 }
 
-export function useMediaQuery(
+function useMediaQuery(
   query: string,
   { defaultValue = false, initializeWithValue = true }: UseMediaQueryOptions = {},
 ): boolean {
@@ -55,3 +55,5 @@ export function useMediaQuery(
 
   return matches
 }
+
+export default useMediaQuery

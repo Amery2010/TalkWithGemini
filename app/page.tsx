@@ -1,7 +1,7 @@
 'use client'
 import dynamic from 'next/dynamic'
 import { useRef, useState, useMemo, KeyboardEvent, useEffect, useCallback } from 'react'
-import { EdgeSpeech, SpeechRecognition, getRecordMineType } from '@xiangfa/polly'
+import { EdgeSpeech, getRecordMineType } from '@xiangfa/polly'
 import SiriWave from 'siriwave'
 import {
   MessageCircleHeart,
@@ -61,7 +61,6 @@ export default function Home() {
   const audioStreamRef = useRef<AudioStream>()
   const edgeSpeechRef = useRef<EdgeSpeech>()
   const audioRecordRef = useRef<AudioRecorder>()
-  const speechRecognitionRef = useRef<SpeechRecognition>()
   const speechQueue = useRef<PromiseQueue>()
   const messagesRef = useRef(useMessageStore.getState().messages)
   const messageStore = useMessageStore()
@@ -72,12 +71,10 @@ export default function Home() {
   const [content, setContent] = useState<string>('')
   const [subtitle, setSubtitle] = useState<string>('')
   const [errorMessage, setErrorMessage] = useState<string>('')
-  // const [isRecording, setIsRecording] = useState<boolean>(false)
-  // const [recordTimer, setRecordTimer] = useState<NodeJS.Timeout>()
   const [recordTime, setRecordTime] = useState<number>(0)
   const [settingOpen, setSetingOpen] = useState<boolean>(false)
   const [speechSilence, setSpeechSilence] = useState<boolean>(false)
-  const [disableSpeechRecognition, setDisableSpeechRecognition] = useState<boolean>(false)
+  const [isRecording, setIsRecording] = useState<boolean>(false)
   const [status, setStatus] = useState<'thinkng' | 'silence' | 'talking'>('silence')
   const statusText = useMemo(() => {
     switch (status) {
@@ -94,6 +91,9 @@ export default function Home() {
   }, [settingStore.model])
   const supportAttachment = useMemo(() => {
     return !OldTextModel.includes(settingStore.model as Model)
+  }, [settingStore.model])
+  const supportSpeechRecognition = useMemo(() => {
+    return !OldTextModel.includes(settingStore.model as Model) && !OldVisionModel.includes(settingStore.model as Model)
   }, [settingStore.model])
   const isUploading = useMemo(() => {
     for (const file of attachmentStore.files) {
@@ -276,6 +276,9 @@ export default function Home() {
           }
         },
         onFinish: async () => {
+          if (talkMode === 'voice') {
+            setStatus('silence')
+          }
           scrollToBottom()
           saveMessage()
           if (maxHistoryLength > 0) {
@@ -432,47 +435,17 @@ export default function Home() {
     }
   }, [])
 
-  // const startRecordTime = useCallback(() => {
-  //   const intervalTimer = setInterval(() => {
-  //     setRecordTime((time) => time + 1)
-  //   }, 1000)
-  //   setRecordTimer(intervalTimer)
-  // }, [])
-
-  // const endRecordTimer = useCallback(() => {
-  //   clearInterval(recordTimer)
-  // }, [recordTimer])
-
-  // const handleRecorder = useCallback(() => {
-  //   if (!checkAccessStatus()) return false
-  //   if (!audioStreamRef.current) {
-  //     audioStreamRef.current = new AudioStream()
-  //   }
-  //   if (speechRecognitionRef.current) {
-  //     const { talkMode } = useSettingStore.getState()
-  //     if (isRecording) {
-  //       speechRecognitionRef.current.stop()
-  //       endRecordTimer()
-  //       setRecordTime(0)
-  //       if (talkMode === 'voice') {
-  //         handleSubmit(speechRecognitionRef.current.text)
-  //       }
-  //       setIsRecording(false)
-  //     } else {
-  //       speechRecognitionRef.current.start()
-  //       setIsRecording(true)
-  //       startRecordTime()
-  //     }
-  //   }
-  // }, [checkAccessStatus, handleSubmit, startRecordTime, endRecordTimer, isRecording])
-
   const handleRecorder = useCallback(() => {
     if (!checkAccessStatus()) return false
     if (!audioStreamRef.current) {
       audioStreamRef.current = new AudioStream()
     }
-    if (!audioRecordRef.current) {
+    if (!audioRecordRef.current || audioRecordRef.current.autoStop !== settingStore.autoStopRecord) {
       audioRecordRef.current = new AudioRecorder({
+        autoStop: settingStore.autoStopRecord,
+        onStart: () => {
+          setIsRecording(true)
+        },
         onTimeUpdate: (time) => {
           setRecordTime(time)
         },
@@ -481,15 +454,18 @@ export default function Home() {
           const file = new File([audioData], `${Date.now()}.${recordType.extension}`, { type: recordType.mineType })
           const recordDataURL = await readFileAsDataURL(file)
           handleSubmit(recordDataURL)
+          setIsRecording(false)
         },
       })
-    }
-    if (audioRecordRef.current.isRecording) {
-      audioRecordRef.current.stop()
-    } else {
       audioRecordRef.current.start()
+    } else {
+      if (audioRecordRef.current.isRecording) {
+        audioRecordRef.current.stop()
+      } else {
+        audioRecordRef.current.start()
+      }
     }
-  }, [checkAccessStatus, handleSubmit])
+  }, [settingStore.autoStopRecord, checkAccessStatus, handleSubmit])
 
   const handleStopTalking = useCallback(() => {
     setSpeechSilence(true)
@@ -500,14 +476,14 @@ export default function Home() {
 
   const handleKeyDown = useCallback(
     (ev: KeyboardEvent<HTMLTextAreaElement>) => {
-      if (ev.key === 'Enter' && !ev.shiftKey && !audioRecordRef.current?.isRecording) {
+      if (ev.key === 'Enter' && !ev.shiftKey && !isRecording) {
         if (!checkAccessStatus()) return false
         // Prevent the default carriage return and line feed behavior
         ev.preventDefault()
         handleSubmit(content)
       }
     },
-    [content, handleSubmit, checkAccessStatus],
+    [content, handleSubmit, checkAccessStatus, isRecording],
   )
 
   const handleFileUpload = useCallback(
@@ -568,20 +544,6 @@ export default function Home() {
   useEffect(() => {
     requestAnimationFrame(scrollToBottom)
   }, [messagesRef.current.length, scrollToBottom])
-
-  useEffect(() => {
-    try {
-      speechRecognitionRef.current = new SpeechRecognition({
-        locale: settingStore.sttLang,
-        onUpdate: (text) => {
-          setContent(text)
-        },
-      })
-    } catch (err) {
-      console.error(err)
-      setDisableSpeechRecognition(true)
-    }
-  }, [settingStore.sttLang])
 
   useEffect(() => {
     const setting = useSettingStore.getState()
@@ -688,7 +650,7 @@ export default function Home() {
       )}
       <div ref={scrollAreaBottomRef}></div>
       <div className="fixed bottom-0 flex w-full max-w-screen-md items-end gap-2 p-4 pb-8 max-sm:p-2 max-sm:pb-3 landscape:max-md:pb-4">
-        {!disableSpeechRecognition ? (
+        {supportSpeechRecognition ? (
           <Button title={t('voiceMode')} variant="secondary" size="icon" onClick={() => updateTalkMode('voice')}>
             <AudioLines />
           </Button>
@@ -704,7 +666,7 @@ export default function Home() {
             autoFocus
             className={cn(
               'h-auto max-h-[120px] w-full resize-none border-none bg-transparent px-2 text-sm leading-6 transition-[height] focus-visible:outline-none',
-              disableSpeechRecognition ? 'pr-9' : 'pr-[72px]',
+              !supportSpeechRecognition ? 'pr-9' : 'pr-[72px]',
             )}
             style={{ height: textareaHeight > 24 ? `${textareaHeight}px` : 'auto' }}
             value={content}
@@ -731,15 +693,15 @@ export default function Home() {
                 </Tooltip>
               </TooltipProvider>
             ) : null}
-            {!disableSpeechRecognition ? (
+            {supportSpeechRecognition ? (
               <TooltipProvider>
-                <Tooltip open={audioRecordRef.current?.isRecording}>
+                <Tooltip open={isRecording}>
                   <TooltipTrigger asChild>
                     <div
                       className="box-border flex h-8 w-8 cursor-pointer items-center justify-center rounded-full p-1.5 text-slate-800 hover:bg-secondary/80 dark:text-slate-600"
                       onClick={() => handleRecorder()}
                     >
-                      <Mic className={audioRecordRef.current?.isRecording ? 'animate-pulse' : ''} />
+                      <Mic className={isRecording ? 'animate-pulse' : ''} />
                     </div>
                   </TooltipTrigger>
                   <TooltipContent
@@ -759,7 +721,7 @@ export default function Home() {
           title={t('send')}
           variant="secondary"
           size="icon"
-          disabled={audioRecordRef.current?.isRecording || isUploading}
+          disabled={isRecording || isUploading}
           onClick={() => handleSubmit(content)}
         >
           <SendHorizontal />
@@ -808,7 +770,7 @@ export default function Home() {
                   disabled={status === 'thinkng'}
                   onClick={() => handleRecorder()}
                 >
-                  {audioRecordRef.current?.isRecording ? formatTime(recordTime) : <Mic className="h-8 w-8" />}
+                  {isRecording ? formatTime(recordTime) : <Mic className="h-8 w-8" />}
                 </Button>
               )}
               <Button
@@ -824,7 +786,7 @@ export default function Home() {
           </div>
         </div>
       </div>
-      <Setting open={settingOpen} hiddenTalkPanel={disableSpeechRecognition} onClose={() => setSetingOpen(false)} />
+      <Setting open={settingOpen} hiddenTalkPanel={!supportSpeechRecognition} onClose={() => setSetingOpen(false)} />
     </main>
   )
 }

@@ -60,5 +60,8 @@
   "low": "低い",
   "middle": "中い",
   "high": "高い",
-  "pwaInstall": "ブラウザアプリ（PWA）をインストールする"
+  "pwaInstall": "ブラウザアプリ（PWA）をインストールする",
+  "autoStopRecord": "録音を自動的に終了する",
+  "settingEnable": "有効",
+  "settingDisable": "無効"
 }

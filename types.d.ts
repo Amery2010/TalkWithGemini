@@ -25,6 +25,7 @@ declare global {
     temperature: number
     maxOutputTokens: number
     safety: string
+    autoStopRecord: boolean
   }
 
   interface Assistant {
