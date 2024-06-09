@@ -71,6 +71,7 @@ function mergeSentences(sentences: string[], sentenceLength = 20): string[] {
 function MessageItem({ id, role, parts, attachments, onRegenerate }: Props) {
   const { t } = useTranslation()
   const [html, setHtml] = useState<string>('')
+  const [hasTextContent, setHasTextContent] = useState<boolean>(false)
   const [isEditing, setIsEditing] = useState<boolean>(false)
   const [isCopyed, setIsCopyed] = useState<boolean>(false)
   const [showLightbox, setShowLightbox] = useState<boolean>(false)
@@ -181,6 +182,24 @@ function MessageItem({ id, role, parts, attachments, onRegenerate }: Props) {
         .use(markdownHighlight)
         .use(markdownKatex)
 
+      // Save the original text rule
+      const defaultTextRules = md.renderer.rules.text!
+
+      // Rewrite the `strong` rule to adapt to Gemini generation grammar
+      md.renderer.rules.text = (tokens, idx, options, env, self) => {
+        const token = tokens[idx]
+        const content = token.content
+
+        // Check whether it conforms to the `strong` format
+        const match = content.match(/^\*\*(.+?)\*\*(.+)/)
+        if (match) {
+          return `<b>${match[1]}</b>${match[2]}`
+        }
+
+        // If the format is not met, the original `strong` rule is called
+        return defaultTextRules(tokens, idx, options, env, self)
+      }
+
       const mathLineRender = md.renderer.rules.math_inline!
       md.renderer.rules.math_inline = (...params) => {
         const [tokens, idx] = params
@@ -234,6 +253,7 @@ function MessageItem({ id, role, parts, attachments, onRegenerate }: Props) {
     parts.forEach(async (part) => {
       if (part.text) {
         messageParts.push(render(part.text))
+        setHasTextContent(true)
       }
     })
     setHtml(messageParts.join(''))
@@ -320,12 +340,16 @@ function MessageItem({ id, role, parts, attachments, onRegenerate }: Props) {
                     </IconButton>
                   </>
                 ) : null}
-                <IconButton title={t('copy')} className={`copy-${id}`} onClick={() => handleCopy()}>
-                  {isCopyed ? <CopyCheck className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
-                </IconButton>
-                <IconButton title={t('speak')} onClick={() => handleSpeak()}>
-                  <Volume2 className="h-4 w-4" />
-                </IconButton>
+                {hasTextContent ? (
+                  <>
+                    <IconButton title={t('copy')} className={`copy-${id}`} onClick={() => handleCopy()}>
+                      {isCopyed ? <CopyCheck className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+                    </IconButton>
+                    <IconButton title={t('speak')} onClick={() => handleSpeak()}>
+                      <Volume2 className="h-4 w-4" />
+                    </IconButton>
+                  </>
+                ) : null}
               </div>
             </>
           ) : (
