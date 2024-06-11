@@ -70,16 +70,16 @@ Supports Gemini 1.5 and Gemini 1.5 Flash multimodal models
 ## Roadmap
 
 - [x] Reconstruct the topic square and introduce Prompt list
+- [x] Use tauri to package desktop applications
 - [ ] Implementation based on functionCall plug-in
 - [ ] Support conversation list
-- [ ] Use tauri to package desktop applications
 
 ## 开发计划
 
 - [x] 重构话题广场，引入 Prompt 列表
+- [x] 使用 tauri 打包桌面应用
 - [ ] 实现基于 functionCall 插件
 - [ ] 支持对话列表
-- [ ] 使用 tauri 打包桌面应用
 
 ## Get Started
 
@@ -407,11 +407,11 @@ Currently, the two models `Gemini 1.5 Pro` and `Gemini 1.5 Flash` support most i
 
 ~~目前了解到的 vercel 与 netlify 都使用了无服务器的边缘计算，虽然响应速度快，但对于上传文件有大小限制。Cloudflare Worker 对于大文件限制（免费用户 500MB，收费用户 5GB）相对宽松，可以用做 api 代理。[如何部署 Cloudflare Worker api 代理](/docs/How-to-deploy-the-Cloudflare-Worker-api-proxy.md)~~
 
-#### 关于无法使用语音对话功能的问题须知
+#### ~~关于无法使用语音对话功能的问题须知~~
 
-目前语音识别使用的是浏览器的 SpeechRecognition 接口，系统会在[部分不支持 SpeechRecognition 接口的浏览器](https://caniuse.com/?search=SpeechRecognition)中**隐藏语音对话功能**。
+~~目前语音识别使用的是浏览器的 SpeechRecognition 接口，系统会在[部分不支持 SpeechRecognition 接口的浏览器](https://caniuse.com/?search=SpeechRecognition)中**隐藏语音对话功能**。~~
 
-由于大部分基于 Chrome 内核的浏览器在 SpeechRecognition 接口的实现上使用了 Google 的语音识别服务，因此需要能够正常访问国际网络的情况下使用。
+~~由于大部分基于 Chrome 内核的浏览器在 SpeechRecognition 接口的实现上使用了 Google 的语音识别服务，因此需要能够正常访问国际网络的情况下使用。~~
 
 #### 为什么我无法上传 doc、excel、pdf 这类常见文档
 
@@ -420,8 +420,6 @@ Currently, the two models `Gemini 1.5 Pro` and `Gemini 1.5 Flash` support most i
 ### 为什么我用 vercel 一键部署后的网站无法在中国正常访问
 
 vercel 部署后生成的域名在几年前就已经被国内网络屏蔽，但并没有屏蔽服务器的 ip 地址。可以自定义域名，就可以在国内正常访问了。由于 vercel 在国内并没有服务器，所以有时候会出现些许的网络波动，属于正常现象。如何设置域名，可以参考我从网上找到的解决文章[Vercel绑定自定义域名](https://docs.tangly1024.com/article/vercel-domain)。
-
-**注意：尽可能不要在微信里使用 vercel 部署的网站，具体原因不多解释**
 
 ## Star History
 

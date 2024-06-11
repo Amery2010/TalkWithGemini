@@ -1,6 +1,6 @@
 {
   "name": "talk-with-gemini",
-  "version": "0.11.1",
+  "version": "0.11.2",
   "private": true,
   "author": "Amery2010 <amery@xiangfa.org>",
   "license": "GPL-3.0-only",
@@ -9,6 +9,7 @@
     "build": "next build",
     "build:docker": "cross-env NEXT_PUBLIC_BUILD_MODE=standalone next build",
     "build:export": "cross-env NEXT_PUBLIC_BUILD_MODE=export next build",
+    "tauri:dev": "tauri dev",
     "start": "next start",
     "lint": "next lint"
   },
@@ -62,6 +63,7 @@
     "zustand": "^4.5.2"
   },
   "devDependencies": {
+    "@tauri-apps/cli": "^1.5.14",
     "@types/crypto-js": "^4.2.2",
     "@types/lodash-es": "^4.17.12",
     "@types/markdown-it": "^13.0.8",

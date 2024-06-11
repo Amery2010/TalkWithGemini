@@ -47,7 +47,7 @@ interface AnswerParams {
   onError?: (error: string, code?: number) => void
 }
 
-const buildMode = process.env.NEXT_PUBLIC_BUILD_MODE as string
+const BUILD_MODE = process.env.NEXT_PUBLIC_BUILD_MODE as string
 const nanoid = customAlphabet('1234567890abcdefghijklmnopqrstuvwxyz', 8)
 
 const AssistantRecommend = dynamic(() => import('@/components/AssistantRecommend'))
@@ -426,7 +426,7 @@ export default function Home() {
   const checkAccessStatus = useCallback(() => {
     const { isProtected, password, apiKey } = useSettingStore.getState()
     const isProtectedMode = isProtected && password === '' && apiKey === ''
-    const isStaticMode = buildMode === 'export' && apiKey === ''
+    const isStaticMode = BUILD_MODE === 'export' && apiKey === ''
     if (isProtectedMode || isStaticMode) {
       setSetingOpen(true)
       return false

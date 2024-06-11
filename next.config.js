@@ -9,7 +9,7 @@ const uploadProxyUrl = process.env.GEMINI_UPLOAD_BASE_URL || 'https://generative
 /** @type {(phase: string, defaultConfig: import("next").NextConfig) => Promise<import("next").NextConfig>} */
 module.exports = async (phase) => {
   const nextConfig = {
-    transpilePackages: ['crypto-js'],
+    transpilePackages: ['crypto-js', 'lodash-es'],
     images: {
       unoptimized: mode === 'export',
     },
