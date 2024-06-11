@@ -1,11 +1,11 @@
 [package]
-name = "app"
-version = "0.1.0"
-description = "A Tauri App"
-authors = ["you"]
-license = ""
-repository = ""
-default-run = "app"
+name = "talk-with-gemini"
+version = "0.11.0"
+description = "Your private Gemini application."
+authors = ["Amery2010 amery@xiangfa.org"]
+license = "GPL-3.0-only"
+repository = "https://github.com/Amery2010/TalkWithGemini"
+default-run = "talk-with-gemini"
 edition = "2021"
 rust-version = "1.60"
 
@@ -17,9 +17,13 @@ tauri-build = { version = "1.5.2", features = [] }
 [dependencies]
 serde_json = "1.0"
 serde = { version = "1.0", features = ["derive"] }
-tauri = { version = "1.6.5", features = [] }
+tauri = { version = "1.6.5", features = [ "fs-write-file", "fs-read-file", "window-unminimize", "window-hide", "window-set-resizable", "window-close", "window-unmaximize", "window-minimize", "window-show", "window-maximize", "clipboard-all", "macos-private-api", "system-tray"] }
+tauri-plugin-positioner = { version = "1.0.4", features = ["system-tray"] }
 
 [features]
+# by default Tauri runs in production mode
+# when `tauri dev` runs it is executed with `cargo run --no-default-features` if `devPath` is an URL
+default = ["custom-protocol"]
 # this feature is used for production builds or when `devPath` points to the filesystem and the built-in dev server is disabled.
 # If you use cargo directly instead of tauri's cli you can use this feature flag to switch between tauri's `dev` and `build` modes.
 # DO NOT REMOVE!!

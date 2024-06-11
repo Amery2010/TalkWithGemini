@@ -8,32 +8,52 @@
   },
   "package": {
     "productName": "talk-with-gemini",
-    "version": "0.1.0"
+    "version": "0.11.0"
   },
   "tauri": {
     "allowlist": {
-      "all": false
+      "all": false,
+      "clipboard": {
+        "all": true,
+        "writeText": true,
+        "readText": true
+      },
+      "window": {
+        "all": false,
+        "close": true,
+        "hide": true,
+        "maximize": true,
+        "minimize": true,
+        "setResizable": true,
+        "show": true,
+        "unmaximize": true,
+        "unminimize": true
+      },
+      "fs": {
+        "readFile": true,
+        "writeFile": true
+      }
     },
     "bundle": {
       "active": true,
       "category": "DeveloperTool",
-      "copyright": "",
+      "copyright": "2024, Xiangfa.org All Rights Reserved.",
       "deb": {
         "depends": []
       },
       "externalBin": [],
       "icon": ["icons/32x32.png", "icons/128x128.png", "icons/128x128@2x.png", "icons/icon.icns", "icons/icon.ico"],
       "identifier": "com.tauri.dev",
-      "longDescription": "",
+      "longDescription": "Your private Gemini application, supporting Gemini 1.5 Pro, Gemini 1.5 Flash, Gemini Pro and Gemini Pro Vision models.",
       "macOS": {
-        "entitlements": null,
+        "entitlements": "Release.entitlements",
         "exceptionDomain": "",
         "frameworks": [],
         "providerShortName": null,
         "signingIdentity": null
       },
       "resources": [],
-      "shortDescription": "",
+      "shortDescription": "Your private Gemini application.",
       "targets": "all",
       "windows": {
         "certificateThumbprint": null,
@@ -47,6 +67,7 @@
     "updater": {
       "active": false
     },
+    "macOSPrivateApi": true,
     "windows": [
       {
         "title": "Talk with Gemini",
@@ -57,8 +78,14 @@
         "fullscreen": false,
         "resizable": true,
         "hiddenTitle": true,
-        "titleBarStyle": "Overlay"
+        "skipTaskbar": true,
+        "fileDropEnabled": false
       }
-    ]
+    ],
+    "systemTray": {
+      "iconPath": "icons/icon.png",
+      "iconAsTemplate": true,
+      "menuOnLeftClick": false
+    }
   }
 }

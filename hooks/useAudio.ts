@@ -6,7 +6,12 @@ function useAudio(url: string) {
   const [current, setCurrent] = useState<number>(0)
   const audio = useMemo(() => new Audio(url), [url])
 
-  const toggle = () => setPlaying(!playing)
+  const toggle = () => {
+    if (!playing) {
+      audio.play()
+    }
+    setPlaying(!playing)
+  }
 
   useEffect(() => {
     playing ? audio.play() : audio.pause()
@@ -14,6 +19,7 @@ function useAudio(url: string) {
 
   useEffect(() => {
     let audioDuration = 0
+    audio.muted = false
     audio.addEventListener('ended', () => setPlaying(false))
     audio.addEventListener('loadeddata', () => {
       if (audio.duration === Infinity) {
