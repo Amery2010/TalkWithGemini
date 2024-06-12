@@ -1,7 +1,7 @@
 {
   "$schema": "../node_modules/@tauri-apps/cli/schema.json",
   "build": {
-    "beforeBuildCommand": "pnpm build",
+    "beforeBuildCommand": "cross-env NEXT_PUBLIC_BUILD_MODE=export pnpm build",
     "beforeDevCommand": "pnpm dev",
     "devPath": "http://localhost:3000",
     "distDir": "../out"

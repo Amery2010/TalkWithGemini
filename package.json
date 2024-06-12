@@ -1,6 +1,6 @@
 {
   "name": "talk-with-gemini",
-  "version": "0.11.3",
+  "version": "0.11.4",
   "private": true,
   "author": "Amery2010 <amery@xiangfa.org>",
   "license": "GPL-3.0-only",
@@ -10,6 +10,8 @@
     "build:docker": "cross-env NEXT_PUBLIC_BUILD_MODE=standalone next build",
     "build:export": "cross-env NEXT_PUBLIC_BUILD_MODE=export next build",
     "tauri": "tauri",
+    "tauri:dev": "tauri dev",
+    "tauri:build": "tauri build",
     "start": "next start",
     "lint": "next lint"
   },
