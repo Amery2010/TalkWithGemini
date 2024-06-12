@@ -27,7 +27,7 @@ function AudioPlayer({ src, className }: Props) {
         onValueChange={([current]) => onChange(current)}
       />
       <div className="font-mono text-sm leading-8">
-        {formatTime(current)}/{formatTime(duration)}
+        {duration > 0 ? `${formatTime(current)}/${formatTime(duration)}` : formatTime(current)}
       </div>
     </div>
   )

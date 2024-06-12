@@ -11,7 +11,7 @@ import 'highlight.js/styles/a11y-light.css'
 import './globals.css'
 
 const HEAD_SCRIPTS = process.env.HEAD_SCRIPTS as string
-const ENABLE_PROTECT = !isUndefined(process.env.ACCESS_PASSWORD)
+const ENABLE_PROTECT = !isUndefined(process.env.ACCESS_PASSWORD) && process.env.ACCESS_PASSWORD !== ''
 
 const APP_NAME = 'Talk with Gemini'
 const APP_DEFAULT_TITLE = 'Talk with Gemini'

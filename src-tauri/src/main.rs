@@ -57,6 +57,11 @@ fn main() {
                         window.move_window(Position::Center).unwrap();
                         window.set_always_on_top(false).unwrap();
                         // window.set_size(Size::Logical(LogicalSize { width: 1024.0, height: 768.0 })).unwrap();
+
+                        if !window.is_visible().unwrap() {
+                            window.show().unwrap();
+                            window.set_focus().unwrap();
+                        }
                     }
                     "hide" => {
                         let window = app.get_window("main").unwrap();

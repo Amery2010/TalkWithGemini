@@ -307,7 +307,9 @@ docker run -d --name talk-with-gemini \
    xiangfa/talk-with-gemini
 ```
 
-Or deploy using `docker-compose.yml`:
+If you need to specify other environment variables, please add `-e key=value` to the above command to specify it.
+
+Deploy using `docker-compose.yml`:
 
 ```shell
 version: '3.9'
@@ -319,10 +321,8 @@ services:
          - GEMINI_API_KEY=AIzaSy...
          - ACCESS_PASSWORD=your-password
       ports:
-         - '5481:3000'
+         - 5481:3000
 ```
-
-If you need to specify other environment variables, please add `-e key=value` to the above command to specify it.
 
 ## 部署
 
@@ -348,7 +348,9 @@ docker run -d --name talk-with-gemini \
    xiangfa/talk-with-gemini
 ```
 
-或使用 `docker-compose.yml` 部署：
+如果您需要指定其他环境变量，请自行在上述命令中增加 `-e 环境变量=环境变量值` 来指定。
+
+使用 `docker-compose.yml` 部署：
 
 ```shell
 version: '3.9'
@@ -360,10 +362,8 @@ services:
          - GEMINI_API_KEY=AIzaSy...
          - ACCESS_PASSWORD=your-password
       ports:
-         - '5481:3000'
+         - 5481:3000
 ```
-
-如果您需要指定其他环境变量，请自行在上述命令中增加 `-e 环境变量=环境变量值` 来指定。
 
 ### Static Deployment
 
