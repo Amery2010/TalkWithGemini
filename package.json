@@ -47,7 +47,7 @@
     "katex": "^0.16.10",
     "localforage": "^1.10.0",
     "lodash-es": "^4.17.21",
-    "lucide-react": "^0.390.0",
+    "lucide-react": "^0.394.0",
     "markdown-it": "^14.1.0",
     "markdown-it-highlightjs": "^4.1.0",
     "nanoid": "^5.0.7",
