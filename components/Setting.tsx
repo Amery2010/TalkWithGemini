@@ -168,11 +168,17 @@ function Setting({ open, hiddenTalkPanel, onClose }: SettingProps) {
       }
     >
       <Tabs className="max-sm:px-4" defaultValue="general">
-        <TabsList className="mx-auto grid w-full grid-cols-4">
-          <TabsTrigger value="general">{t('generalSetting')}</TabsTrigger>
-          <TabsTrigger value="model">{t('llmModel')}</TabsTrigger>
-          <TabsTrigger value="params">{t('modelParams')}</TabsTrigger>
-          <TabsTrigger disabled={hiddenTalkPanel} value="voice">
+        <TabsList className="mx-auto grid h-fit w-full grid-cols-4">
+          <TabsTrigger className="text-wrap" value="general">
+            {t('generalSetting')}
+          </TabsTrigger>
+          <TabsTrigger className="text-wrap" value="model">
+            {t('llmModel')}
+          </TabsTrigger>
+          <TabsTrigger className="text-wrap" value="params">
+            {t('modelParams')}
+          </TabsTrigger>
+          <TabsTrigger className="text-wrap" disabled={hiddenTalkPanel} value="voice">
             {t('voiceServer')}
           </TabsTrigger>
         </TabsList>

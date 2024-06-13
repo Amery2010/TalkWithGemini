@@ -41,7 +41,7 @@ function filterDataByTag(data: Assistant[], tag: string): Assistant[] {
 
 function Assistant({ open, onClose, onSelect, onLoaded }: AssistantProps) {
   const { t } = useTranslation()
-  const { assistants, update: updateAssistants } = useAssistantStore()
+  const { assistants, tags, update: updateAssistants, updateTags } = useAssistantStore()
   const { lang, assistantIndexUrl } = useSettingStore()
   const [assistantList, setAssistantList] = useState<Assistant[]>([])
   const [tagList, setTagList] = useState<string[]>([])
@@ -96,16 +96,18 @@ function Assistant({ open, onClose, onSelect, onLoaded }: AssistantProps) {
     updateAssistants(assistantMarketIndex.agents)
     setAssistantList(assistantMarketIndex.agents)
     setTagList(assistantMarketIndex.tags)
+    updateTags(assistantMarketIndex.tags)
     onLoaded()
-  }, [lang, assistantIndexUrl, updateAssistants, onLoaded])
+  }, [lang, assistantIndexUrl, updateAssistants, updateTags, onLoaded])
 
   useLayoutEffect(() => {
     if (assistantIndexUrl !== '' && assistants.length === 0) {
       fetchAssistantMarketIndex()
     } else {
       setAssistantList(assistants)
+      setTagList(tags)
     }
-  }, [assistantIndexUrl, assistants, fetchAssistantMarketIndex])
+  }, [assistantIndexUrl, assistants, tags, fetchAssistantMarketIndex])
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>

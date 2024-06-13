@@ -17,7 +17,7 @@ tauri-build = { version = "1.5.2", features = [] }
 [dependencies]
 serde_json = "1.0"
 serde = { version = "1.0", features = ["derive"] }
-tauri = { version = "1.6.5", features = [ "updater", "fs-write-file", "fs-read-file", "window-unminimize", "window-hide", "window-set-resizable", "window-close", "window-unmaximize", "window-minimize", "window-show", "window-maximize", "clipboard-all", "macos-private-api", "system-tray"] }
+tauri = { version = "1.6.5", features = [ "shell-open", "fs-write-file", "fs-read-file", "window-unminimize", "window-hide", "window-set-resizable", "window-close", "window-unmaximize", "window-minimize", "window-show", "window-maximize", "clipboard-all", "macos-private-api", "system-tray"] }
 tauri-plugin-positioner = { version = "1.0.4", features = ["system-tray"] }
 
 [features]
