@@ -56,7 +56,7 @@ export const useSettingStore = create<SettingStore>((set) => ({
   topK: 64,
   temperature: 1,
   maxOutputTokens: 8192,
-  safety: 'low',
+  safety: 'none',
   autoStopRecord: false,
   init: async (isProtected) => {
     await dataMigration()
@@ -87,7 +87,7 @@ export const useSettingStore = create<SettingStore>((set) => ({
       topK: (await storage.getItem<number>('topK')) ?? defaultModelConfig.topK,
       temperature: (await storage.getItem<number>('temperature')) ?? defaultModelConfig.temperature,
       maxOutputTokens: (await storage.getItem<number>('maxOutputTokens')) ?? defaultModelConfig.maxOutputTokens,
-      safety: (await storage.getItem<string>('safety')) || 'low',
+      safety: (await storage.getItem<string>('safety')) || 'none',
       autoStopRecord: (await storage.getItem<boolean>('autoStopRecord')) || false,
     }
     set(() => state)

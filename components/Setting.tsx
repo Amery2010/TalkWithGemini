@@ -45,7 +45,7 @@ function Setting({ open, hiddenTalkPanel, onClose }: SettingProps) {
   const [topK, setTopK] = useState<number>(64)
   const [temperature, setTemperature] = useState<number>(1)
   const [maxOutputTokens, setMaxOutputTokens] = useState<number>(8192)
-  const [safety, setSafety] = useState<string>('low')
+  const [safety, setSafety] = useState<string>('none')
   const [autoStopRecord, setAutoStopRecord] = useState<boolean>(false)
   const isProtected = useMemo(() => {
     return settingStore.isProtected

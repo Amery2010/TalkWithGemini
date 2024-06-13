@@ -54,6 +54,8 @@ export default async function textStream(options: {
       } else {
         if (chunks.length > 0) {
           handleRemainingText()
+        } else {
+          onFinish()
         }
       }
     }
@@ -64,8 +66,11 @@ export default async function textStream(options: {
     let { value, done } = await reader.read()
     if (done) {
       if (buffer) onStatement(buffer)
-      if (chunks.length > 0) onMessage(chunks.join(''))
-      onFinish()
+      if (chunks.length > 0) {
+        handleRemainingText()
+      } else {
+        onFinish()
+      }
       break
     }
     // stream: true is important here, fix the bug of incomplete line
