@@ -1,6 +1,6 @@
-# Talk With Gemini
+<div align="center">
+<h1 align="center">Talk With Gemini</h1>
 
-![Discord](https://img.shields.io/discord/1245639658604593152)
 ![GitHub deployments](https://img.shields.io/github/deployments/Amery2010/TalkWithGemini/Production)
 ![GitHub Release](https://img.shields.io/github/v/release/Amery2010/TalkWithGemini)
 ![Docker Image Size (tag)](https://img.shields.io/docker/image-size/xiangfa/talk-with-gemini/latest)
@@ -11,25 +11,45 @@ Deploy your private Gemini application for free with one click, supporting Gemin
 
 一键免费部署您的私人 Gemini 应用, 支持 Gemini 1.5 Pro、Gemini 1.5 Flash、Gemini Pro 和 Gemini Pro Vision 模型。
 
-[Web App](https://gemini.u14.app/)
+[![Web][Web-image]][web-url]
+[![MacOS][MacOS-image]][download-url]
+[![Windows][Windows-image]][download-url]
+[![Linux][Linux-image]][download-url]
 
-[网页版](https://gemini.u14.app/)
+[Web App][web-url] / [Desktop App][download-url] / [Issues](https://github.com/Amery2010/TalkWithGemini/issues)
+
+[网页版][web-url] / [客户端][download-url] / [反馈](https://github.com/Amery2010/TalkWithGemini/issues)
+
+[web-url]: https://gemini.u14.app/
+[download-url]: https://github.com/Amery2010/TalkWithGemini/releases
+[Web-image]: https://img.shields.io/badge/Web-PWA-orange?logo=microsoftedge
+[Windows-image]: https://img.shields.io/badge/-Windows-blue?logo=windows
+[MacOS-image]: https://img.shields.io/badge/-MacOS-black?logo=apple
+[Linux-image]: https://img.shields.io/badge/-Linux-333?logo=ubuntu
 
 [![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2FAmery2010%2FTalkWithGemini&project-name=talk-with-gemini&env=GEMINI_API_KEY&env=ACCESS_PASSWORD&repository-name=talk-with-gemini)
 
 [![Open in Gitpod](https://gitpod.io/button/open-in-gitpod.svg)](https://gitpod.io/#https://github.com/Amery2010/TalkWithGemini)
 
+![cover](./public/screenshots/screenshots.png)
+
 Simple interface, supports image recognition and voice conversation
 
 简洁的界面，支持图片识别和语音对话
 
-![cover](./public/screenshots/screenshots.png)
+![Gemini 1.5 Flash](./public/screenshots/pc-screenshot-1.png)
 
 Supports Gemini 1.5 and Gemini 1.5 Flash multimodal models
 
 支持 Gemini 1.5 和 Gemini 1.5 Flash 多模态模型
 
-![Gemini 1.5 Flash](./public/screenshots/pc-screenshot-1.png)
+![Tray app](./docs/images/trayapp.png)
+
+A cross-platform application client that supports a permanent menu bar, doubling your work efficiency
+
+跨平台的应用客户端，支持常驻菜单栏，让您的工作效率翻倍
+
+</div>
 
 > Note: If you encounter problems during the use of the project, you can check the known problems and solutions of [FAQ](#FAQ).
 
@@ -38,6 +58,7 @@ Supports Gemini 1.5 and Gemini 1.5 Flash multimodal models
 ## Features
 
 - **Deploy for free with one-click** on Vercel in under 1 minute
+- Provides a very small (~5MB) cross-platform client (Windows/MacOS/Linux), can stay in the menu bar to improve office efficiency
 - Supports multi-modal models and can understand images, videos, audios and some text documents
 - Talk mode: Let you talk directly to Gemini
 - Visual recognition allows Gemini to understand the content of the picture
@@ -54,6 +75,7 @@ Supports Gemini 1.5 and Gemini 1.5 Flash multimodal models
 ## 主要功能
 
 - 在 1 分钟内使用 Vercel **免费一键部署**
+- 提供体积极小（~4MB）的跨平台客户端（Windows/MacOS/Linux），可以常驻菜单栏，提升办公效率
 - 支持多模态模型，可以理解图片、视频、音频和部分文本文档
 - 语音模式：让您直接与 Gemini 对话
 - 视觉识别，让 Gemini 可以看懂图片内容
