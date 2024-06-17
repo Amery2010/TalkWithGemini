@@ -192,7 +192,6 @@ function Setting({ open, hiddenTalkPanel, onClose }: SettingProps) {
               <Input
                 id="password"
                 type="password"
-                disabled={!isProtected}
                 placeholder={t('accessPasswordPlaceholder')}
                 className="col-span-3"
                 defaultValue={password}
