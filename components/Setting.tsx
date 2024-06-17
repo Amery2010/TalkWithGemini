@@ -184,23 +184,21 @@ function Setting({ open, hiddenTalkPanel, onClose }: SettingProps) {
         </TabsList>
         <TabsContent value="general">
           <div className="grid w-full gap-4 px-4 py-4 max-sm:px-0">
-            {isProtected ? (
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="password" className="text-right">
-                  <span className="leading-12 mr-1 text-red-500">*</span>
-                  {t('accessPassword')}
-                </Label>
-                <Input
-                  id="password"
-                  type="password"
-                  disabled={!isProtected}
-                  placeholder={t('accessPasswordPlaceholder')}
-                  className="col-span-3"
-                  defaultValue={password}
-                  onChange={(ev) => setPassword(ev.target.value)}
-                />
-              </div>
-            ) : null}
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="password" className="text-right">
+                {isProtected ? <span className="leading-12 mr-1 text-red-500">*</span> : null}
+                {t('accessPassword')}
+              </Label>
+              <Input
+                id="password"
+                type="password"
+                disabled={!isProtected}
+                placeholder={t('accessPasswordPlaceholder')}
+                className="col-span-3"
+                defaultValue={password}
+                onChange={(ev) => setPassword(ev.target.value)}
+              />
+            </div>
             <div className="grid grid-cols-4 items-center gap-4">
               <Label htmlFor="assistantIndexUrl" className="text-right">
                 {t('assistantMarketUrl')}
