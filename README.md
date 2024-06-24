@@ -6,10 +6,13 @@
 ![Docker Image Size (tag)](https://img.shields.io/docker/image-size/xiangfa/talk-with-gemini/latest)
 ![Docker Pulls](https://img.shields.io/docker/pulls/xiangfa/talk-with-gemini)
 ![GitHub License](https://img.shields.io/github/license/Amery2010/TalkWithGemini)
+[![Discord](https://dcbadge.vercel.app/api/server/tUyZNd7C?compact=true&style=flat)](https://discord.gg/tUyZNd7C)
 
 Deploy your private Gemini application for free with one click, supporting Gemini 1.5 Pro, Gemini 1.5 Flash, Gemini Pro and Gemini Pro Vision models.
 
 一键免费部署您的私人 Gemini 应用, 支持 Gemini 1.5 Pro、Gemini 1.5 Flash、Gemini Pro 和 Gemini Pro Vision 模型。
+
+[![TalkWithGemini](https://trendshift.io/api/badge/repositories/10384)](https://trendshift.io/repositories/10384)
 
 [![Web][Web-image]][web-url]
 [![MacOS][MacOS-image]][download-url]
