@@ -1,3 +1,4 @@
+import fixWebmDuration from 'fix-webm-duration'
 import { isFunction } from 'lodash-es'
 
 export interface AudioRecorderPayload {
@@ -16,10 +17,10 @@ export interface RecordMineType {
 }
 
 export class AudioRecorder {
-  public blob: Blob | null = null
   public time: number = 0
   public isRecording: boolean = false
   public autoStop: boolean = false
+  private startTime: number = 0
   protected audioContext: AudioContext
   protected mediaRecorder: MediaRecorder | null = null
   protected volumeThreshold: number = 30
@@ -82,7 +83,14 @@ export class AudioRecorder {
     } else {
       // 获取麦克风音频流
       navigator.mediaDevices
-        .getUserMedia({ audio: true })
+        .getUserMedia({
+          audio: {
+            sampleSize: 16,
+            channelCount: 1,
+            noiseSuppression: false,
+            echoCancellation: false,
+          },
+        })
         .then((stream) => {
           this.recording(stream)
         })
@@ -110,6 +118,15 @@ export class AudioRecorder {
     // 将麦克风连接到分析器
     microphone.connect(analyser)
 
+    const finishRecord = async () => {
+      const duration = Date.now() - this.startTime
+      const blob = new Blob(chunks, { type: mediaRecorderType.mineType })
+      const fixedBlob = await fixWebmDuration(blob, duration, { logger: false })
+      this.onFinish(fixedBlob)
+      this.startTime = 0
+      chunks = []
+    }
+
     // 监听录音数据可用事件，将数据发送到服务器
     mediaRecorder.addEventListener('dataavailable', (ev) => {
       if (ev.data.size > 0) {
@@ -118,21 +135,15 @@ export class AudioRecorder {
     })
     mediaRecorder.addEventListener('start', () => {
       this.isRecording = true
+      this.startTime = Date.now()
       this.startTimer()
       this.onStart()
     })
     mediaRecorder.addEventListener('pause', () => {
-      const blob = new Blob(chunks)
-      this.onFinish(blob)
-      this.blob = blob
-      chunks = []
+      finishRecord()
     })
     mediaRecorder.addEventListener('stop', () => {
-      const blob = new Blob(chunks)
-      this.onFinish(blob)
-      this.mediaRecorder = null
-      this.blob = blob
-      chunks = []
+      finishRecord()
       stream.getTracks().forEach((track) => track.stop())
     })
 
