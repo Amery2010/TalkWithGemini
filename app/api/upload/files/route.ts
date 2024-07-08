@@ -29,6 +29,8 @@ export async function GET(req: NextRequest) {
 }
 
 export async function POST(req: NextRequest) {
+  if (mode !== 'standalone') return new NextResponse('Only available under standalone mode')
+
   req.nextUrl.searchParams.append('key', geminiApiKey)
   const blob = await req.blob()
   const response = await fetch(`${geminiUploadProxyUrl}/upload/v1beta/files?${req.nextUrl.searchParams.toString()}`, {
@@ -39,6 +41,8 @@ export async function POST(req: NextRequest) {
 }
 
 export async function PUT(req: NextRequest) {
+  if (mode !== 'standalone') return new NextResponse('Only available under standalone mode')
+
   req.nextUrl.searchParams.append('key', geminiApiKey)
   const blob = await req.blob()
   const response = await fetch(`${geminiUploadProxyUrl}/upload/v1beta/files?${req.nextUrl.searchParams.toString()}`, {

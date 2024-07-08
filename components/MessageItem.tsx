@@ -8,7 +8,21 @@ import markdownHighlight from 'markdown-it-highlightjs'
 import highlight from 'highlight.js'
 import markdownKatex from '@traptitech/markdown-it-katex'
 import Clipboard from 'clipboard'
-import { User, Bot, RotateCw, Sparkles, Copy, CopyCheck, PencilLine, Eraser, Volume2, Eye } from 'lucide-react'
+import {
+  User,
+  Bot,
+  RotateCw,
+  Sparkles,
+  Copy,
+  CopyCheck,
+  PencilLine,
+  Eraser,
+  Volume2,
+  Eye,
+  LoaderCircle,
+  CircleCheck,
+  Workflow,
+} from 'lucide-react'
 import { EdgeSpeech } from '@xiangfa/polly'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import BubblesLoading from '@/components/BubblesLoading'
@@ -16,12 +30,15 @@ import FileList from '@/components/FileList'
 import EditableArea from '@/components/EditableArea'
 import AudioPlayer from '@/components/AudioPlayer'
 import IconButton from '@/components/IconButton'
+import Button from '@/components/Button'
 import { useMessageStore } from '@/store/chat'
 import { useSettingStore } from '@/store/setting'
 import AudioStream from '@/utils/AudioStream'
 import { sentenceSegmentation } from '@/utils/common'
 import { upperFirst, isFunction, find } from 'lodash-es'
 
+import 'katex/dist/katex.min.css'
+import 'highlight.js/styles/a11y-light.css'
 import 'yet-another-react-lightbox/styles.css'
 
 interface Props extends Message {
@@ -248,47 +265,47 @@ function MessageItem({ id, role, parts, attachments, onRegenerate }: Props) {
     [t],
   )
 
-  useEffect(() => {
-    const messageParts: string[] = []
-    parts.forEach(async (part) => {
-      if (part.text) {
-        messageParts.push(render(part.text))
-        setHasTextContent(true)
-      }
-    })
-    setHtml(messageParts.join(''))
-    const copyKatexInline = registerCopy('.copy-katex-inline')
-    const copyKatexBlock = registerCopy('.copy-katex-block')
-    const copyCode = registerCopy('.copy-code')
-
-    const copyContent = new Clipboard(`.copy-${id}`, {
-      text: () => content,
-    })
-    return () => {
-      setHtml('')
-      copyKatexInline.destroy()
-      copyKatexBlock.destroy()
-      copyCode.destroy()
-      copyContent.destroy()
+  const MessageAvatar = () => {
+    if (role === 'user') {
+      return (
+        <AvatarFallback className="bg-green-300 text-white">
+          <User />
+        </AvatarFallback>
+      )
+    } else if (role === 'function') {
+      return (
+        <AvatarFallback className="bg-blue-300 text-white">
+          <Workflow />
+        </AvatarFallback>
+      )
+    } else {
+      return (
+        <AvatarFallback className="bg-red-300 text-white">
+          <Bot />
+        </AvatarFallback>
+      )
     }
-  }, [id, content, parts, attachments, render])
+  }
 
-  return (
-    <>
-      <Avatar className="h-8 w-8">
-        {role === 'user' ? (
-          <AvatarFallback className="bg-green-300 text-white">
-            <User />
-          </AvatarFallback>
-        ) : (
-          <AvatarFallback className="bg-red-300 text-white">
-            <Bot />
-          </AvatarFallback>
-        )}
-      </Avatar>
-      {role === 'model' && parts && parts[0].text === '' ? (
-        <BubblesLoading />
-      ) : (
+  const MessageContent = () => {
+    if (role === 'model' && parts && parts[0].text === '') {
+      return <BubblesLoading />
+    } else if (role === 'model' && parts && parts[0].functionCall) {
+      return (
+        <Button variant="outline">
+          {parts[0].functionCall.name}
+          <LoaderCircle className="ml-1.5 h-5 w-5 animate-spin" />
+        </Button>
+      )
+    } else if (role === 'function' && parts && parts[0].functionResponse) {
+      return (
+        <Button variant="outline">
+          {parts[0].functionResponse.name}
+          <CircleCheck className="ml-1.5 h-5 w-5" />
+        </Button>
+      )
+    } else {
+      return (
         <div className="group relative flex-auto">
           {fileList.length > 0 ? (
             <div className="not:last:border-dashed not:last:border-b w-full pb-2">
@@ -361,7 +378,41 @@ function MessageItem({ id, role, parts, attachments, onRegenerate }: Props) {
             />
           )}
         </div>
-      )}
+      )
+    }
+  }
+
+  useEffect(() => {
+    const messageParts: string[] = []
+    parts.forEach(async (part) => {
+      if (part.text) {
+        messageParts.push(render(part.text))
+        setHasTextContent(true)
+      }
+    })
+    setHtml(messageParts.join(''))
+    const copyKatexInline = registerCopy('.copy-katex-inline')
+    const copyKatexBlock = registerCopy('.copy-katex-block')
+    const copyCode = registerCopy('.copy-code')
+
+    const copyContent = new Clipboard(`.copy-${id}`, {
+      text: () => content,
+    })
+    return () => {
+      setHtml('')
+      copyKatexInline.destroy()
+      copyKatexBlock.destroy()
+      copyCode.destroy()
+      copyContent.destroy()
+    }
+  }, [id, content, parts, attachments, render])
+
+  return (
+    <>
+      <Avatar className="h-8 w-8">
+        <MessageAvatar />
+      </Avatar>
+      <MessageContent />
       <Lightbox
         open={showLightbox}
         close={() => setShowLightbox(false)}

@@ -1,12 +1,14 @@
 import { GoogleGenerativeAI, HarmCategory, HarmBlockThreshold } from '@google/generative-ai'
-import type { InlineDataPart, ModelParams } from '@google/generative-ai'
+import type { InlineDataPart, ModelParams, Tool, ToolConfig } from '@google/generative-ai'
 import { getVisionPrompt } from '@/utils/prompt'
 import { Model, OldVisionModel } from '@/constant/model'
-import { isUndefined, pick, values } from 'lodash-es'
+import { isUndefined, pick } from 'lodash-es'
 
 export type RequestProps = {
   model?: string
   systemInstruction?: string
+  tools?: Tool[]
+  toolConfig?: ToolConfig
   messages: Message[]
   apiKey: string
   baseUrl?: string
@@ -19,7 +21,7 @@ export type RequestProps = {
   safety: string
 }
 
-function getSafetySettings(level: string) {
+export function getSafetySettings(level: string) {
   let threshold: HarmBlockThreshold
   switch (level) {
     case 'none':
@@ -48,9 +50,11 @@ function getSafetySettings(level: string) {
   })
 }
 
-export default function chat({
+export default async function chat({
   messages = [],
   systemInstruction,
+  tools,
+  toolConfig,
   model = Model['Gemini Pro'],
   apiKey,
   baseUrl,
@@ -69,6 +73,14 @@ export default function chat({
       ]
       messages = [...systemInstructionMessages, ...messages]
     }
+  }
+  if (tools && !OldVisionModel.includes(model as Model)) {
+    modelParams.tools = tools
+    modelParams.generationConfig = {
+      ...generationConfig,
+      temperature: 0,
+    }
+    if (toolConfig) modelParams.toolConfig = toolConfig
   }
   const geminiModel = genAI.getGenerativeModel(modelParams, { baseUrl })
   const message = messages.pop()
@@ -93,11 +105,13 @@ export default function chat({
     if (imageMessages.length > 16) {
       throw new Error('Limited to 16 pictures')
     }
-    return geminiModel.generateContentStream([prompt, ...imageMessages])
+    const { stream } = await geminiModel.generateContentStream([prompt, ...imageMessages])
+    return stream
   } else {
     const chat = geminiModel.startChat({
       history: messages.map((item) => pick(item, ['role', 'parts'])),
     })
-    return chat.sendMessageStream(message.parts)
+    const { stream } = await chat.sendMessageStream(message.parts)
+    return stream
   }
 }

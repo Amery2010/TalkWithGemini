@@ -1,6 +1,7 @@
 'use client'
 import dynamic from 'next/dynamic'
 import { useRef, useState, useMemo, KeyboardEvent, useEffect, useCallback } from 'react'
+import type { FunctionCall } from '@google/generative-ai'
 import { EdgeSpeech, getRecordMineType } from '@xiangfa/polly'
 import SiriWave from 'siriwave'
 import {
@@ -16,14 +17,13 @@ import {
 import { useTranslation } from 'react-i18next'
 import ThemeToggle from '@/components/ThemeToggle'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
-import MessageItem from '@/components/MessageItem'
-import ErrorMessageItem from '@/components/ErrorMessageItem'
 import SystemInstruction from '@/components/SystemInstruction'
 import AttachmentArea from '@/components/AttachmentArea'
 import Button from '@/components/Button'
 import { useMessageStore } from '@/store/chat'
 import { useAttachmentStore } from '@/store/attachment'
 import { useSettingStore } from '@/store/setting'
+import { functions, getExchangeRateFunctionDeclaration } from '@/plugins/tools'
 import chat, { type RequestProps } from '@/utils/chat'
 import { summarizePrompt, getVoiceModelPrompt, getSummaryPrompt, getTalkAudioPrompt } from '@/utils/prompt'
 import { AudioRecorder } from '@/utils/Recorder'
@@ -44,12 +44,15 @@ interface AnswerParams {
   messages: Message[]
   model: string
   onResponse: (readableStream: ReadableStream) => void
+  onFunctionCall?: (functionCalls: FunctionCall[]) => void
   onError?: (error: string, code?: number) => void
 }
 
 const BUILD_MODE = process.env.NEXT_PUBLIC_BUILD_MODE as string
 const nanoid = customAlphabet('1234567890abcdefghijklmnopqrstuvwxyz', 8)
 
+const MessageItem = dynamic(() => import('@/components/MessageItem'))
+const ErrorMessageItem = dynamic(() => import('@/components/ErrorMessageItem'))
 const AssistantRecommend = dynamic(() => import('@/components/AssistantRecommend'))
 const Setting = dynamic(() => import('@/components/Setting'))
 const FileUploader = dynamic(() => import('@/components/FileUploader'))
@@ -146,78 +149,53 @@ export default function Home() {
     scrollAreaBottomRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [])
 
-  const fetchAnswer = useCallback(async ({ messages, model, onResponse, onError }: AnswerParams) => {
+  const fetchAnswer = useCallback(async ({ messages, model, onResponse, onFunctionCall, onError }: AnswerParams) => {
     const { systemInstruction } = useMessageStore.getState()
     const { apiKey, apiProxy, password, topP, topK, temperature, maxOutputTokens, safety } = useSettingStore.getState()
     const generationConfig: RequestProps['generationConfig'] = { topP, topK, temperature, maxOutputTokens }
+    const tools = [
+      {
+        functionDeclarations: [getExchangeRateFunctionDeclaration],
+      },
+    ]
     setErrorMessage('')
+    const config: RequestProps = {
+      messages,
+      apiKey,
+      model,
+      generationConfig,
+      safety,
+    }
+    if (systemInstruction) config.systemInstruction = systemInstruction
+    if (tools) config.tools = tools
     if (apiKey !== '') {
-      const config: RequestProps = {
-        messages,
-        apiKey: apiKey,
-        model,
-        generationConfig,
-        safety,
-      }
       if (apiProxy) config.baseUrl = apiProxy
-      if (systemInstruction) config.systemInstruction = systemInstruction
-      try {
-        const result = await chat(config)
-        const encoder = new TextEncoder()
-        const readableStream = new ReadableStream({
-          async start(controller) {
-            try {
-              for await (const chunk of result.stream) {
-                const chunkText = chunk.text()
-                controller.enqueue(encoder.encode(chunkText))
-              }
-            } catch (error) {
-              if (error instanceof Error && isFunction(onError)) {
-                onError(error.message)
-              }
-            }
-            controller.close()
-          },
-        })
-        onResponse(readableStream)
-      } catch (error) {
-        if (error instanceof Error && isFunction(onError)) {
-          onError(error.message)
-        }
-      }
     } else {
-      const token = encodeToken(password)
-      const config: {
-        messages: Pick<Message, 'role' | 'parts'>[]
-        model: string
-        systemInstruction?: string
-        generationConfig: RequestProps['generationConfig']
-        safety: string
-      } = {
-        messages: messages.map((item) => pick(item, ['role', 'parts'])),
-        model,
-        generationConfig,
-        safety,
-      }
-      if (systemInstruction) config.systemInstruction = systemInstruction
-      const response = await fetch(`/api/chat?token=${token}`, {
-        method: 'POST',
-        body: JSON.stringify(config),
+      config.apiKey = encodeToken(password)
+      config.baseUrl = '/api/google'
+    }
+    try {
+      const stream = await chat(config)
+      const readableStream = new ReadableStream({
+        async start(controller) {
+          const encoder = new TextEncoder()
+          for await (const chunk of stream) {
+            const calls = chunk.functionCalls()
+            if (calls) {
+              if (isFunction(onFunctionCall)) onFunctionCall(calls)
+            } else {
+              const text = chunk.text()
+              const encoded = encoder.encode(text)
+              controller.enqueue(encoded)
+            }
+          }
+          controller.close()
+        },
       })
-      if (response.status < 400 && response.body) {
-        onResponse(response.body)
-      } else {
-        if (response.headers.get('Content-Type') === 'text/html') {
-          setSetingOpen(true)
-        } else {
-          const { message, code } = await response.json()
-          if (isFunction(onError)) {
-            onError(message, code)
-          }
-          if (code === 40302 || code === 50002) {
-            setSetingOpen(true)
-          }
-        }
+      onResponse(readableStream)
+    } catch (error) {
+      if (error instanceof Error && isFunction(onError)) {
+        onError(error.message)
       }
     }
   }, [])
@@ -299,12 +277,67 @@ export default function Home() {
     [scrollToBottom, speech, summarize],
   )
 
+  const handleFunctionCall = useCallback(
+    async (functionCalls: FunctionCall[]) => {
+      const { model } = useSettingStore.getState()
+      const { add: addMessage } = useMessageStore.getState()
+      for (const call of functionCalls) {
+        const newModelMessage: Message = { id: nanoid(), role: 'model', parts: [{ text: '' }] }
+        const functionCallMessage = {
+          id: nanoid(),
+          role: 'model',
+          parts: [
+            {
+              functionCall: call,
+            },
+          ],
+        }
+        addMessage(functionCallMessage)
+        /**
+         * Call the executable function named in the function call
+         * with the arguments specified in the function call and
+         * let it call the hypothetical API.
+         */
+        const apiResponse = await functions[call.name](call.args)
+        const functionResponseMessage = {
+          id: nanoid(),
+          role: 'function',
+          parts: [
+            {
+              functionResponse: {
+                name: call.name,
+                response: apiResponse,
+              },
+            },
+          ],
+        }
+        addMessage(functionResponseMessage)
+        addMessage(newModelMessage)
+        /**
+         * Send the API response back to the model so it can generate
+         * a text response that can be displayed to the user.
+         */
+        await fetchAnswer({
+          messages: messagesRef.current.slice(0, -1),
+          model,
+          onResponse: (stream) => {
+            handleResponse(stream, newModelMessage)
+          },
+          onError: (message, code) => {
+            handleError(message, code)
+          },
+        })
+      }
+    },
+    [fetchAnswer, handleResponse, handleError],
+  )
+
   const handleSubmit = useCallback(
     async (text: string): Promise<void> => {
       if (text === '') return Promise.reject(false)
       const { talkMode, model } = useSettingStore.getState()
       const { files, clear: clearAttachment } = useAttachmentStore.getState()
-      const { summary, add: addMessage } = useMessageStore.getState()
+      const { summary, add: addMessage, remove: removeMessage } = useMessageStore.getState()
       const messagePart: Message['parts'] = []
       let talkAudioMode: boolean = false
       if (files.length > 0) {
@@ -373,18 +406,22 @@ export default function Home() {
         onResponse: (stream) => {
           handleResponse(stream, newModelMessage)
         },
+        onFunctionCall: (functionCalls) => {
+          removeMessage(newModelMessage.id)
+          handleFunctionCall(functionCalls)
+        },
         onError: (message, code) => {
           handleError(message, code)
         },
       })
     },
-    [isOldVisionModel, fetchAnswer, handleResponse, handleError],
+    [isOldVisionModel, fetchAnswer, handleResponse, handleFunctionCall, handleError],
   )
 
   const handleResubmit = useCallback(
     async (id: string) => {
       const { model } = useSettingStore.getState()
-      const { add: addMessage, revoke: rovokeMessage } = useMessageStore.getState()
+      const { add: addMessage, remove: removeMessage, revoke: rovokeMessage } = useMessageStore.getState()
       if (id !== 'error') {
         const messageIndex = findIndex(messagesRef.current, { id })
         if (messageIndex !== -1) {
@@ -404,12 +441,16 @@ export default function Home() {
         onResponse: (stream) => {
           handleResponse(stream, newModelMessage)
         },
+        onFunctionCall: (functionCalls) => {
+          removeMessage(newModelMessage.id)
+          handleFunctionCall(functionCalls)
+        },
         onError: (message, code) => {
           handleError(message, code)
         },
       })
     },
-    [fetchAnswer, handleResponse, handleError],
+    [fetchAnswer, handleResponse, handleFunctionCall, handleError],
   )
 
   const handleCleanMessage = useCallback(() => {
@@ -552,7 +593,7 @@ export default function Home() {
       edgeSpeechRef.current = edgeSpeech
       if (setting.ttsVoice === '') {
         const voiceOptions = edgeSpeech.voiceOptions
-        setting.setTTSVoice(voiceOptions ? (voiceOptions[0].value as string) : 'en-US-JennyNeural')
+        setting.setTTSVoice(voiceOptions ? (voiceOptions[0].value as string) : 'en-US-EmmaMultilingualNeural')
       }
     }
   }, [settingStore.ttsLang])
@@ -615,7 +656,15 @@ export default function Home() {
           ) : null}
           {messageStore.messages.map((msg, idx) => (
             <div
-              className="group text-slate-500 transition-colors last:text-slate-800 hover:text-slate-800 dark:last:text-slate-400 dark:hover:text-slate-400 max-sm:hover:bg-transparent"
+              className={cn(
+                'group text-slate-500 transition-colors last:text-slate-800 hover:text-slate-800 dark:last:text-slate-400 dark:hover:text-slate-400 max-sm:hover:bg-transparent',
+                msg.role === 'model' &&
+                  msg.parts &&
+                  msg.parts[0].functionCall &&
+                  idx !== messageStore.messages.length - 1
+                  ? 'hidden'
+                  : '',
+              )}
               key={msg.id}
             >
               <div className="flex gap-3 p-4 hover:bg-gray-50/80 dark:hover:bg-gray-900/80">

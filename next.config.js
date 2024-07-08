@@ -24,35 +24,49 @@ module.exports = async (phase) => {
 
   if (mode !== 'export') {
     nextConfig.rewrites = async () => {
+      const beforeFilesConfig = apiKey
+        ? [
+            {
+              source: '/api/google/upload/v1beta/files',
+              has: [
+                {
+                  type: 'query',
+                  key: 'uploadType',
+                  value: '(?<uploadType>.*)',
+                },
+              ],
+              destination: `${uploadProxyUrl}/upload/v1beta/files?key=${apiKey}&uploadType=:uploadType`,
+            },
+            {
+              source: '/api/google/v1beta/files/:id',
+              destination: `${uploadProxyUrl}/v1beta/files/:id?key=${apiKey}`,
+            },
+          ]
+        : [
+            {
+              source: '/api/google/upload/v1beta/files',
+              destination: '/api/upload/files',
+            },
+            {
+              source: '/api/google/v1beta/files/:path',
+              destination: '/api/upload/files?id=:path',
+            },
+          ]
       return {
-        beforeFiles: apiKey
-          ? [
+        beforeFiles: [
+          {
+            source: '/api/google/v1beta/models/:model',
+            has: [
               {
-                source: '/api/google/upload/v1beta/files',
-                has: [
-                  {
-                    type: 'query',
-                    key: 'uploadType',
-                    value: '(?<uploadType>.*)',
-                  },
-                ],
-                destination: `${uploadProxyUrl}/upload/v1beta/files?key=${apiKey}&uploadType=:uploadType`,
-              },
-              {
-                source: '/api/google/v1beta/files/:id',
-                destination: `${uploadProxyUrl}/v1beta/files/:id?key=${apiKey}`,
-              },
-            ]
-          : [
-              {
-                source: '/api/google/upload/v1beta/files',
-                destination: '/api/upload/files',
-              },
-              {
-                source: '/api/google/v1beta/files/:path',
-                destination: '/api/upload/files?id=:path',
+                type: 'header',
+                key: 'X-Goog-Api-Key',
+                value: '(?<token>.*)',
               },
             ],
+            destination: '/api/chat?model=:model&token=:token',
+          },
+          ...beforeFilesConfig,
+        ],
       }
     }
   }

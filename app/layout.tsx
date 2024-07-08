@@ -6,8 +6,6 @@ import I18Provider from '@/components/I18nProvider'
 import { Toaster } from '@/components/ui/toaster'
 import { isUndefined } from 'lodash-es'
 
-import 'katex/dist/katex.min.css'
-import 'highlight.js/styles/a11y-light.css'
 import './globals.css'
 
 const HEAD_SCRIPTS = process.env.HEAD_SCRIPTS as string

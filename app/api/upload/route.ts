@@ -1,5 +1,5 @@
 import { NextResponse, type NextRequest } from 'next/server'
-import { checkToken, handleError } from '../utils'
+import { handleError } from '../utils'
 import FileManager from '@/utils/FileManager'
 import { ErrorType } from '@/constant/errors'
 import { isNull } from 'lodash-es'
@@ -13,15 +13,7 @@ const geminiUploadProxyUrl = process.env.GEMINI_UPLOAD_BASE_URL || 'https://gene
 
 export async function POST(req: NextRequest) {
   const searchParams = req.nextUrl.searchParams
-  const token = searchParams.get('token')
   const uploadType = searchParams.get('uploadType')
-
-  if (isNull(token) || !checkToken(token)) {
-    return NextResponse.json({ code: 40301, message: ErrorType.InValidToken }, { status: 403 })
-  }
-  if (!geminiApiKey) {
-    return NextResponse.json({ code: 50001, message: ErrorType.NoGeminiKey }, { status: 500 })
-  }
 
   try {
     const fileManager = new FileManager({
