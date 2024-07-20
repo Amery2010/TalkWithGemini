@@ -4,4 +4,5 @@ export enum ErrorType {
   ServerError = 'Server Error',
   MissingParam = 'Missing required parameters',
   NoUploadURL = 'Unable to get upload URL',
+  UnsupportedApiType = 'Unsupported api type',
 }

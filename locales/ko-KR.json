@@ -60,8 +60,11 @@
   "low": "낮은",
   "middle": "중간",
   "high": "높은",
+  "installPwa": "PWA 설치",
   "pwaInstall": "브라우저 애플리케이션(PWA) 설치하기",
   "autoStopRecord": "녹음 자동 종료",
   "settingEnable": "활성화되었습니다",
-  "settingDisable": "비활성화됨"
+  "settingDisable": "비활성화됨",
+  "plugin": "플러그인",
+  "version": "현재 버전"
 }

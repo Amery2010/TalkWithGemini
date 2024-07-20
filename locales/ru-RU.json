@@ -60,8 +60,11 @@
   "low": "Низкий",
   "middle": "Средний",
   "high": "Высокий",
+  "installPwa": "Установить PWA",
   "pwaInstall": "Установить приложение браузера (PWA)",
   "autoStopRecord": "Автоматическое завершение записи",
   "settingEnable": "Включено",
-  "settingDisable": "Отключено"
+  "settingDisable": "Отключено",
+  "plugin": "Плагин",
+  "version": "Текущая версия"
 }

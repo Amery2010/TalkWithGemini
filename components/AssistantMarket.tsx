@@ -1,7 +1,7 @@
-import { useState, useCallback, useLayoutEffect, memo, useEffect } from 'react'
+import { useState, useCallback, useLayoutEffect, memo } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog'
-import { Card, CardDescription, CardHeader, CardFooter, CardTitle } from '@/components/ui/card'
+import { Card, CardHeader, CardContent, CardFooter, CardTitle } from '@/components/ui/card'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
 import { ScrollArea } from '@/components/ui/scroll-area'
@@ -39,7 +39,7 @@ function filterDataByTag(data: Assistant[], tag: string): Assistant[] {
   return tag !== 'all' ? data.filter((item) => item.meta.tags.includes(tag)) : data
 }
 
-function Assistant({ open, onClose, onSelect, onLoaded }: AssistantProps) {
+function AssistantMarket({ open, onClose, onSelect, onLoaded }: AssistantProps) {
   const { t } = useTranslation()
   const { assistants, tags, update: updateAssistants, updateTags } = useAssistantStore()
   const { lang, assistantIndexUrl } = useSettingStore()
@@ -147,18 +147,20 @@ function Assistant({ open, onClose, onSelect, onLoaded }: AssistantProps) {
                   onClick={() => handleSelect(assistant)}
                 >
                   <CardHeader className="p-4 pb-2">
-                    <CardTitle className="flex text-lg">
-                      <Avatar className="mr-1 h-7 w-7">
+                    <CardTitle className="flex text-base">
+                      <Avatar className="mr-1 h-6 w-6">
                         {assistant.meta.avatar.startsWith('http') ? (
-                          <AvatarImage className="m-1 h-5 w-5 rounded-full" src={assistant.meta.avatar} />
+                          <AvatarImage className="m-1 h-4 w-4 rounded-full" src={assistant.meta.avatar} />
                         ) : null}
                         <AvatarFallback className="bg-transparent">{assistant.meta.avatar}</AvatarFallback>
                       </Avatar>
                       <span className="truncate font-medium">{assistant.meta.title}</span>
                     </CardTitle>
-                    <CardDescription className="text-line-clamp-2 h-10">{assistant.meta.description}</CardDescription>
                   </CardHeader>
-                  <CardFooter className="flex justify-between p-4 pt-0 text-sm">
+                  <CardContent className="text-line-clamp-2 mb-2 h-10 px-4 text-sm">
+                    {assistant.meta.description}
+                  </CardContent>
+                  <CardFooter className="flex justify-between p-3 px-4 pt-0 text-sm">
                     <span>{assistant.createAt}</span>
                     <a
                       className="underline-offset-4 hover:underline"
@@ -179,4 +181,4 @@ function Assistant({ open, onClose, onSelect, onLoaded }: AssistantProps) {
   )
 }
 
-export default memo(Assistant)
+export default memo(AssistantMarket)

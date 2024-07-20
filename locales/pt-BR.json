@@ -60,8 +60,11 @@
   "low": "Baixo",
   "middle": "Médio",
   "high": "Alto",
+  "installPwa": "Instalar PWA",
   "pwaInstall": "Instalar aplicativo de navegador (PWA)",
   "autoStopRecord": "Encerrar a gravação automaticamente",
   "settingEnable": "Ativado",
-  "settingDisable": "Desativado"
+  "settingDisable": "Desativado",
+  "plugin": "Plugin",
+  "version": "Versão atual"
 }

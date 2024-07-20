@@ -1,10 +1,9 @@
-import { HmacSHA256 } from 'crypto-js'
+import { Md5 } from 'ts-md5'
 
 // Generate signature
 export function generateSignature(key: string, timestamp: number): string {
   const data = `${key}:${timestamp}`
-  const signature = HmacSHA256(data, key).toString()
-  return signature
+  return Md5.hashStr(data)
 }
 
 // Verify signature

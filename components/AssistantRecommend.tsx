@@ -4,7 +4,7 @@ import { RefreshCcw } from 'lucide-react'
 import AssistantMarket from '@/components/AssistantMarket'
 import Button from '@/components/Button'
 import { Skeleton } from '@/components/ui/skeleton'
-import { Card, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
 import { useAssistantStore } from '@/store/assistant'
 import { useSettingStore } from '@/store/setting'
@@ -17,11 +17,13 @@ type Props = {
 function CardSkeleton() {
   return (
     <Card className="w-full cursor-pointer transition-colors hover:drop-shadow-md dark:hover:border-white/80">
-      <CardHeader className="p-4 pb-2">
-        <Skeleton className="my-0.5 h-5 w-[160px]" />
-        <Skeleton className="my-0.5 h-4 w-full" />
-        <Skeleton className="my-0.5 h-4 w-[100px]" />
+      <CardHeader className="p-4 pb-1 max-sm:px-3 max-sm:py-2 max-sm:pb-0">
+        <Skeleton className="my-1 h-5 w-[160px]" />
       </CardHeader>
+      <CardContent className="px-4 pb-2 max-sm:px-3">
+        <Skeleton className="my-1 h-4 w-full" />
+        <Skeleton className="my-1 h-4 w-[100px]" />
+      </CardContent>
     </Card>
   )
 }
@@ -79,7 +81,7 @@ function AssistantRecommend({ initAssistant }: Props) {
                   className="cursor-pointer transition-colors hover:drop-shadow-md dark:hover:border-white/80"
                   onClick={() => handleSelectAssistant(assistant.identifier)}
                 >
-                  <CardHeader className="p-4 pb-2">
+                  <CardHeader className="p-4 pb-1 max-sm:px-3 max-sm:py-2">
                     <CardTitle className="flex text-base">
                       <Avatar className="mr-1 h-6 w-6">
                         {assistant.meta.avatar.startsWith('http') ? (
@@ -89,8 +91,10 @@ function AssistantRecommend({ initAssistant }: Props) {
                       </Avatar>
                       <span className="truncate font-medium">{assistant.meta.title}</span>
                     </CardTitle>
-                    <CardDescription className="text-line-clamp-2 h-10">{assistant.meta.description}</CardDescription>
                   </CardHeader>
+                  <CardContent className="text-line-clamp-2 mb-3 h-10 px-4 text-sm max-sm:mb-2 max-sm:px-3">
+                    {assistant.meta.description}
+                  </CardContent>
                 </Card>
               )
             })}

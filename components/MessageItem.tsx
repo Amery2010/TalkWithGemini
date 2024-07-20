@@ -21,7 +21,7 @@ import {
   Eye,
   LoaderCircle,
   CircleCheck,
-  Workflow,
+  Blocks,
 } from 'lucide-react'
 import { EdgeSpeech } from '@xiangfa/polly'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
@@ -275,7 +275,7 @@ function MessageItem({ id, role, parts, attachments, onRegenerate }: Props) {
     } else if (role === 'function') {
       return (
         <AvatarFallback className="bg-blue-300 text-white">
-          <Workflow />
+          <Blocks />
         </AvatarFallback>
       )
     } else {

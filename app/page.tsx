@@ -13,6 +13,7 @@ import {
   Pause,
   SendHorizontal,
   Github,
+  Blocks,
 } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import ThemeToggle from '@/components/ThemeToggle'
@@ -38,7 +39,7 @@ import { cn } from '@/utils'
 import { Model, OldVisionModel, OldTextModel } from '@/constant/model'
 import mimeType from '@/constant/attachment'
 import { customAlphabet } from 'nanoid'
-import { isFunction, findIndex, pick, isUndefined } from 'lodash-es'
+import { isFunction, findIndex, isUndefined } from 'lodash-es'
 
 interface AnswerParams {
   messages: Message[]
@@ -56,6 +57,7 @@ const ErrorMessageItem = dynamic(() => import('@/components/ErrorMessageItem'))
 const AssistantRecommend = dynamic(() => import('@/components/AssistantRecommend'))
 const Setting = dynamic(() => import('@/components/Setting'))
 const FileUploader = dynamic(() => import('@/components/FileUploader'))
+const PluginStore = dynamic(() => import('@/components/PluginStore'))
 
 export default function Home() {
   const { t } = useTranslation()
@@ -69,13 +71,14 @@ export default function Home() {
   const messageStore = useMessageStore()
   const attachmentStore = useAttachmentStore()
   const settingStore = useSettingStore()
-  const [textareaHeight, setTextareaHeight] = useState<number>(24)
+  const [textareaHeight, setTextareaHeight] = useState<number>(30)
   const [siriWave, setSiriWave] = useState<SiriWave>()
   const [content, setContent] = useState<string>('')
   const [subtitle, setSubtitle] = useState<string>('')
   const [errorMessage, setErrorMessage] = useState<string>('')
   const [recordTime, setRecordTime] = useState<number>(0)
   const [settingOpen, setSetingOpen] = useState<boolean>(false)
+  const [pluginStoreOpen, setPluginStoreOpen] = useState<boolean>(false)
   const [speechSilence, setSpeechSilence] = useState<boolean>(false)
   const [isRecording, setIsRecording] = useState<boolean>(false)
   const [status, setStatus] = useState<'thinkng' | 'silence' | 'talking'>('silence')
@@ -628,7 +631,7 @@ export default function Home() {
           <div className="ml-3 font-bold leading-10 max-sm:leading-8">{t('title')}</div>
         </div>
         <div className="flex items-center gap-1">
-          <Button title={t('github')} variant="ghost" size="icon" className="h-8 w-8">
+          <Button className="relative h-8 w-8" title={t('github')} variant="ghost" size="icon">
             <a href="https://github.com/Amery2010/TalkWithGemini" target="_blank">
               <Github className="h-5 w-5" />
             </a>
@@ -701,13 +704,19 @@ export default function Home() {
       )}
       <div ref={scrollAreaBottomRef}></div>
       <div className="fixed bottom-0 flex w-full max-w-screen-md items-end gap-2 bg-background p-4 pb-8 max-sm:p-2 max-sm:pb-3 landscape:max-md:pb-4">
-        {supportSpeechRecognition ? (
-          <Button title={t('voiceMode')} variant="secondary" size="icon" onClick={() => updateTalkMode('voice')}>
-            <AudioLines />
+        {!isOldVisionModel ? (
+          <Button
+            className="h-10 w-10 max-sm:h-8 max-sm:w-8"
+            title={t('plugin')}
+            variant="secondary"
+            size="icon"
+            onClick={() => setPluginStoreOpen(true)}
+          >
+            <Blocks className="h-6 w-6 max-sm:h-5 max-sm:w-5" />
           </Button>
         ) : null}
         <div
-          className="relative w-full rounded-md border border-input bg-[hsl(var(--background))] pt-2"
+          className="relative box-border flex w-full flex-1 rounded-md border border-input bg-[hsl(var(--background))] py-1 max-sm:py-0"
           onPaste={handlePaste}
           onDrop={handleDrop}
           onDragOver={(ev) => ev.preventDefault()}
@@ -716,25 +725,24 @@ export default function Home() {
           <textarea
             autoFocus
             className={cn(
-              'h-auto max-h-[120px] w-full resize-none border-none bg-transparent px-2 text-sm leading-6 transition-[height] focus-visible:outline-none',
-              !supportSpeechRecognition ? 'pr-9' : 'pr-[72px]',
+              'max-h-[120px] w-full resize-none border-none bg-transparent px-2 pt-1 text-sm leading-6 transition-[height] focus-visible:outline-none',
+              !supportSpeechRecognition ? 'pr-8' : 'pr-16',
             )}
-            style={{ height: textareaHeight > 24 ? `${textareaHeight}px` : 'auto' }}
+            style={{ height: `${textareaHeight}px` }}
             value={content}
             placeholder={t('askAQuestion')}
-            rows={1}
             onChange={(ev) => {
               setContent(ev.target.value)
-              setTextareaHeight(ev.target.value === '' ? 24 : ev.target.scrollHeight)
+              setTextareaHeight(ev.target.value === '' ? 30 : ev.target.scrollHeight)
             }}
             onKeyDown={handleKeyDown}
           />
-          <div className="absolute bottom-0.5 right-1 flex">
+          <div className="absolute bottom-0.5 right-1 flex max-sm:bottom-0">
             {supportAttachment ? (
               <TooltipProvider>
                 <Tooltip>
                   <TooltipTrigger asChild>
-                    <div className="box-border flex h-8 w-8 cursor-pointer items-center justify-center rounded-full p-1.5 text-slate-800 hover:bg-secondary/80 dark:text-slate-600">
+                    <div className="box-border flex h-8 w-8 cursor-pointer items-center justify-center rounded-full p-1.5 text-slate-800 hover:bg-secondary/80 dark:text-slate-600 max-sm:h-7 max-sm:w-7">
                       <FileUploader beforeUpload={() => checkAccessStatus()} />
                     </div>
                   </TooltipTrigger>
@@ -749,7 +757,7 @@ export default function Home() {
                 <Tooltip open={isRecording}>
                   <TooltipTrigger asChild>
                     <div
-                      className="box-border flex h-8 w-8 cursor-pointer items-center justify-center rounded-full p-1.5 text-slate-800 hover:bg-secondary/80 dark:text-slate-600"
+                      className="box-border flex h-8 w-8 cursor-pointer items-center justify-center rounded-full p-1.5 text-slate-800 hover:bg-secondary/80 dark:text-slate-600 max-sm:h-7 max-sm:w-7"
                       onClick={() => handleRecorder()}
                     >
                       <Mic className={isRecording ? 'animate-pulse' : ''} />
@@ -768,15 +776,28 @@ export default function Home() {
             ) : null}
           </div>
         </div>
-        <Button
-          title={t('send')}
-          variant="secondary"
-          size="icon"
-          disabled={isRecording || isUploading}
-          onClick={() => handleSubmit(content)}
-        >
-          <SendHorizontal />
-        </Button>
+        {content === '' && attachmentStore.files.length === 0 && supportSpeechRecognition ? (
+          <Button
+            className="h-10 w-10 max-sm:h-8 max-sm:w-8"
+            title={t('voiceMode')}
+            variant="secondary"
+            size="icon"
+            onClick={() => updateTalkMode('voice')}
+          >
+            <AudioLines className="h-6 w-6 max-sm:h-5 max-sm:w-5" />
+          </Button>
+        ) : (
+          <Button
+            className="h-10 w-10 max-sm:h-8 max-sm:w-8"
+            title={t('send')}
+            variant="secondary"
+            size="icon"
+            disabled={isRecording || isUploading}
+            onClick={() => handleSubmit(content)}
+          >
+            <SendHorizontal className="h-6 w-6 max-sm:h-5 max-sm:w-5" />
+          </Button>
+        )}
       </div>
       <div style={{ display: settingStore.talkMode === 'voice' ? 'block' : 'none' }}>
         <div className="fixed left-0 right-0 top-0 flex h-full w-screen flex-col items-center justify-center bg-slate-900">
@@ -838,6 +859,7 @@ export default function Home() {
         </div>
       </div>
       <Setting open={settingOpen} hiddenTalkPanel={!supportSpeechRecognition} onClose={() => setSetingOpen(false)} />
+      <PluginStore open={pluginStoreOpen} onClose={() => setPluginStoreOpen(false)} />
     </main>
   )
 }

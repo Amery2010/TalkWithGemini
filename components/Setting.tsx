@@ -18,6 +18,8 @@ import { Model } from '@/constant/model'
 import { useSettingStore } from '@/store/setting'
 import { toPairs, values } from 'lodash-es'
 
+import pkg from '@/package.json'
+
 type SettingProps = {
   open: boolean
   hiddenTalkPanel?: boolean
@@ -226,7 +228,7 @@ function Setting({ open, hiddenTalkPanel, onClose }: SettingProps) {
             {pwaInstall ? (
               <div className="grid grid-cols-4 items-center gap-4">
                 <Label htmlFor="stt" className="text-right">
-                  {t('language')}
+                  {t('installPwa')}
                 </Label>
                 <Button className="col-span-3" variant="ghost" onClick={() => pwaInstall()}>
                   <MonitorDown className="mr-1.5 h-4 w-4" />
@@ -234,6 +236,10 @@ function Setting({ open, hiddenTalkPanel, onClose }: SettingProps) {
                 </Button>
               </div>
             ) : null}
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label className="text-right">{t('version')}</Label>
+              <div className="col-span-3 text-center leading-10">{`v${pkg.version}`}</div>
+            </div>
           </div>
         </TabsContent>
         <TabsContent value="model">

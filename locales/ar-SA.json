@@ -60,8 +60,11 @@
   "low": "منخفض",
   "middle": "متوسط",
   "high": "مرتفع",
+  "installPwa": "تثبيت PWA",
   "pwaInstall": "تثبيت تطبيق المتصفح(PWA)",
   "autoStopRecord": "إنهاء التسجيل تلقائيًا",
   "settingEnable": "تم التفعيل",
-  "settingDisable": "غير مفعل"
+  "settingDisable": "غير مفعل",
+  "plugin": "إضافة",
+  "version": "الإصدار الحالي"
 }

@@ -1,6 +1,6 @@
 [package]
 name = "talk-with-gemini"
-version = "0.11.0"
+version = "0.13.0"
 description = "Your private Gemini application."
 authors = ["Amery2010 amery@xiangfa.org"]
 license = "GPL-3.0-only"

@@ -48,6 +48,33 @@ declare global {
     }
   }
 
+  interface PluginManifest {
+    schemaVersion: 'v1'
+    id: string
+    title: string
+    description: string
+    systemRole: string
+    auth: {
+      type: 'none' | 'oauth' | 'service_http'
+      clientUrl?: string
+      scope?: string
+      authorizationType?: string
+      authorizationUrl?: string
+      authorizationContentType?: string
+      headers?: Record<string, string>
+      verificationTokens?: {
+        openai: string
+      }
+    }
+    api: {
+      type: 'openapi'
+      url: string
+    }
+    logoUrl: string
+    email: string
+    legalInfoUrl: string
+  }
+
   interface FileMetadata {
     name: string
     displayName?: string

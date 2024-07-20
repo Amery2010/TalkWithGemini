@@ -62,8 +62,11 @@
   "low": "低",
   "middle": "中",
   "high": "高",
+  "installPwa": "安装 PWA",
   "pwaInstall": "安装浏览器应用(PWA)",
   "autoStopRecord": "自动结束录音",
   "settingEnable": "已启用",
-  "settingDisable": "未启用"
+  "settingDisable": "未启用",
+  "plugin": "插件",
+  "version": "当前版本"
 }
