@@ -50,6 +50,7 @@ interface AnswerParams {
 }
 
 const BUILD_MODE = process.env.NEXT_PUBLIC_BUILD_MODE as string
+const TEXTAREA_DEFAULT_HEIGHT = 30
 const nanoid = customAlphabet('1234567890abcdefghijklmnopqrstuvwxyz', 8)
 
 const MessageItem = dynamic(() => import('@/components/MessageItem'))
@@ -71,7 +72,7 @@ export default function Home() {
   const messageStore = useMessageStore()
   const attachmentStore = useAttachmentStore()
   const settingStore = useSettingStore()
-  const [textareaHeight, setTextareaHeight] = useState<number>(30)
+  const [textareaHeight, setTextareaHeight] = useState<number>(TEXTAREA_DEFAULT_HEIGHT)
   const [siriWave, setSiriWave] = useState<SiriWave>()
   const [content, setContent] = useState<string>('')
   const [subtitle, setSubtitle] = useState<string>('')
@@ -402,7 +403,7 @@ export default function Home() {
       }
       setContent('')
       clearAttachment()
-      setTextareaHeight(24)
+      setTextareaHeight(TEXTAREA_DEFAULT_HEIGHT)
       await fetchAnswer({
         messages,
         model,
@@ -631,12 +632,12 @@ export default function Home() {
           <div className="ml-3 font-bold leading-10 max-sm:leading-8">{t('title')}</div>
         </div>
         <div className="flex items-center gap-1">
-          <Button className="relative h-8 w-8" title={t('github')} variant="ghost" size="icon">
+          <ThemeToggle />
+          <Button className="h-8 w-8" title={t('github')} variant="ghost" size="icon">
             <a href="https://github.com/Amery2010/TalkWithGemini" target="_blank">
               <Github className="h-5 w-5" />
             </a>
           </Button>
-          <ThemeToggle />
           <Button
             className="h-8 w-8"
             title={t('setting')}
@@ -733,7 +734,7 @@ export default function Home() {
             placeholder={t('askAQuestion')}
             onChange={(ev) => {
               setContent(ev.target.value)
-              setTextareaHeight(ev.target.value === '' ? 30 : ev.target.scrollHeight)
+              setTextareaHeight(ev.target.value === '' ? TEXTAREA_DEFAULT_HEIGHT : ev.target.scrollHeight)
             }}
             onKeyDown={handleKeyDown}
           />

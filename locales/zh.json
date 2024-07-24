@@ -33,7 +33,7 @@
   "assistantMarketDescription": "探索和发现最适合您的私人助理。",
   "totalAssistant": "（共 {{total}} 个）",
   "copy": "复制",
-  "github": "Github",
+  "github": "开源代码",
   "send": "发送",
   "maxHistoryLength": "最大历史长度",
   "unlimited": "无限制",
