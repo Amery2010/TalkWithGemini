@@ -24,7 +24,8 @@ import Button from '@/components/Button'
 import { useMessageStore } from '@/store/chat'
 import { useAttachmentStore } from '@/store/attachment'
 import { useSettingStore } from '@/store/setting'
-import { functions, getExchangeRateFunctionDeclaration } from '@/plugins/tools'
+import { usePluginStore } from '@/store/plugin'
+import { functions } from '@/plugins/tools'
 import chat, { type RequestProps } from '@/utils/chat'
 import { summarizePrompt, getVoiceModelPrompt, getSummaryPrompt, getTalkAudioPrompt } from '@/utils/prompt'
 import { AudioRecorder } from '@/utils/Recorder'
@@ -156,12 +157,9 @@ export default function Home() {
   const fetchAnswer = useCallback(async ({ messages, model, onResponse, onFunctionCall, onError }: AnswerParams) => {
     const { systemInstruction } = useMessageStore.getState()
     const { apiKey, apiProxy, password, topP, topK, temperature, maxOutputTokens, safety } = useSettingStore.getState()
+    const { tools: PluginTools } = usePluginStore.getState()
     const generationConfig: RequestProps['generationConfig'] = { topP, topK, temperature, maxOutputTokens }
-    const tools = [
-      {
-        functionDeclarations: [getExchangeRateFunctionDeclaration],
-      },
-    ]
+    const tools = [{ functionDeclarations: PluginTools }]
     setErrorMessage('')
     const config: RequestProps = {
       messages,
