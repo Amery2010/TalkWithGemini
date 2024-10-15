@@ -70,4 +70,19 @@ declare global {
     metadata?: FileMetadata
     status: 'STATE_UNSPECIFIED' | 'PROCESSING' | 'ACTIVE' | 'FAILED'
   }
+
+  interface Model {
+    name: string
+    baseModelId: string
+    version: string
+    displayName: string
+    description: string
+    inputTokenLimit: number
+    outputTokenLimit: number
+    supportedGenerationMethods: string[]
+    temperature: number
+    maxTemperature: number
+    topP: number
+    topK: number
+  }
 }

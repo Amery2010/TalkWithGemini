@@ -1,6 +1,5 @@
 import { create } from 'zustand'
 import storage from '@/utils/Storage'
-import { dataMigration } from '@/utils/migration'
 import { findIndex } from 'lodash-es'
 
 type Summary = {
@@ -31,7 +30,6 @@ export const useMessageStore = create<MessageStore>((set, get) => ({
   },
   systemInstruction: '',
   init: async () => {
-    await dataMigration()
     const messages = (await storage.getItem<Message[]>('messages')) || []
     const systemInstruction = (await storage.getItem<string>('systemInstruction')) || ''
     const summary = (await storage.getItem<Summary>('summary')) || {

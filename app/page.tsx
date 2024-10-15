@@ -87,13 +87,13 @@ export default function Home() {
     }
   }, [status, t])
   const isOldVisionModel = useMemo(() => {
-    return OldVisionModel.includes(settingStore.model as Model)
+    return OldVisionModel.includes(settingStore.model)
   }, [settingStore.model])
   const supportAttachment = useMemo(() => {
-    return !OldTextModel.includes(settingStore.model as Model)
+    return !OldTextModel.includes(settingStore.model)
   }, [settingStore.model])
   const supportSpeechRecognition = useMemo(() => {
-    return !OldTextModel.includes(settingStore.model as Model) && !OldVisionModel.includes(settingStore.model as Model)
+    return !OldTextModel.includes(settingStore.model) && !OldVisionModel.includes(settingStore.model)
   }, [settingStore.model])
   const isUploading = useMemo(() => {
     for (const file of attachmentStore.files) {
@@ -228,7 +228,7 @@ export default function Home() {
       const { ids, prompt } = summarizePrompt(messages, summary.ids, summary.content)
       await fetchAnswer({
         messages: [{ id: 'summary', role: 'user', parts: [{ text: prompt }] }],
-        model: Model['Gemini Pro'],
+        model: 'gemini-pro',
         onResponse: async (readableStream) => {
           const text = await streamToText(readableStream)
           summarizeChat(ids, text.trim())

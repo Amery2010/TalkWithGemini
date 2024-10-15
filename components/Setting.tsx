@@ -1,4 +1,4 @@
-import { memo, useEffect, useMemo, useState } from 'react'
+import { memo, useEffect, useLayoutEffect, useMemo, useState } from 'react'
 import { EdgeSpeech } from '@xiangfa/polly'
 import { useTranslation } from 'react-i18next'
 import { MonitorDown } from 'lucide-react'
@@ -13,10 +13,12 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
 import { Switch } from '@/components/ui/switch'
 import ResponsiveDialog from '@/components/ResponsiveDialog'
 import i18n from '@/plugins/i18n'
+import { fetchModels } from '@/utils/models'
 import locales from '@/constant/locales'
 import { Model } from '@/constant/model'
 import { useSettingStore } from '@/store/setting'
-import { toPairs, values } from 'lodash-es'
+import { useModelStore } from '@/store/model'
+import { toPairs, values, has } from 'lodash-es'
 
 type SettingProps = {
   open: boolean
@@ -30,6 +32,7 @@ function Setting({ open, hiddenTalkPanel, onClose }: SettingProps) {
   const { t } = useTranslation()
   const pwaInstall = usePWAInstall()
   const settingStore = useSettingStore()
+  const modelStore = useModelStore()
   const [password, setPassword] = useState<string>('')
   const [apiKey, setApiKey] = useState<string>('')
   const [apiProxy, setApiProxy] = useState<string>('')
@@ -55,6 +58,15 @@ function Setting({ open, hiddenTalkPanel, onClose }: SettingProps) {
   }, [ttsLang])
   const modelOptions = useMemo(() => {
     const { setModel } = useSettingStore.getState()
+    const { models: userModelList } = useModelStore.getState()
+
+    if (userModelList.length > 0) {
+      userModelList.forEach((item) => {
+        if (!has(Model, item.displayName)) {
+          Model[item.displayName] = item.name.replace('models/', '')
+        }
+      })
+    }
 
     let modelList: string[] = []
     let defaultModel = 'gemini-1.5-flash-latest'
@@ -86,7 +98,7 @@ function Setting({ open, hiddenTalkPanel, onClose }: SettingProps) {
     }
 
     return models
-  }, [])
+  }, [modelStore.models])
 
   const handleSubmit = () => {
     if (password !== settingStore.password) settingStore.setPassword(password)
@@ -154,6 +166,20 @@ function Setting({ open, hiddenTalkPanel, onClose }: SettingProps) {
     setSafety(settingStore.safety)
     setAutoStopRecord(settingStore.autoStopRecord)
   }, [settingStore])
+
+  useLayoutEffect(() => {
+    if (open) {
+      const { cachedTime, update, setCachedTime } = useModelStore.getState()
+      const timestamp = Date.now()
+      if (cachedTime + 2880000 < timestamp) {
+        const { apiKey, apiProxy, password } = useSettingStore.getState()
+        fetchModels({ apiKey, apiProxy, password }).then((models) => {
+          update(models)
+          setCachedTime(timestamp)
+        })
+      }
+    }
+  }, [open])
 
   return (
     <ResponsiveDialog
@@ -287,10 +313,10 @@ function Setting({ open, hiddenTalkPanel, onClose }: SettingProps) {
                   <SelectValue placeholder={t('selectDefaultModel')} />
                 </SelectTrigger>
                 <SelectContent>
-                  {modelOptions.map((value) => {
+                  {modelOptions.map((name) => {
                     return (
-                      <SelectItem key={value} value={value}>
-                        {value}
+                      <SelectItem key={name} value={name}>
+                        {name}
                       </SelectItem>
                     )
                   })}
