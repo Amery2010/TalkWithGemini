@@ -58,10 +58,9 @@ function Setting({ open, hiddenTalkPanel, onClose }: SettingProps) {
   }, [ttsLang])
   const modelOptions = useMemo(() => {
     const { setModel } = useSettingStore.getState()
-    const { models: userModelList } = useModelStore.getState()
 
-    if (userModelList.length > 0) {
-      userModelList.forEach((item) => {
+    if (modelStore.models.length > 0) {
+      modelStore.models.forEach((item) => {
         if (!has(Model, item.displayName)) {
           Model[item.displayName] = item.name.replace('models/', '')
         }
