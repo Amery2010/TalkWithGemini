@@ -97,4 +97,19 @@ declare global {
     metadata?: FileMetadata
     status: 'STATE_UNSPECIFIED' | 'PROCESSING' | 'ACTIVE' | 'FAILED'
   }
+
+  interface GatewayParams<T = unknown> {
+    [name: string]: T
+  }
+
+  interface GatewayPayload {
+    baseUrl: string
+    method: 'get' | 'put' | 'post' | 'delete' | 'options' | 'head' | 'patch' | 'trace'
+    body?: GatewayParams
+    formData?: GatewayParams<string>
+    headers?: GatewayParams<string>
+    path?: GatewayParams<string>
+    query?: GatewayParams<string>
+    cookie?: GatewayParams<string>
+  }
 }

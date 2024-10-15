@@ -1,3 +1,5 @@
+import { camelCase } from 'lodash-es'
+
 export interface OpenAIPluginManifest {
   schema_version: 'v1'
   name_for_model: string
@@ -45,7 +47,7 @@ export function convertOpenAIPluginToPluginSchema(manifest: OpenAIPluginManifest
 
   return {
     schemaVersion: manifest.schema_version,
-    id: manifest.name_for_model,
+    id: camelCase(manifest.name_for_model),
     title: manifest.name_for_human,
     description: manifest.description_for_human,
     systemRole: manifest.description_for_model,

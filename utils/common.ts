@@ -61,8 +61,26 @@ export function formatSize(size: number, pointLength = 2, units?: string[]): str
   return (unit === units[0] ? size : size.toFixed(pointLength === undefined ? 2 : pointLength)) + unit
 }
 
-export const sentenceSegmentation = (content: string, locale: string) => {
+export function sentenceSegmentation(content: string, locale: string) {
   const segmenter = new Intl.Segmenter(locale, { granularity: 'sentence' })
   const segments = segmenter.segment(content)
   return Array.from(segments).map((item) => item.segment)
+}
+
+export function isBase64(str: string) {
+  if (str.startsWith('data:') && str.indexOf('base64') !== -1) {
+    return true
+  } else {
+    return false
+  }
+}
+
+export function base64ToBlob(base64String: string, contentType: string = ''): Blob {
+  const byteCharacters = atob(base64String)
+  const byteNumbers = new Array(byteCharacters.length)
+  for (let i = 0; i < byteCharacters.length; i++) {
+    byteNumbers[i] = byteCharacters.charCodeAt(i)
+  }
+  const byteArray = new Uint8Array(byteNumbers)
+  return new Blob([byteArray], { type: contentType })
 }

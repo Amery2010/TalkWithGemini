@@ -1,7 +1,7 @@
 import { useState, useCallback, useLayoutEffect, memo } from 'react'
 import { Globe, Mail, CloudDownload, LoaderCircle, Trash } from 'lucide-react'
 import { type FunctionDeclarationSchema, FunctionDeclarationSchemaType } from '@google/generative-ai'
-import type { OpenAPI } from 'openapi-types'
+import type { OpenAPI, OpenAPIV3_1 } from 'openapi-types'
 import { convertParametersToJSONSchema } from 'openapi-jsonschema-parameters'
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { ScrollArea } from '@/components/ui/scroll-area'
@@ -75,7 +75,8 @@ function PluginStore({ open, onClose }: PluginStoreProps) {
       setLoadingList([...loadingList])
       const token = encodeToken(password)
       const response = await fetch(`/api/plugin?id=${id}&token=${token}`)
-      const result: OpenAPI.Document = await response.json()
+      const result: OpenAPIV3_1.Document = await response.json()
+      console.log(result)
       if (result.paths) {
         const convertOpenAPIParameter = (parameters: OpenAPI.Parameters) => {
           const parametersSchema = convertParametersToJSONSchema(parameters || [])
@@ -107,7 +108,7 @@ function PluginStore({ open, onClose }: PluginStoreProps) {
             }
           }
         }
-        installPlugin(id)
+        installPlugin(id, result)
       }
       setLoadingList(loadingList.filter((pluginId) => pluginId !== id))
     },
@@ -175,11 +176,9 @@ function PluginStore({ open, onClose }: PluginStoreProps) {
                     <Button
                       className="h-8 bg-red-400 hover:bg-red-500"
                       disabled={loadingList.includes(item.id)}
-                      onClick={() =>
-                        installedPlugins.includes(item.id) ? handleUninstall(item.id) : handleInstall(item.id)
-                      }
+                      onClick={() => (item.id in installedPlugins ? handleUninstall(item.id) : handleInstall(item.id))}
                     >
-                      {installedPlugins.includes(item.id) ? (
+                      {item.id in installedPlugins ? (
                         <>
                           卸载{' '}
                           {loadingList.includes(item.id) ? (

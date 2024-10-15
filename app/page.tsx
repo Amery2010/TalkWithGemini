@@ -25,7 +25,6 @@ import { useMessageStore } from '@/store/chat'
 import { useAttachmentStore } from '@/store/attachment'
 import { useSettingStore } from '@/store/setting'
 import { usePluginStore } from '@/store/plugin'
-import { functions } from '@/plugins/tools'
 import chat, { type RequestProps } from '@/utils/chat'
 import { summarizePrompt, getVoiceModelPrompt, getSummaryPrompt, getTalkAudioPrompt } from '@/utils/prompt'
 import { AudioRecorder } from '@/utils/Recorder'
@@ -35,12 +34,14 @@ import textStream, { streamToText } from '@/utils/textStream'
 import { encodeToken } from '@/utils/signature'
 import type { FileManagerOptions } from '@/utils/FileManager'
 import { fileUpload, imageUpload } from '@/utils/upload'
+import { findOperationById } from '@/utils/plugin'
 import { formatTime, readFileAsDataURL } from '@/utils/common'
 import { cn } from '@/utils'
 import { Model, OldVisionModel, OldTextModel } from '@/constant/model'
 import mimeType from '@/constant/attachment'
 import { customAlphabet } from 'nanoid'
-import { isFunction, findIndex, isUndefined } from 'lodash-es'
+import { isFunction, findIndex, isUndefined, entries } from 'lodash-es'
+import { OpenAPIV3_1 } from 'openapi-types'
 
 interface AnswerParams {
   messages: Message[]
@@ -283,6 +284,7 @@ export default function Home() {
     async (functionCalls: FunctionCall[]) => {
       const { model } = useSettingStore.getState()
       const { add: addMessage } = useMessageStore.getState()
+      const { installedPlugins } = usePluginStore.getState()
       for (const call of functionCalls) {
         const newModelMessage: Message = { id: nanoid(), role: 'model', parts: [{ text: '' }] }
         const functionCallMessage = {
@@ -295,12 +297,45 @@ export default function Home() {
           ],
         }
         addMessage(functionCallMessage)
-        /**
-         * Call the executable function named in the function call
-         * with the arguments specified in the function call and
-         * let it call the hypothetical API.
-         */
-        const apiResponse = await functions[call.name](call.args)
+        const pluginId = call.name.split('_')[0]
+        const pluginManifest = installedPlugins[pluginId]
+        let baseUrl = ''
+        if (pluginManifest.openapi.servers) {
+          baseUrl = pluginManifest.openapi.servers[0].url
+        }
+        const operation = findOperationById(pluginManifest.openapi, call.name.substring(1 + pluginId.length))
+        if (!operation) return handleError('FunctionCall execution failed!')
+        const { password } = useSettingStore.getState()
+        const token = encodeToken(password)
+        const payload: GatewayPayload = {
+          baseUrl: `${baseUrl}${operation.path}`,
+          method: operation.method as GatewayPayload['method'],
+        }
+        let body: GatewayPayload['body'] = {}
+        let formData: GatewayPayload['formData'] = {}
+        let headers: GatewayPayload['headers'] = {}
+        let path: GatewayPayload['path'] = {}
+        let query: GatewayPayload['query'] = {}
+        let cookie: GatewayPayload['cookie'] = {}
+        for (const [name, value] of entries(call.args)) {
+          const parameters = operation.parameters as OpenAPIV3_1.ParameterObject[]
+          parameters.forEach((parameter) => {
+            if (parameter.name === name) {
+              if (parameter.in === 'query') {
+                query[name] = value
+              } else if (parameter.in === 'path') {
+                path[name] = value
+              } else if (parameter.in === 'formData') {
+                formData[name] = value
+              }
+            }
+          })
+        }
+        const apiResponse = await fetch(`/api/gateway?token=${token}`, {
+          method: 'POST',
+          body: JSON.stringify(payload),
+        })
+        // const apiResponse = await functions[call.name](call.args)
         const functionResponseMessage = {
           id: nanoid(),
           role: 'function',

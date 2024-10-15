@@ -4,7 +4,7 @@ import { ErrorType } from '@/constant/errors'
 import pluginStore from '@/constant/plugins'
 import { type OpenAIPluginManifest } from '@/utils/tool'
 import { handleError } from '../utils'
-import { isNull } from 'lodash-es'
+import { isNull, camelCase } from 'lodash-es'
 
 export const preferredRegion = ['sfo1']
 
@@ -24,7 +24,7 @@ export async function GET(req: NextRequest) {
     const plugins: Record<string, OpenAIPluginManifest> = {}
 
     for (const manifest of pluginStore) {
-      plugins[manifest.name_for_model] = manifest as OpenAIPluginManifest
+      plugins[camelCase(manifest.name_for_model)] = manifest as OpenAIPluginManifest
     }
     const pluginManifest = plugins[id]
     if (pluginManifest) {

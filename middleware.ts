@@ -6,8 +6,8 @@ import { isNull } from 'lodash-es'
 
 const uploadLimit = Number(process.env.NEXT_PUBLIC_UPLOAD_LIMIT || '0')
 
-const proxyRoutes = ['/api/google/upload/v1beta/files', '/api/upload/files']
-const apiRoutes = ['/api/chat', '/api/upload', '/api/plugin']
+const proxyRoutes = ['/api/google/upload/v1beta/files', '/api/upload', '/api/files']
+const apiRoutes = ['/api/chat', '/api/upload', '/api/plugin', '/api/gateway']
 
 // Limit the middleware to paths starting with `/api/`
 export const config = {

@@ -1,15 +1,20 @@
 import { create } from 'zustand'
 import storage from '@/utils/Storage'
 import { type FunctionDeclaration } from '@google/generative-ai'
+import type { OpenAPIV3_1 } from 'openapi-types'
 import { find, findIndex, filter } from 'lodash-es'
+
+interface Plugin extends PluginManifest {
+  openapi: OpenAPIV3_1.Document
+}
 
 type PluginStore = {
   plugins: PluginManifest[]
-  installedPlugins: string[]
+  installedPlugins: Record<string, Plugin>
   tools: FunctionDeclaration[]
   init: () => Promise<FunctionDeclaration[]>
   update: (plugins: PluginManifest[]) => void
-  installPlugin: (id: string) => void
+  installPlugin: (id: string, schema: OpenAPIV3_1.Document) => void
   uninstallPlugin: (id: string) => void
   updatePlugin: (id: string, manifest: Partial<PluginManifest>) => void
   addTool: (tool: FunctionDeclaration) => void
@@ -18,11 +23,11 @@ type PluginStore = {
 
 export const usePluginStore = create<PluginStore>((set, get) => ({
   plugins: [],
-  installedPlugins: [],
+  installedPlugins: {},
   tools: [],
   init: async () => {
     const tools = (await storage.getItem<FunctionDeclaration[]>('tools')) || []
-    const installedPlugins = (await storage.getItem<string[]>('installedPlugins')) || []
+    const installedPlugins = (await storage.getItem<Record<string, Plugin>>('installedPlugins')) || {}
     set(() => ({ tools, installedPlugins }))
     return tools
   },
@@ -37,25 +42,23 @@ export const usePluginStore = create<PluginStore>((set, get) => ({
     plugins[index] = { ...plugins[index], ...manifest }
     set(() => ({ plugins }))
   },
-  installPlugin: (id) => {
-    const installedPlugins = [...get().installedPlugins]
-    if (!installedPlugins.includes(id)) {
-      installedPlugins.push(id)
+  installPlugin: (id, schema) => {
+    const installedPlugins = { ...get().installedPlugins }
+    const plugin = find(get().plugins, { id })
+    if (plugin) {
+      installedPlugins[id] = { ...plugin, openapi: schema }
       set(() => ({ installedPlugins }))
-      storage.setItem<string[]>('installedPlugins', installedPlugins)
+      storage.setItem<Record<string, Plugin>>('installedPlugins', installedPlugins)
     }
   },
   uninstallPlugin: (id) => {
-    const installedPlugins = [...get().installedPlugins]
-    const newInstalledPlugins = installedPlugins.filter((pluginId) => {
-      return pluginId !== id
-    })
-    set(() => ({ installedPlugins: newInstalledPlugins }))
-    storage.setItem<string[]>('installedPlugins', newInstalledPlugins)
+    const installedPlugins = { ...get().installedPlugins }
+    delete installedPlugins[id]
+    set(() => ({ installedPlugins }))
+    storage.setItem<Record<string, Plugin>>('installedPlugins', installedPlugins)
   },
   addTool: async (tool) => {
     const tools = [...get().tools]
-    console.log(tool)
     if (!find(tools, { name: tool.name })) {
       tools.push(tool)
       set(() => ({ tools }))

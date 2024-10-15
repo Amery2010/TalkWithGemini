@@ -44,11 +44,11 @@ module.exports = async (phase) => {
         : [
             {
               source: '/api/google/upload/v1beta/files',
-              destination: '/api/upload/files',
+              destination: '/api/files',
             },
             {
-              source: '/api/google/v1beta/files/:path',
-              destination: '/api/upload/files?id=:path',
+              source: '/api/google/v1beta/files/:id',
+              destination: '/api/files?id=:id',
             },
           ]
       return {
