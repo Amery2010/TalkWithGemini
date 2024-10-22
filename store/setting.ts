@@ -1,6 +1,5 @@
 import { create } from 'zustand'
 import storage from '@/utils/Storage'
-import { dataMigration } from '@/utils/migration'
 import { detectLanguage } from '@/utils/common'
 import { OldTextModel, OldVisionModel, type Model } from '@/constant/model'
 
@@ -29,9 +28,9 @@ interface SettingStore extends Setting {
 const ASSISTANT_INDEX_URL = process.env.NEXT_PUBLIC_ASSISTANT_INDEX_URL
 
 function getDefaultModelConfig(model: string) {
-  if (OldTextModel.includes(model as Model)) {
+  if (OldTextModel.includes(model)) {
     return { topP: 1, topK: 16, temperature: 0.9, maxOutputTokens: 2048 }
-  } else if (OldVisionModel.includes(model as Model)) {
+  } else if (OldVisionModel.includes(model)) {
     return { topP: 1, topK: 32, temperature: 0.4, maxOutputTokens: 4096 }
   } else {
     return { topP: 0.95, topK: 64, temperature: 1, maxOutputTokens: 8192 }
@@ -59,7 +58,6 @@ export const useSettingStore = create<SettingStore>((set) => ({
   safety: 'none',
   autoStopRecord: false,
   init: async (isProtected) => {
-    await dataMigration()
     const sttLang = await storage.getItem<string>('sttLang')
     const ttsLang = await storage.getItem<string>('ttsLang')
     const ttsVoice = await storage.getItem<string>('ttsVoice')

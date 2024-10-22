@@ -1,7 +1,7 @@
 import { GoogleGenerativeAI, HarmCategory, HarmBlockThreshold } from '@google/generative-ai'
 import type { InlineDataPart, ModelParams, Tool, ToolConfig } from '@google/generative-ai'
 import { getVisionPrompt } from '@/utils/prompt'
-import { Model, OldVisionModel } from '@/constant/model'
+import { OldVisionModel } from '@/constant/model'
 import { isUndefined, pick } from 'lodash-es'
 
 export type RequestProps = {
@@ -55,7 +55,7 @@ export default async function chat({
   systemInstruction,
   tools,
   toolConfig,
-  model = Model['Gemini Pro'],
+  model = 'gemini-pro',
   apiKey,
   baseUrl,
   generationConfig,
@@ -74,7 +74,7 @@ export default async function chat({
       messages = [...systemInstructionMessages, ...messages]
     }
   }
-  if (tools && !OldVisionModel.includes(model as Model)) {
+  if (tools && !OldVisionModel.includes(model)) {
     modelParams.tools = tools
     modelParams.generationConfig = {
       ...generationConfig,
@@ -87,7 +87,7 @@ export default async function chat({
   if (isUndefined(message)) {
     throw new Error('Request parameter error')
   }
-  if (OldVisionModel.includes(model as Model)) {
+  if (OldVisionModel.includes(model)) {
     const textMessages: Message[] = []
     const imageMessages: InlineDataPart[] = message.parts.filter((part) =>
       part.inlineData?.mimeType.startsWith('image/'),

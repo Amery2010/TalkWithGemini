@@ -15,21 +15,24 @@ export const videoMimeType = [
 ]
 
 export const textMimeType = [
-  'text/plain',
-  'text/html',
-  'text/css',
-  'text/javascript',
+  // 'text/plain',
+  // 'text/html',
+  // 'text/css',
+  // 'text/javascript',
   'application/x-javascript',
-  'text/x-typescript',
+  // 'text/x-typescript',
   'application/x-typescript',
-  'text/csv',
-  'text/markdown',
-  'text/x-python',
+  // 'text/csv',
+  // 'text/markdown',
+  // 'text/x-python',
   'application/x-python-code',
   'application/json',
-  'text/xml',
+  // 'text/xml',
   'application/rtf',
-  'text/rtf',
+  // 'text/rtf',
+  'application/pdf',
+  'text/*',
+  // 'application/*',
 ]
 
 export default [imageMimeType, audioMimeType, videoMimeType, textMimeType].flat()

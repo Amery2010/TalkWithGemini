@@ -112,4 +112,19 @@ declare global {
     query?: GatewayParams<string>
     cookie?: GatewayParams<string>
   }
+
+  interface Model {
+    name: string
+    baseModelId: string
+    version: string
+    displayName: string
+    description: string
+    inputTokenLimit: number
+    outputTokenLimit: number
+    supportedGenerationMethods: string[]
+    temperature: number
+    maxTemperature: number
+    topP: number
+    topK: number
+  }
 }

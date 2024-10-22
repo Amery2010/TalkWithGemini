@@ -21,7 +21,7 @@ function FileUploader({ beforeUpload, afterUpload }: Props) {
   const imageRef = useRef<HTMLInputElement>(null)
   const settingStore = useSettingStore()
   const isOldVisionModel = useMemo(() => {
-    return OldVisionModel.includes(settingStore.model as Model)
+    return OldVisionModel.includes(settingStore.model)
   }, [settingStore.model])
 
   const handleError = useCallback(

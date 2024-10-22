@@ -162,16 +162,16 @@ function PluginStore({ open, onClose }: PluginStoreProps) {
                   <CardContent className="text-line-clamp-3 h-16 text-sm">{item.description}</CardContent>
                   <CardFooter className="flex justify-between px-4 pb-2">
                     <div>
-                      <Button className="h-8 w-8" size="icon" variant="ghost">
-                        <a href={item.legalInfoUrl} target="_blank">
+                      <a href={item.legalInfoUrl} target="_blank">
+                        <Button className="h-8 w-8" size="icon" variant="ghost">
                           <Globe className="h-5 w-5" />
-                        </a>
-                      </Button>
-                      <Button className="h-8 w-8" size="icon" variant="ghost">
-                        <a href={`mailto://${item.email}`} target="_blank">
+                        </Button>
+                      </a>
+                      <a href={`mailto://${item.email}`} target="_blank">
+                        <Button className="h-8 w-8" size="icon" variant="ghost">
                           <Mail className="h-5 w-5" />
-                        </a>
-                      </Button>
+                        </Button>
+                      </a>
                     </div>
                     <Button
                       className="h-8 bg-red-400 hover:bg-red-500"
