@@ -43,7 +43,7 @@ export async function POST(req: NextRequest) {
     }
     const urlSchema = new URL(url)
     for (const [name, value] of entries(query)) {
-      urlSchema.searchParams.append(name, value)
+      urlSchema.searchParams.append(name, encodeURIComponent(value))
     }
     const config: RequestInit = { method }
     if (isNull(payload)) config.body = payload

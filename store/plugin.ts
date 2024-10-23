@@ -1,11 +1,10 @@
 import { create } from 'zustand'
 import storage from '@/utils/Storage'
 import { type FunctionDeclaration } from '@google/generative-ai'
-import type { OpenAPIV3_1 } from 'openapi-types'
 import { find, findIndex, filter } from 'lodash-es'
 
 interface Plugin extends PluginManifest {
-  openapi: OpenAPIV3_1.Document
+  openapi: OpenAPIDocument
 }
 
 type PluginStore = {
@@ -14,7 +13,7 @@ type PluginStore = {
   tools: FunctionDeclaration[]
   init: () => Promise<FunctionDeclaration[]>
   update: (plugins: PluginManifest[]) => void
-  installPlugin: (id: string, schema: OpenAPIV3_1.Document) => void
+  installPlugin: (id: string, schema: OpenAPIDocument) => void
   uninstallPlugin: (id: string) => void
   updatePlugin: (id: string, manifest: Partial<PluginManifest>) => void
   addTool: (tool: FunctionDeclaration) => void

@@ -1,4 +1,5 @@
 import type { Content } from '@google/generative-ai'
+import type { OpenAPIV3, OpenAPIV3_1 } from 'openapi-types'
 
 declare global {
   interface Message extends Content {
@@ -47,6 +48,22 @@ declare global {
       systemRole: string
     }
   }
+
+  type OpenAPIDocument<T extends {} = {}> = OpenAPIV3.Document<T> | OpenAPIV3_1.Document<T>
+
+  type OpenAPIOperation<T extends {} = {}> = OpenAPIV3.OperationObject<T> | OpenAPIV3_1.OperationObject<T>
+
+  type OpenAPIParameter =
+    | OpenAPIV3_1.ReferenceObject
+    | OpenAPIV3_1.ParameterObject
+    | OpenAPIV3.ReferenceObject
+    | OpenAPIV3.ParameterObject
+
+  type OpenAPIParameters =
+    | (OpenAPIV3_1.ReferenceObject | OpenAPIV3_1.ParameterObject)[]
+    | (OpenAPIV3.ReferenceObject | OpenAPIV3.ParameterObject)[]
+
+  type OpenAPIRequestBody = OpenAPIV3.RequestBodyObject | OpenAPIV3_1.RequestBodyObject
 
   interface PluginManifest {
     schemaVersion: 'v1'

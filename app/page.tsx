@@ -37,10 +37,10 @@ import { fileUpload, imageUpload } from '@/utils/upload'
 import { findOperationById } from '@/utils/plugin'
 import { formatTime, readFileAsDataURL } from '@/utils/common'
 import { cn } from '@/utils'
-import { Model, OldVisionModel, OldTextModel } from '@/constant/model'
+import { OldVisionModel, OldTextModel } from '@/constant/model'
 import mimeType from '@/constant/attachment'
 import { customAlphabet } from 'nanoid'
-import { isFunction, findIndex, isUndefined, entries } from 'lodash-es'
+import { isFunction, findIndex, isUndefined, entries, isEmpty } from 'lodash-es'
 import { OpenAPIV3_1 } from 'openapi-types'
 
 interface AnswerParams {
@@ -158,9 +158,8 @@ export default function Home() {
   const fetchAnswer = useCallback(async ({ messages, model, onResponse, onFunctionCall, onError }: AnswerParams) => {
     const { systemInstruction } = useMessageStore.getState()
     const { apiKey, apiProxy, password, topP, topK, temperature, maxOutputTokens, safety } = useSettingStore.getState()
-    const { tools: PluginTools } = usePluginStore.getState()
+    const { tools } = usePluginStore.getState()
     const generationConfig: RequestProps['generationConfig'] = { topP, topK, temperature, maxOutputTokens }
-    const tools = [{ functionDeclarations: PluginTools }]
     setErrorMessage('')
     const config: RequestProps = {
       messages,
@@ -170,7 +169,7 @@ export default function Home() {
       safety,
     }
     if (systemInstruction) config.systemInstruction = systemInstruction
-    if (tools) config.tools = tools
+    if (tools.length > 0) config.tools = [{ functionDeclarations: tools }]
     if (apiKey !== '') {
       if (apiProxy) config.baseUrl = apiProxy
     } else {
@@ -311,7 +310,7 @@ export default function Home() {
           baseUrl: `${baseUrl}${operation.path}`,
           method: operation.method as GatewayPayload['method'],
         }
-        let body: GatewayPayload['body'] = {}
+        // let body: GatewayPayload['body'] = {}
         let formData: GatewayPayload['formData'] = {}
         let headers: GatewayPayload['headers'] = {}
         let path: GatewayPayload['path'] = {}
@@ -319,7 +318,7 @@ export default function Home() {
         let cookie: GatewayPayload['cookie'] = {}
         for (const [name, value] of entries(call.args)) {
           const parameters = operation.parameters as OpenAPIV3_1.ParameterObject[]
-          parameters.forEach((parameter) => {
+          parameters?.forEach((parameter) => {
             if (parameter.name === name) {
               if (parameter.in === 'query') {
                 query[name] = value
@@ -327,43 +326,61 @@ export default function Home() {
                 path[name] = value
               } else if (parameter.in === 'formData') {
                 formData[name] = value
+              } else if (parameter.in === 'headers') {
+                headers[name] = value
+              } else if (parameter.in === 'cookie') {
+                cookie[name] = value
               }
             }
           })
         }
-        const apiResponse = await fetch(`/api/gateway?token=${token}`, {
-          method: 'POST',
-          body: JSON.stringify(payload),
-        })
-        // const apiResponse = await functions[call.name](call.args)
-        const functionResponseMessage = {
-          id: nanoid(),
-          role: 'function',
-          parts: [
-            {
-              functionResponse: {
-                name: call.name,
-                response: apiResponse,
+        // if (!isEmpty(body)) payload.body = body
+        if (!isEmpty(formData)) payload.formData = formData
+        if (!isEmpty(headers)) payload.headers = headers
+        if (!isEmpty(path)) payload.path = path
+        if (!isEmpty(query)) payload.query = query
+        if (!isEmpty(cookie)) payload.cookie = cookie
+        try {
+          const apiResponse = await fetch(`/api/gateway?token=${token}`, {
+            method: 'POST',
+            body: JSON.stringify(payload),
+          })
+          const functionResponseMessage = {
+            id: nanoid(),
+            role: 'function',
+            parts: [
+              {
+                functionResponse: {
+                  name: call.name,
+                  response: {
+                    name: call.name,
+                    content: await apiResponse.json(),
+                  },
+                },
               },
+            ],
+          }
+          addMessage(functionResponseMessage)
+          addMessage(newModelMessage)
+          /**
+           * Send the API response back to the model so it can generate
+           * a text response that can be displayed to the user.
+           */
+          await fetchAnswer({
+            messages: messagesRef.current.slice(0, -1),
+            model,
+            onResponse: (stream) => {
+              handleResponse(stream, newModelMessage)
             },
-          ],
+            onError: (message, code) => {
+              handleError(message, code)
+            },
+          })
+        } catch (err) {
+          if (err instanceof Error) {
+            handleError(err.message, 500)
+          }
         }
-        addMessage(functionResponseMessage)
-        addMessage(newModelMessage)
-        /**
-         * Send the API response back to the model so it can generate
-         * a text response that can be displayed to the user.
-         */
-        await fetchAnswer({
-          messages: messagesRef.current.slice(0, -1),
-          model,
-          onResponse: (stream) => {
-            handleResponse(stream, newModelMessage)
-          },
-          onError: (message, code) => {
-            handleError(message, code)
-          },
-        })
       }
     },
     [fetchAnswer, handleResponse, handleError],
@@ -665,12 +682,12 @@ export default function Home() {
           <div className="ml-3 font-bold leading-10 max-sm:leading-8">{t('title')}</div>
         </div>
         <div className="flex items-center gap-1">
-          <ThemeToggle />
           <a href="https://github.com/Amery2010/TalkWithGemini" target="_blank">
             <Button className="h-8 w-8" title={t('github')} variant="ghost" size="icon">
               <Github className="h-5 w-5" />
             </Button>
           </a>
+          <ThemeToggle />
           <Button
             className="h-8 w-8"
             title={t('setting')}

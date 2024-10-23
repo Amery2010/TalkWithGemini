@@ -6,7 +6,7 @@ import { encodeToken } from '@/utils/signature'
 import { fileUpload, imageUpload } from '@/utils/upload'
 import { useSettingStore } from '@/store/setting'
 import { useAttachmentStore } from '@/store/attachment'
-import { Model, OldVisionModel } from '@/constant/model'
+import { OldVisionModel } from '@/constant/model'
 import mimeType, { imageMimeType } from '@/constant/attachment'
 import { isFunction } from 'lodash-es'
 
