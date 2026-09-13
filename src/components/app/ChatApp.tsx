@@ -1205,11 +1205,10 @@ const ChatApp = () => {
         handleVersionSelect={handleVersionSelect}
         handleSendMessage={handleSendMessage}
         prepareComposerSkillParameters={(forced) =>
-          prepareComposerSkillParameters(
-            currentSession,
-            selectedModel,
-            forced?.skillIds,
-          )
+          prepareComposerSkillParameters(currentSession, selectedModel, [
+            ...(forced?.skillIds || []),
+            ...(forced?.pendingSessionSkillIds || []),
+          ])
         }
         handleCompressContext={handleCompressContext}
         handleSuggestionClick={handleSuggestionClick}

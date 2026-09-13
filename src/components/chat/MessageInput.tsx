@@ -174,6 +174,8 @@ const ResearchSettingsDialog = dynamic(
 export interface ComposerForcedInvocations {
   skillIds: string[];
   pluginIds: string[];
+  /** Toolbar Skills chosen before the first conversation exists. */
+  pendingSessionSkillIds?: string[];
 }
 
 interface MessageInputProps {
@@ -276,6 +278,9 @@ const MessageInput = forwardRef<MessageInputRef, MessageInputProps>(
     const [isPreparingSend, setIsPreparingSend] = useState(false);
     const [forcedSkillIds, setForcedSkillIds] = useState<string[]>([]);
     const [forcedPluginIds, setForcedPluginIds] = useState<string[]>([]);
+    const [pendingSessionSkillIds, setPendingSessionSkillIds] = useState<
+      string[]
+    >([]);
     const [showAgentSettings, setShowAgentSettings] = useState(false);
     const [showResearchSettings, setShowResearchSettings] = useState(false);
     const agentSettingsReturnFocusRef = useRef<HTMLButtonElement | null>(null);
@@ -472,10 +477,12 @@ const MessageInput = forwardRef<MessageInputRef, MessageInputProps>(
     const activeSkillIds = useMemo(
       () =>
         normalizeSkillIdRefs(
-          currentSession?.config?.activeSkills,
+          currentSession
+            ? currentSession.config?.activeSkills
+            : pendingSessionSkillIds,
           installedSkills,
         ),
-      [currentSession?.config?.activeSkills, installedSkills],
+      [currentSession, installedSkills, pendingSessionSkillIds],
     );
     const activeSkillSet = useMemo(
       () => new Set(activeSkillIds),
@@ -490,9 +497,13 @@ const MessageInput = forwardRef<MessageInputRef, MessageInputProps>(
     );
     const setSessionActiveSkillIds = useCallback(
       (skillIds: string[]) => {
-        if (!currentSessionId) return;
+        const normalizedIds = normalizeSkillIdRefs(skillIds, installedSkills);
+        if (!currentSessionId) {
+          setPendingSessionSkillIds(normalizedIds);
+          return;
+        }
         updateSessionConfig(currentSessionId, {
-          activeSkills: normalizeSkillIdRefs(skillIds, installedSkills),
+          activeSkills: normalizedIds,
         });
       },
       [currentSessionId, installedSkills, updateSessionConfig],
@@ -678,6 +689,9 @@ const MessageInput = forwardRef<MessageInputRef, MessageInputProps>(
     useEffect(() => {
       const previousSessionId = previousComposerSessionRef.current;
       previousComposerSessionRef.current = currentSessionId;
+      if (previousSessionId !== currentSessionId) {
+        setPendingSessionSkillIds([]);
+      }
       if (
         !isTemporarySessionId(currentSessionId) &&
         !isTemporarySessionId(previousSessionId)
@@ -1331,6 +1345,9 @@ const MessageInput = forwardRef<MessageInputRef, MessageInputProps>(
         const forced: ComposerForcedInvocations = {
           skillIds: temporary ? [] : forcedSkills.map((skill) => skill.id),
           pluginIds: temporary ? [] : forcedPlugins.map((plugin) => plugin.id),
+          ...(!temporary && !currentSessionId && activeSkillIds.length > 0
+            ? { pendingSessionSkillIds: activeSkillIds }
+            : {}),
         };
         const skillParameters = onPrepareSend
           ? await onPrepareSend(forced)
@@ -1353,6 +1370,7 @@ const MessageInput = forwardRef<MessageInputRef, MessageInputProps>(
         setAttachments([]);
         setForcedSkillIds([]);
         setForcedPluginIds([]);
+        setPendingSessionSkillIds([]);
         closeCommandMenu();
         if (textareaRef.current) {
           textareaRef.current.style.height = "auto";

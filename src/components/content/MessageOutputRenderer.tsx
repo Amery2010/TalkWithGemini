@@ -450,12 +450,12 @@ const MessageOutputRenderer: React.FC<MessageOutputRendererProps> = ({
 
   return (
     <div className={isTyping ? "animate-in fade-in duration-500" : ""}>
-      {renderedItems.map((item, index) =>
+      {renderedItems.map((item) =>
         item.framed ? (
           <div
             key={item.key}
             data-message-output-block
-            className={`${getMessageOutputBlockSpacingClass(index > 0 && !renderedItems[index - 1]?.framed)} [&>*]:m-0!`}
+            className={`${getMessageOutputBlockSpacingClass()} [&>*]:m-0!`}
           >
             {item.node}
           </div>

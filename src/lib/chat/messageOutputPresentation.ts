@@ -25,10 +25,8 @@ interface FenceMarker {
   length: number;
 }
 
-export function getMessageOutputBlockSpacingClass(
-  previousElementIsUnframed: boolean,
-): string {
-  return previousElementIsUnframed ? "mb-3 mt-3" : "mb-3";
+export function getMessageOutputBlockSpacingClass(): string {
+  return "mb-3";
 }
 
 function getOpeningFence(line: string): FenceMarker | null {

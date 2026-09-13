@@ -229,7 +229,7 @@ describe("MessageOutputRenderer reasoning presentation", () => {
     expect(screen.getByRole("button", { name: "Search failed" })).toBeTruthy();
   });
 
-  it("adds top spacing when a framed block follows ordinary Markdown", () => {
+  it("keeps bottom-only spacing when a framed block follows ordinary Markdown", () => {
     const { container } = renderMessage({
       id: "text-before-reasoning",
       role: "model",
@@ -257,7 +257,8 @@ describe("MessageOutputRenderer reasoning presentation", () => {
     );
     expect(blocks).toHaveLength(1);
     expect(blocks[0]?.className).toContain("mb-3");
-    expect(blocks[0]?.className).toContain("mt-3");
+    expect(blocks[0]?.className).not.toMatch(/\bmt-/);
+    expect(blocks[0]?.className).not.toMatch(/\bp(?:[trblxy])?-/);
   });
 });
 

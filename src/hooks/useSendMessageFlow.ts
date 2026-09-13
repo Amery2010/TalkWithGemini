@@ -102,7 +102,16 @@ export function useSendMessageFlow(deps: ChatFlowDeps) {
     let targetSessionId = chatState.currentSessionId;
 
     if (!targetSessionId) {
-      targetSessionId = createSession();
+      const pendingSessionSkillIds = forced?.pendingSessionSkillIds;
+      targetSessionId = createSession(
+        undefined,
+        "New Chat",
+        undefined,
+        [],
+        pendingSessionSkillIds?.length
+          ? { activeSkills: pendingSessionSkillIds }
+          : undefined,
+      );
     }
 
     if (!targetSessionId) return;

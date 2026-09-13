@@ -28,9 +28,8 @@ const toolBlock: MessageOutputBlock = {
 };
 
 describe("message output presentation", () => {
-  it("uses one-sided spacing between framed operational blocks", () => {
-    expect(getMessageOutputBlockSpacingClass(false)).toBe("mb-3");
-    expect(getMessageOutputBlockSpacingClass(true)).toBe("mb-3 mt-3");
+  it("uses the same bottom-only spacing for every model output block", () => {
+    expect(getMessageOutputBlockSpacingClass()).toBe("mb-3");
 
     const renderer = readFileSync(
       resolve(
@@ -40,8 +39,9 @@ describe("message output presentation", () => {
       "utf8",
     );
     expect(renderer).toContain("data-message-output-block");
-    expect(renderer).toContain(
-      "getMessageOutputBlockSpacingClass(index > 0 && !renderedItems[index - 1]?.framed)",
+    expect(renderer).toContain("getMessageOutputBlockSpacingClass()");
+    expect(renderer).not.toMatch(
+      /data-message-output-block[^>]+(?:mt-|p[trblxy]?)-/,
     );
     expect(renderer).toContain("[&>*]:m-0!");
     expect(renderer).toContain("node: <AgentRunBar");

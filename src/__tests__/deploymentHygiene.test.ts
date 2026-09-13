@@ -2,7 +2,39 @@ import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
 
+function toComparableVersion(value: string | undefined): number {
+  const match = value?.match(/(\d+)\.(\d+)\.(\d+)/u);
+  if (!match) return -1;
+  return (
+    Number(match[1]) * 1_000_000 + Number(match[2]) * 1_000 + Number(match[3])
+  );
+}
+
 describe("deployment hygiene", () => {
+  it("keeps standalone output on the Next.js release that fixes adapter builds", () => {
+    const packageJson = JSON.parse(
+      readFileSync(resolve(process.cwd(), "package.json"), "utf8"),
+    ) as {
+      dependencies?: Record<string, string>;
+      devDependencies?: Record<string, string>;
+    };
+    const nextConfig = readFileSync(
+      resolve(process.cwd(), "next.config.ts"),
+      "utf8",
+    );
+
+    const nextVersion = packageJson.dependencies?.next;
+    expect(toComparableVersion(nextVersion)).toBeGreaterThanOrEqual(
+      toComparableVersion("16.3.5"),
+    );
+    expect(packageJson.devDependencies?.["eslint-config-next"]).toBe(
+      nextVersion,
+    );
+    expect(nextConfig).toContain('output: "standalone"');
+    expect(nextConfig).not.toContain("NEXT_OUTPUT_MODE");
+    expect(nextConfig).not.toMatch(/process\.env\.VERCEL/u);
+  });
+
   it("keeps Worker build gates and Node version hints in project automation", () => {
     const packageJson = JSON.parse(
       readFileSync(resolve(process.cwd(), "package.json"), "utf8"),

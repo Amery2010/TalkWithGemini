@@ -7,7 +7,7 @@ const chatStoreState = {
   isActiveSessionLoading: false,
   activeMessages: [] as unknown[],
   sessions: [{ id: "session-1", compression: undefined }] as unknown[],
-  currentSessionId: "session-1",
+  currentSessionId: "session-1" as string | null,
   syncActiveSession: vi.fn(async () => undefined),
 };
 
@@ -65,6 +65,7 @@ describe("skill and tool-confirmation wiring", () => {
   beforeEach(() => {
     streamChatResponse.mockReset();
     streamChatResponse.mockResolvedValue(undefined);
+    chatStoreState.currentSessionId = "session-1";
     chatStoreState.activeMessages = conversation;
   });
 
@@ -99,6 +100,28 @@ describe("skill and tool-confirmation wiring", () => {
     const args = streamChatResponse.mock.calls[0] as unknown[];
     expect(args[STREAM_OPTIONS_ARG]).toEqual(
       expect.objectContaining({ forcedPluginIds: ["weather"] }),
+    );
+  });
+
+  it("seeds a new conversation with Skills selected in the empty composer", async () => {
+    chatStoreState.currentSessionId = null;
+    const createSession = vi.fn(() => "session-1");
+    const deps = createChatFlowDeps({ createSession });
+    const { handleSendMessage } = renderHook(() => useSendMessageFlow(deps))
+      .result.current;
+
+    await handleSendMessage("hello", [], undefined, undefined, {
+      skillIds: [],
+      pluginIds: [],
+      pendingSessionSkillIds: ["translation-localization"],
+    });
+
+    expect(createSession).toHaveBeenCalledWith(
+      undefined,
+      "New Chat",
+      undefined,
+      [],
+      { activeSkills: ["translation-localization"] },
     );
   });
 
